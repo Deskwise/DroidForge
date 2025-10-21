@@ -12,13 +12,24 @@ import type { DroidPlan, SynthesisOptions } from './types.js';
 import { writeAgentsMd } from './writers/writeAgentsMd.js';
 import { writeDroidGuide } from './writers/writeDroidGuide.js';
 import { writeManifest } from './writers/writeManifest.js';
+import { createRequire } from 'node:module';
+
+function getVersion(): string {
+  try {
+    const require = createRequire(import.meta.url);
+    const packageJson = require('../package.json');
+    return packageJson.version;
+  } catch {
+    return '0.1.0'; // fallback version
+  }
+}
 
 export function runCli() {
   const program = new Command();
   program
     .name('droidforge')
     .description(' DroidForge - Transform your repo into a Factory droid army')
-    .version('0.1.0')
+    .version(getVersion())
     .option('-v, --verbose', 'Enable detailed logging');
 
   // Global examples
