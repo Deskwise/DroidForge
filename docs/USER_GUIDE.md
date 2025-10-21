@@ -2,23 +2,40 @@
 
 ## 🚀 Quick Start
 
-### Installation
+### Prerequisites - Install Both Tools
+
+DroidForge works together with Factory CLI. Both tools are required:
+
 ```bash
-# Global installation (recommended)
+# Install DroidForge (creates AI droids)
 npm install -g droidforge
 
-# Local installation
-npm install droidforge
+# Install Factory CLI (runs the droids)
+npm install -g @factory/cli
+
+# Verify both are working
+droidforge --version
+factory --version
 ```
+
+### What Each Tool Does
+- **DroidForge**: Analyzes your repository and generates specialized AI droids
+- **Factory CLI**: Provides the runtime environment for droids to execute tasks
 
 ### First Time Setup
 ```bash
-# Initialize your project
+# 1. Initialize your project
 droidforge init
 
-# Follow the interactive interview to define your project
+# 2. Create your AI team (interactive interview)
 droidforge synthesize
+
+# 3. Start using your new AI team!
+factory droids list
+factory droids use dev "Build a new feature"
 ```
+
+⚠️ **Important**: After `droidforge synthesize`, use `factory` commands to interact with your droids.
 
 ## 📋 Core Commands
 

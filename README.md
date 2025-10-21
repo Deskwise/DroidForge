@@ -26,13 +26,17 @@ npx droidforge --help
 ### 5-Minute Setup
 
 ```bash
-# 1. Initialize your project
+# 1. Install dependencies (both are required)
+npm install -g droidforge
+npm install -g @factory/cli
+
+# 2. Initialize your project
 droidforge init
 
-# 2. Create your droid team (interactive interview)
+# 3. Create your droid team (interactive interview)
 droidforge synthesize
 
-# 3. Start using your droids!
+# 4. Start using your droids!
 factory droids list
 factory droids use dev "Implement user authentication"
 ```
@@ -333,21 +337,28 @@ Create `.droidforgerc.json`:
 ## 🛠️ Requirements
 
 - **Node.js** 16+ (18+ recommended)
-- **Factory CLI** (installed automatically or via `npm install -g @factory/cli`)
+- **Factory CLI** - Required to use generated droids (`npm install -g @factory/cli`)
 - **Git** repository (recommended for version control)
+
+**⚠️ Important**: DroidForge creates droids but requires Factory CLI to run them. Both tools work together:
+- **DroidForge**: Analyzes your repo and generates specialized AI droids
+- **Factory CLI**: Provides the runtime environment for droids to execute tasks
 
 ## 🚀 Installation
 
 ```bash
-# Global installation (recommended)
+# Install both required tools
 npm install -g droidforge
+npm install -g @factory/cli
 
-# Local installation
-npm install droidforge
-
-# Verify installation
+# Verify installations
 droidforge --version
+factory --version
 ```
+
+### What Each Tool Does
+- **DroidForge**: `npm install -g droidforge` - Creates AI droids from your codebase
+- **Factory CLI**: `npm install -g @factory/cli` - Runs the droids to execute tasks
 
 ## 🤝 Contributing
 
@@ -378,6 +389,29 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 - **Documentation**: https://docs.factory.ai/droidforge
 - **Community**: https://discord.gg/factory
 - **Issues**: https://github.com/factory/droidforge/issues
+
+## ⚠️ Common Issue: Factory CLI Not Found
+
+**Problem**: After running `droidforge synthesize`, when you try:
+```bash
+factory droids list
+```
+You get: `command not found: factory`
+
+**Solution**: Install Factory CLI (it's a separate package):
+```bash
+npm install -g @factory/cli
+```
+
+**Both tools are required:**
+1. **DroidForge** creates the droids
+2. **Factory CLI** runs the droids
+
+**Quick verification:**
+```bash
+droidforge --version  # Should show DroidForge version
+factory --version     # Should show Factory CLI version
+```
 
 ## 🆘 Support
 
