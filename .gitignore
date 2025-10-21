@@ -96,8 +96,7 @@ tmp/
 temp/
 
 # DroidForge specific
-.factory/cache/
-.factory/temp/
+.factory/
 .droidforge-temp/
 .droidforge-cache/
 .claude/
@@ -113,6 +112,10 @@ templates/
 # Development artifacts
 DroidForge-scaffold.zip
 examples/
+
+# Development documentation
+docs/architecture/
+docs/traycer/
 
 # Local configuration
 .droidforgerc.local.json
