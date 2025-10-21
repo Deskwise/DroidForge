@@ -116,6 +116,14 @@ examples/
 # Development documentation
 docs/architecture/
 docs/traycer/
+docs/prd/
+
+# Generated content
+AGENTS.md
+docs/droid-guide.md
+
+# Development specifications
+.specify/
 
 # Local configuration
 .droidforgerc.local.json
