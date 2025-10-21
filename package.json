@@ -1,13 +1,65 @@
 {
   "name": "droidforge",
   "version": "0.1.0",
+  "description": "Transform any repository into a specialized AI droid army with the power of Factory CLI",
   "type": "module",
+  "main": "./dist/index.js",
   "bin": {
     "droidforge": "./bin/droidforge.mjs"
   },
+  "files": [
+    "bin/**/*",
+    "dist/**/*",
+    "docs/**/*",
+    "README.md",
+    "LICENSE",
+    "package.json"
+  ],
   "scripts": {
     "build": "tsc -p .",
-    "dev": "node --loader ts-node/esm src/index.ts"
+    "dev": "node --loader ts-node/esm src/index.ts",
+    "test": "node --test tests/**/*.test.js",
+    "test:watch": "node --test --watch tests/**/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage tests/**/*.test.js",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "format": "prettier --write src/**/*.ts",
+    "prepublishOnly": "npm run build && npm test",
+    "preversion": "npm run lint && npm test",
+    "version": "npm run build",
+    "postversion": "git push && git push --tags",
+    "clean": "rm -rf dist .factory/cache",
+    "start": "node bin/droidforge.mjs"
+  },
+  "keywords": [
+    "ai",
+    "droids",
+    "factory",
+    "cli",
+    "code-generation",
+    "automation",
+    "development-tools",
+    "team-collaboration",
+    "project-analysis",
+    "typescript",
+    "nodejs"
+  ],
+  "author": {
+    "name": "Factory Team",
+    "email": "team@factory.ai",
+    "url": "https://factory.ai"
+  },
+  "homepage": "https://github.com/factory/droidforge#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/factory/droidforge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/factory/droidforge/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
   },
   "dependencies": {
     "commander": "^12.1.0",
@@ -25,8 +77,16 @@
     "@types/diff": "^5.0.9",
     "@types/micromatch": "^4.0.9",
     "@types/node": "^22.5.5",
+    "@typescript-eslint/eslint-plugin": "^6.21.0",
+    "@typescript-eslint/parser": "^6.21.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "license": "MIT"
 }

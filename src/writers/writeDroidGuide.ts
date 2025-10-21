@@ -2,95 +2,60 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { mkdirp } from 'mkdirp';
 import kleur from 'kleur';
-import { globby } from 'globby';
-import matter from 'gray-matter';
-
-interface DroidMetadata {
-  name: string;
-  role: string;
-  description: string;
-  tools: string[];
-  scope: string[];
-  procedure: string[];
-  proof: string;
-  outputSchema?: any;
-  lastReviewed?: string;
-}
-
-async function readDroidMetadata(cwd: string): Promise<DroidMetadata[]> {
-  try {
-    const droidFiles = await globby('.factory/droids/*.md', { cwd });
-    const droids: DroidMetadata[] = [];
-
-    for (const filePath of droidFiles) {
-      try {
-        const content = await fs.readFile(path.join(cwd, filePath), 'utf8');
-        const { data: frontmatter } = matter(content);
-
-        if (frontmatter.name) {
-          droids.push({
-            name: frontmatter.name,
-            role: frontmatter.role || '',
-            description: frontmatter.description || '',
-            tools: frontmatter.tools || [],
-            scope: frontmatter.scope || [],
-            procedure: frontmatter.procedure || [],
-            proof: frontmatter.proof || '',
-            outputSchema: frontmatter.outputSchema,
-            lastReviewed: frontmatter.lastReviewed
-          });
-        }
-      } catch (err) {
-        console.warn(kleur.yellow(`Warning: Could not parse ${filePath}: ${err}`));
-      }
-    }
-
-    return droids;
-  } catch (err) {
-    return [];
-  }
-}
+import { readDroidMetadata, type DroidMetadata } from './shared/readDroidMetadata.js';
 
 function getFrameworkExamples(frameworks: string[]): string {
-  const hasReact = frameworks.some(f => ['react', 'next', 'vue', 'svelte'].includes(f.toLowerCase()));
-  const hasExpress = frameworks.some(f => ['express', 'koa', 'fastify'].includes(f.toLowerCase()));
-  const hasJest = frameworks.some(f => ['jest', 'vitest', 'mocha'].includes(f.toLowerCase()));
+  // Normalize frameworks to lowercase for consistent matching
+  const normalizedFrameworks = frameworks.map(f => f.toLowerCase());
+
+  // Check for framework categories emitted by scanRepo()
+  const hasFrontend = normalizedFrameworks.includes('frontend') ||
+    normalizedFrameworks.some(f => ['react', 'next', 'vue', 'svelte', 'angular', 'nuxt'].includes(f));
+
+  const hasBackend = normalizedFrameworks.includes('backend') ||
+    normalizedFrameworks.some(f => ['express', 'koa', 'fastify', 'hono', 'nestjs'].includes(f));
+
+  const hasTesting = normalizedFrameworks.includes('testing') ||
+    normalizedFrameworks.some(f => ['jest', 'vitest', 'mocha', 'ava', 'playwright', 'cypress'].includes(f));
+
+  const hasMotion = normalizedFrameworks.includes('motion') ||
+    normalizedFrameworks.some(f => ['framer-motion'].includes(f));
 
   let examples = '';
 
-  if (hasReact) {
+  if (hasFrontend) {
     examples += `
-#### React/Next.js Example
+#### Frontend Development Example
 \`\`\`bash
 # Run UI/UX droid for component development
 factory run ui-ux
 
 Expected output:
-🎨 UI/UX droid analyzing React components...
+🎨 UI/UX droid analyzing frontend components...
 📋 Current task: Implement responsive navigation
 🔧 Tools available: Read, Write, Edit
 🎯 Scope: src/components/**/*.tsx
 \`\`\``;
   }
 
-  if (hasExpress) {
+  if (hasBackend) {
     examples += `
-#### Express API Example
+#### Backend API Example
 \`\`\`bash
 # Run API droid for endpoint development
 factory run api
 
 Expected output:
-🔌 API droid analyzing Express routes...
+🔌 API droid analyzing backend routes...
 📋 Current task: Add authentication middleware
 🔧 Tools available: Read, Write, Shell, Edit
 🎯 Scope: src/routes/**/*.js
 \`\`\``;
   }
 
-  if (hasJest) {
+  if (hasTesting) {
     examples += `
-#### Jest Testing Example
+#### Testing Framework Example
 \`\`\`bash
 # Run QA droid for test coverage
 factory run qa
@@ -103,7 +68,22 @@ Expected output:
 \`\`\``;
   }
 
-  if (!hasReact && !hasExpress && !hasJest) {
+  if (hasMotion) {
+    examples += `
+#### Motion/Animation Example
+\`\`\`bash
+# Run UI/UX droid for animation implementation
+factory run ui-ux
+
+Expected output:
+🎨 UI/UX droid implementing motion components...
+📋 Current task: Add smooth page transitions
+🔧 Tools available: Read, Write, Edit
+🎯 Scope: src/components/**/*.tsx
+\`\`\``;
+  }
+
+  if (!hasFrontend && !hasBackend && !hasTesting && !hasMotion) {
     examples += `
 #### Generic Example
 \`\`\`bash

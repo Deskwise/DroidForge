@@ -1,4 +1,5 @@
-import { isMatch } from 'micromatch';
+import pkg from 'micromatch';
+const { isMatch } = pkg;
 import { globby } from 'globby';
 
 export interface FileClaim {

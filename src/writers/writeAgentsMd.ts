@@ -2,64 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { mkdirp } from 'mkdirp';
 import kleur from 'kleur';
-import { globby } from 'globby';
-import matter from 'gray-matter';
-
-interface DroidMetadata {
-  name: string;
-  role: string;
-  description: string;
-  tools: string[];
-  scope: string[];
-  procedure: string[];
-  proof: string;
-  outputSchema?: any;
-  lastReviewed?: string;
-}
-
-async function readDroidMetadata(cwd: string): Promise<DroidMetadata[]> {
-  try {
-    const droidFiles = await globby('.factory/droids/*.md', { cwd });
-    const droids: DroidMetadata[] = [];
-
-    for (const filePath of droidFiles) {
-      try {
-        const content = await fs.readFile(path.join(cwd, filePath), 'utf8');
-        const { data: frontmatter } = matter(content);
-
-        if (frontmatter.name) {
-          droids.push({
-            name: frontmatter.name,
-            role: frontmatter.role || '',
-            description: frontmatter.description || '',
-            tools: frontmatter.tools || [],
-            scope: frontmatter.scope || [],
-            procedure: frontmatter.procedure || [],
-            proof: frontmatter.proof || '',
-            outputSchema: frontmatter.outputSchema,
-            lastReviewed: frontmatter.lastReviewed
-          });
-        }
-      } catch (err) {
-        console.warn(kleur.yellow(`Warning: Could not parse ${filePath}: ${err}`));
-      }
-    }
-
-    return droids;
-  } catch (err) {
-    return [];
-  }
-}
-
-function inferDroidType(name: string): 'generic' | 'script' | 'contextual' {
-  if (name.startsWith('script-') || name.startsWith('npm-')) {
-    return 'script';
-  }
-  if (['planner', 'dev', 'reviewer', 'qa', 'auditor'].includes(name)) {
-    return 'generic';
-  }
-  return 'contextual';
-}
+import { readDroidMetadata, type DroidMetadata } from './shared/readDroidMetadata.js';
 
 function getScopeSummary(scope: string[]): string {
   if (scope.length === 0) return 'No scope defined';

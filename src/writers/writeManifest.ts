@@ -2,26 +2,12 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { mkdirp } from 'mkdirp';
 import kleur from 'kleur';
-import { globby } from 'globby';
-import matter from 'gray-matter';
-
-interface DroidMetadata {
-  name: string;
-  type: 'generic' | 'script' | 'contextual';
-  role: string;
-  description: string;
-  tools: string[];
-  scope: string[];
-  procedure: string[];
-  proof: string;
-  outputSchema?: any;
-  lastReviewed?: string;
-}
+import { readDroidMetadataWithType, type DroidMetadataWithType } from './shared/readDroidMetadata.js';
 
 interface DroidManifest {
   version: number;
   timestamp: string;
-  droids: DroidMetadata[];
+  droids: DroidMetadataWithType[];
   summary: {
     total: number;
     byType: {
@@ -34,58 +20,12 @@ interface DroidManifest {
       Write: number;
       Shell: number;
       Edit: number;
+      unknown: number;
     };
   };
 }
 
-async function readDroidMetadata(cwd: string): Promise<DroidMetadata[]> {
-  try {
-    const droidFiles = await globby('.factory/droids/*.md', { cwd });
-    const droids: DroidMetadata[] = [];
-
-    for (const filePath of droidFiles) {
-      try {
-        const content = await fs.readFile(path.join(cwd, filePath), 'utf8');
-        const { data: frontmatter } = matter(content);
-
-        if (frontmatter.name) {
-          const type = inferDroidType(frontmatter.name);
-
-          droids.push({
-            name: frontmatter.name,
-            type,
-            role: frontmatter.role || '',
-            description: frontmatter.description || '',
-            tools: frontmatter.tools || [],
-            scope: frontmatter.scope || [],
-            procedure: frontmatter.procedure || [],
-            proof: frontmatter.proof || '',
-            outputSchema: frontmatter.outputSchema,
-            lastReviewed: frontmatter.lastReviewed
-          });
-        }
-      } catch (err) {
-        console.warn(kleur.yellow(`Warning: Could not parse ${filePath}: ${err}`));
-      }
-    }
-
-    return droids;
-  } catch (err) {
-    return [];
-  }
-}
-
-function inferDroidType(name: string): 'generic' | 'script' | 'contextual' {
-  if (name.startsWith('script-') || name.startsWith('npm-')) {
-    return 'script';
-  }
-  if (['planner', 'dev', 'reviewer', 'qa', 'auditor'].includes(name)) {
-    return 'generic';
-  }
-  return 'contextual';
-}
-
-function generateSummary(droids: DroidMetadata[]) {
+function generateSummary(droids: DroidMetadataWithType[]) {
   const summary = {
     total: droids.length,
     byType: {
@@ -97,7 +37,8 @@ function generateSummary(droids: DroidMetadata[]) {
       Read: 0,
       Write: 0,
       Shell: 0,
-      Edit: 0
+      Edit: 0,
+      unknown: 0
     }
   };
 
@@ -105,10 +46,21 @@ function generateSummary(droids: DroidMetadata[]) {
     // Count by type
     summary.byType[droid.type]++;
 
-    // Count tools
+    // Count tools with normalization
     for (const tool of droid.tools) {
-      if (tool in summary.byTools) {
-        summary.byTools[tool as keyof typeof summary.byTools]++;
+      const normalizedTool = tool.toLowerCase().trim();
+
+      // Map to canonical tool names
+      if (['read'].includes(normalizedTool)) {
+        summary.byTools.Read++;
+      } else if (['write', 'create', 'file'].includes(normalizedTool)) {
+        summary.byTools.Write++;
+      } else if (['shell', 'bash', 'terminal', 'cmd'].includes(normalizedTool)) {
+        summary.byTools.Shell++;
+      } else if (['edit', 'modify', 'update'].includes(normalizedTool)) {
+        summary.byTools.Edit++;
+      } else {
+        summary.byTools.unknown++;
       }
     }
   }
@@ -121,7 +73,7 @@ export async function writeManifest(opts: { dryRun?: boolean } = {}) {
 
   const cwd = process.cwd();
   const dest = path.join(cwd, '.factory/droids-manifest.json');
-  const droids = await readDroidMetadata(cwd);
+  const droids = await readDroidMetadataWithType(cwd);
   const summary = generateSummary(droids);
 
   const manifest: DroidManifest = {
