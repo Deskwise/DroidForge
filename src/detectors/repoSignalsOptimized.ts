@@ -2,7 +2,7 @@ import { globby } from 'globby';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import matter from 'gray-matter';
-import { cache, CACHE_KEYS } from '../utils/cache.js';
+import { cache } from '../utils/cache.js';
 import type { PRDContent } from '../types.js';
 
 export async function scanRepoOptimized(root: string): Promise<{
@@ -37,13 +37,13 @@ export async function scanRepoOptimized(root: string): Promise<{
     testConfigs,
     prdContent
   ] = await Promise.all([
-      scanPRDPaths(root),
-      scanFrameworks(root),
-      scanTestConfigs(root),
-      (async () => {
-        const paths = await scanPRDPaths(root);
-        return parsePrdContentOptimized(root, paths);
-      })()
+    scanPRDPaths(root),
+    scanFrameworks(root),
+    scanTestConfigs(root),
+    (async () => {
+      const paths = await scanPRDPaths(root);
+      return parsePrdContentOptimized(root, paths);
+    })()
   ]);
 
   const result = {
@@ -145,7 +145,7 @@ async function scanTestConfigs(root: string): Promise<string[]> {
 async function parsePrdContentOptimized(root: string, prdPaths: string[]): Promise<PRDContent | null> {
   if (!prdPaths.length) return null;
 
-  const cacheKey = `${root}_prd_content_${prdPaths.join('_').replace(/[\/\\]/g, '_')}`;
+  const cacheKey = `${root}_prd_content_${prdPaths.join('_').replace(/[/\\]/g, '_')}`;
   const cached = cache.get<PRDContent | null>(cacheKey);
 
   if (cached) {
@@ -271,8 +271,8 @@ function extractList(md: string, names: string[]): string[] {
     .split(/\r?\n/)
     .map(l => l.trim())
     .filter(Boolean)
-    .filter(l => /^[-*]\s+/.test(l) || /^\d+[\.)]\s+/.test(l))
-    .map(l => l.replace(/^[-*]\s+/, '').replace(/^\d+[\.)]\s+/, '').trim());
+    .filter(l => /^[-*]\s+/.test(l) || /^\d+[.)]\s+/.test(l))
+    .map(l => l.replace(/^[-*]\s+/, '').replace(/^\d+[.)]\s+/, '').trim());
 }
 
 function escapeRegExp(s: string): string {

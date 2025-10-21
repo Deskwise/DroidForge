@@ -116,8 +116,8 @@ function extractList(md: string, names: string[]): string[] {
     .split(/\r?\n/)
     .map(l => l.trim())
     .filter(Boolean)
-    .filter(l => /^[-*]\s+/.test(l) || /^\d+[\.)]\s+/.test(l))
-    .map(l => l.replace(/^[-*]\s+/, '').replace(/^\d+[\.)]\s+/, '').trim());
+    .filter(l => /^[-*]\s+/.test(l) || /^\d+[.)]\s+/.test(l))
+    .map(l => l.replace(/^[-*]\s+/, '').replace(/^\d+[.)]\s+/, '').trim());
 }
 
 function escapeRegExp(s: string) {

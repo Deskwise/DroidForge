@@ -93,5 +93,5 @@ export async function writeManifest(opts: { dryRun?: boolean } = {}) {
   }
 
   await mkdirp(path.dirname(dest));
-  await fs.writeFile(dest, content + '\n', 'utf8');
+  await fs.writeFile(dest, `${content  }\n`, 'utf8');
 }

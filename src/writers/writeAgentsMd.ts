@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { mkdirp } from 'mkdirp';
 import kleur from 'kleur';
-import { readDroidMetadata, type DroidMetadata } from './shared/readDroidMetadata.js';
+import { readDroidMetadata } from './shared/readDroidMetadata.js';
 
 function getScopeSummary(scope: string[]): string {
   if (scope.length === 0) return 'No scope defined';
@@ -24,11 +24,11 @@ This repo uses Factory droids (interactive only).
 `;
 
   if (bootstrap) {
-    body += `- Global orchestrator installed at ~/.factory/droids/orchestrator.md\n\n`;
+    body += '- Global orchestrator installed at ~/.factory/droids/orchestrator.md\n\n';
   }
 
   if (droids.length === 0) {
-    body += `> No droids found. Run \`factory init\` to bootstrap the system.\n`;
+    body += '> No droids found. Run `factory init` to bootstrap the system.\n';
   } else {
     // Droid Map table
     body += `## Droid Map
@@ -105,5 +105,5 @@ factory run orchestrator
   }
 
   await mkdirp(cwd);
-  await fs.writeFile(dest, body + '\n', 'utf8');
+  await fs.writeFile(dest, `${body  }\n`, 'utf8');
 }

@@ -1,6 +1,5 @@
 import { writeFileSync, readFileSync, existsSync, mkdirSync, unlinkSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import type { Signals, PRDContent } from '../types';
 
 interface CacheEntry<T> {
   data: T;
@@ -66,7 +65,7 @@ export class SimpleCache {
     }
   }
 
-  set<T>(key: string, data: T, customTTL?: number): void {
+  set<T>(key: string, data: T, _customTTL?: number): void {
     try {
       const cachePath = this.getCachePath(key);
       const hash = this.generateHash(data);

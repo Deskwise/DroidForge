@@ -156,8 +156,8 @@ export function generateConflictReport(resolution: ConflictResolutionReport): st
       const resolution = resolutions.find(r => r.conflict === conflict);
       if (resolution) {
         const icon = resolution.strategy === 'merge' ? '' :
-                     resolution.strategy === 'prioritize' ? '👑' :
-                     resolution.strategy === 'split' ? '✂' : '❓';
+          resolution.strategy === 'prioritize' ? '👑' :
+            resolution.strategy === 'split' ? '✂' : '❓';
         report += `   ${icon} ${resolution.resolution} (confidence: ${Math.round(resolution.confidence * 100)}%)\n`;
       }
       report += '\n';
@@ -180,33 +180,33 @@ export function suggestScopeAdjustments(resolution: ConflictResolutionReport): s
   const suggestions: string[] = [];
 
   for (const conflictResolution of resolution.resolutions) {
-    const { conflict, strategy, resolution: res, confidence } = conflictResolution;
+    const { conflict, strategy, confidence } = conflictResolution;
 
     switch (strategy) {
-      case 'merge':
-        suggestions.push(`Consider creating a merged droid: "${conflict.droid1}-${conflict.droid2}"`);
-        suggestions.push(`Define complementary scopes for each droid's specialty`);
-        break;
+    case 'merge':
+      suggestions.push(`Consider creating a merged droid: "${conflict.droid1}-${conflict.droid2}"`);
+      suggestions.push('Define complementary scopes for each droid\'s specialty');
+      break;
 
-      case 'prioritize':
-        suggestions.push(`Make ${conflict.droid1} read-only and ${conflict.droid2} handle modifications`);
-        suggestions.push(`Add explicit handoff procedures between droids`);
-        break;
+    case 'prioritize':
+      suggestions.push(`Make ${conflict.droid1} read-only and ${conflict.droid2} handle modifications`);
+      suggestions.push('Add explicit handoff procedures between droids');
+      break;
 
-      case 'split':
-        suggestions.push(`Refine patterns to be more specific: ${conflict.pattern}`);
-        suggestions.push(`Consider file-based scoping: "${conflict.droid1}/src" vs "${conflict.droid2}/tests"`);
-        break;
+    case 'split':
+      suggestions.push(`Refine patterns to be more specific: ${conflict.pattern}`);
+      suggestions.push(`Consider file-based scoping: "${conflict.droid1}/src" vs "${conflict.droid2}/tests"`);
+      break;
 
-      case 'manual':
-        suggestions.push(`Review the overlapping responsibilities carefully`);
-        suggestions.push(`Consider if both droids are necessary or if one can be eliminated`);
-        suggestions.push(`Define clear handoff points and communication protocols`);
-        break;
+    case 'manual':
+      suggestions.push('Review the overlapping responsibilities carefully');
+      suggestions.push('Consider if both droids are necessary or if one can be eliminated');
+      suggestions.push('Define clear handoff points and communication protocols');
+      break;
     }
 
     if (confidence < 0.7) {
-      suggestions.push(` Low confidence - manually verify this resolution`);
+      suggestions.push(' Low confidence - manually verify this resolution');
     }
   }
 
@@ -215,7 +215,6 @@ export function suggestScopeAdjustments(resolution: ConflictResolutionReport): s
 
 export function validateClaimPatterns(claims: FileClaim[]): string[] {
   const issues: string[] = [];
-  const patternSet = new Set<string>();
 
   // Check for duplicate patterns
   const patternCounts = new Map<string, number>();

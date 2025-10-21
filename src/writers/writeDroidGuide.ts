@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { mkdirp } from 'mkdirp';
 import kleur from 'kleur';
-import { readDroidMetadata, type DroidMetadata } from './shared/readDroidMetadata.js';
+import { readDroidMetadata } from './shared/readDroidMetadata.js';
 
 function getFrameworkExamples(frameworks: string[]): string {
   // Normalize frameworks to lowercase for consistent matching
@@ -125,11 +125,11 @@ The Factory droid system provides autonomous agents for software development tas
 `;
 
   if (bootstrap) {
-    body += `- Global orchestrator installed at ~/.factory/droids/orchestrator.md\n\n`;
+    body += '- Global orchestrator installed at ~/.factory/droids/orchestrator.md\n\n';
   }
 
   if (droids.length === 0) {
-    body += `> No droids found. Run \`factory init\` to bootstrap the system.\n`;
+    body += '> No droids found. Run `factory init` to bootstrap the system.\n';
   } else {
     body += `## Invocation Patterns
 
@@ -304,5 +304,5 @@ ${droid.procedure.length > 0 ? droid.procedure.map(p => `1. ${p}`).join('\n') : 
   }
 
   await mkdirp(dir);
-  await fs.writeFile(dest, body + '\n', 'utf8');
+  await fs.writeFile(dest, `${body  }\n`, 'utf8');
 }

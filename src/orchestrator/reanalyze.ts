@@ -1,11 +1,10 @@
-import type { DroidPlan, ReanalysisReport, DroidChange, ExistingDroid, ChangeType } from '../types.js';
+import type { DroidPlan, ReanalysisReport, DroidChange, ExistingDroid } from '../types.js';
 import matter from 'gray-matter';
 import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import { globby } from 'globby';
 import { planDroids, DroidSpec } from './droidPlanner.js';
 import { validateClaims } from './fileClaims.js';
-import { generateProofCommands } from './proofGenerator.js';
 
 function isUserModified(droid: ExistingDroid, fileMtime?: Date): boolean {
   // Check for custom markers in body first
@@ -94,7 +93,7 @@ function detectStaleDroids(existingDroids: ExistingDroid[], newSpecs: DroidSpec[
       // Get script path from scope (first element) or from name parsing
       scriptPath = droid.frontmatter.scope[0] ||
         (droid.name.startsWith('npm-') ? droid.name.substring(4) :
-         droid.name.startsWith('script-') ? droid.name.substring(7) : undefined);
+          droid.name.startsWith('script-') ? droid.name.substring(7) : undefined);
 
       if (scriptPath && !scriptPaths.has(scriptPath)) {
         reason = `Script ${scriptPath} no longer exists`;

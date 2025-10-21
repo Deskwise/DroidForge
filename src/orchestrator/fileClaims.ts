@@ -119,50 +119,50 @@ export function generateScopePatterns(role: string, frameworks: string[], script
   const patterns: string[] = [];
   
   switch (role) {
-    case 'planner':
-      patterns.push('docs/**/*.md', 'README.md', '.factory/**');
-      break;
+  case 'planner':
+    patterns.push('docs/**/*.md', 'README.md', '.factory/**');
+    break;
       
-    case 'dev':
-      patterns.push('src/**/*.{ts,js,tsx,jsx,py,go,rs}', 'lib/**/*.{ts,js,tsx,jsx,py,go,rs}');
-      break;
+  case 'dev':
+    patterns.push('src/**/*.{ts,js,tsx,jsx,py,go,rs}', 'lib/**/*.{ts,js,tsx,jsx,py,go,rs}');
+    break;
       
-    case 'reviewer':
-      patterns.push('src/**/*.{ts,js,py,tsx,jsx,vue,go,rs}', 'lib/**/*.{ts,js,py,tsx,jsx,vue,go,rs}');
-      break;
+  case 'reviewer':
+    patterns.push('src/**/*.{ts,js,py,tsx,jsx,vue,go,rs}', 'lib/**/*.{ts,js,py,tsx,jsx,vue,go,rs}');
+    break;
       
-    case 'qa':
-      patterns.push('**/*.test.*', '**/*.spec.*', 'tests/**', '__tests__/**', 'test/**');
-      break;
+  case 'qa':
+    patterns.push('**/*.test.*', '**/*.spec.*', 'tests/**', '__tests__/**', 'test/**');
+    break;
       
-    case 'auditor':
-      patterns.push('config/**', '*.config.*', '.*rc', '.*rc.*', 'package.json', 'requirements.txt', 'Cargo.toml', 'go.mod');
-      break;
+  case 'auditor':
+    patterns.push('config/**', '*.config.*', '.*rc', '.*rc.*', 'package.json', 'requirements.txt', 'Cargo.toml', 'go.mod');
+    break;
       
     // Contextual droids
-    case 'ui-ux':
-      patterns.push('src/components/**', 'src/pages/**', 'src/**/*.{css,scss,sass,less}', 'src/**/*.{tsx,jsx,vue}');
-      break;
+  case 'ui-ux':
+    patterns.push('src/components/**', 'src/pages/**', 'src/**/*.{css,scss,sass,less}', 'src/**/*.{tsx,jsx,vue}');
+    break;
       
-    case 'api':
-      patterns.push('src/api/**', 'src/routes/**', 'src/controllers/**', 'src/handlers/**', 'src/services/**');
-      break;
+  case 'api':
+    patterns.push('src/api/**', 'src/routes/**', 'src/controllers/**', 'src/handlers/**', 'src/services/**');
+    break;
       
-    case 'domain-specialist':
-      patterns.push('src/**', 'lib/**', 'docs/prd/**');
-      break;
+  case 'domain-specialist':
+    patterns.push('src/**', 'lib/**', 'docs/prd/**');
+    break;
       
-    case 'qa-e2e':
-      patterns.push('e2e/**', 'tests/e2e/**', '**/*.e2e.*', 'cypress/**', 'playwright/**');
-      break;
+  case 'qa-e2e':
+    patterns.push('e2e/**', 'tests/e2e/**', '**/*.e2e.*', 'cypress/**', 'playwright/**');
+    break;
       
-    case 'animation-specialist':
-      patterns.push('src/animations/**', 'src/motion/**', 'src/**/*.animation.*', 'src/**/*.motion.*');
-      break;
+  case 'animation-specialist':
+    patterns.push('src/animations/**', 'src/motion/**', 'src/**/*.animation.*', 'src/**/*.motion.*');
+    break;
       
-    default:
-      patterns.push('src/**', 'docs/**');
-      break;
+  default:
+    patterns.push('src/**', 'docs/**');
+    break;
   }
   
   return patterns;

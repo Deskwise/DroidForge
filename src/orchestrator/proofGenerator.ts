@@ -20,37 +20,39 @@ export function generateProofCommands(scriptPath: string, frameworks: string[]):
   const commands: string[] = [];
   
   switch (scriptType) {
-    case 'shell':
-      commands.push(`bash ${scriptPath}; ec=$?; echo "Exit code: $ec"; test $ec -eq 0 && echo PASS || echo FAIL`);
-      break;
+  case 'shell':
+    commands.push(`bash ${scriptPath}; ec=$?; echo "Exit code: $ec"; test $ec -eq 0 && echo PASS || echo FAIL`);
+    break;
       
-    case 'python':
-      commands.push(`python3 ${scriptPath}; ec=$?; echo "Exit code: $ec"; test $ec -eq 0 && echo PASS || echo FAIL`);
-      break;
+  case 'python':
+    commands.push(`python3 ${scriptPath}; ec=$?; echo "Exit code: $ec"; test $ec -eq 0 && echo PASS || echo FAIL`);
+    break;
       
-    case 'npm':
-      const npmScript = scriptPath.replace('npm:', '');
-      commands.push(`npm run ${npmScript}; ec=$?; echo "Exit code: $ec"; test $ec -eq 0 && echo PASS || echo FAIL`);
-      break;
+  case 'npm': {
+    const npmScript = scriptPath.replace('npm:', '');
+    commands.push(`npm run ${npmScript}; ec=$?; echo "Exit code: $ec"; test $ec -eq 0 && echo PASS || echo FAIL`);
+    break;
+  }
       
-    case 'powershell':
-      commands.push(`pwsh -File ${scriptPath}; ec=$?; echo "Exit code: $ec"; test $ec -eq 0 && echo PASS || echo FAIL`);
-      break;
+  case 'powershell':
+    commands.push(`pwsh -File ${scriptPath}; ec=$?; echo "Exit code: $ec"; test $ec -eq 0 && echo PASS || echo FAIL`);
+    break;
       
-    case 'make':
-      // Handle Makefile: prefix explicitly
-      let target = '';
-      if (scriptPath.includes(':')) {
-        const parts = scriptPath.split(':');
-        target = parts[1] || '';
-      }
-      const makeCmd = target ? `make ${target}` : 'make';
-      commands.push(`${makeCmd}; ec=$?; echo "Exit code: $ec"; test $ec -eq 0 && echo PASS || echo FAIL`);
-      break;
+  case 'make': {
+    // Handle Makefile: prefix explicitly
+    let target = '';
+    if (scriptPath.includes(':')) {
+      const parts = scriptPath.split(':');
+      target = parts[1] || '';
+    }
+    const makeCmd = target ? `make ${target}` : 'make';
+    commands.push(`${makeCmd}; ec=$?; echo "Exit code: $ec"; test $ec -eq 0 && echo PASS || echo FAIL`);
+    break;
+  }
       
-    default:
-      commands.push(`echo "Unknown script type for ${scriptPath}"`);
-      break;
+  default:
+    commands.push(`echo "Unknown script type for ${scriptPath}"`);
+    break;
   }
   
   // Add framework-specific proof commands

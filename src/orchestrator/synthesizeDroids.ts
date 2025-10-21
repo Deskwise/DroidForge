@@ -150,7 +150,7 @@ export async function synthesizeDroids(opts: SynthesisOptions) {
   }
   
   // Print summary
-  console.log('\n' + kleur.cyan('─'.repeat(60)));
+  console.log(`\n${  kleur.cyan('─'.repeat(60))}`);
   if (dryRun) {
     console.log(kleur.yellow('DRY-RUN SUMMARY:'));
     console.log(kleur.gray(`  Would create: ${metrics.created} droid${metrics.created === 1 ? '' : 's'}`));
@@ -271,17 +271,17 @@ async function writeDroidFromSpec(
   // Select template based on spec type
   let templateName: string;
   switch (spec.type) {
-    case 'generic':
-      templateName = 'droid.generic.md.hbs';
-      break;
-    case 'script':
-      templateName = 'droid.script.md.hbs';
-      break;
-    case 'contextual':
-      templateName = 'droid.contextual.md.hbs';
-      break;
-    default:
-      templateName = 'droid.generic.md.hbs';
+  case 'generic':
+    templateName = 'droid.generic.md.hbs';
+    break;
+  case 'script':
+    templateName = 'droid.script.md.hbs';
+    break;
+  case 'contextual':
+    templateName = 'droid.contextual.md.hbs';
+    break;
+  default:
+    templateName = 'droid.generic.md.hbs';
   }
   
   const tplPath = new URL(`../../templates/${templateName}`, import.meta.url);
