@@ -55,8 +55,8 @@ ${kleur.bold(' Learn More:')}
     .option('--force', 'Overwrite existing global orchestrator')
     .action(async (options) => {
       await installGlobalOrchestrator();
-      await writeAgentsMd({ bootstrap: true });
-      await writeDroidGuide({ bootstrap: true });
+      await writeAgentsMd();
+      await writeDroidGuide();
       await writeManifest({ dryRun: false });
       console.log(' Initialized: global orchestrator + project docs + manifest');
     });

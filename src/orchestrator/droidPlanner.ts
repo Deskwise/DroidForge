@@ -281,83 +281,224 @@ Notes:
 
 export function planDroids(plan: DroidPlan): DroidSpec[] {
   const specs: DroidSpec[] = [];
-  const mode = plan.brief.mode;
+  const analysis = plan.brief.analysis;
   const frameworks = plan.signals.frameworks;
-  
-  // Mode-based logic
-  if (mode === 'bootstrap') {
-    // Core generic droids
-    specs.push(createGenericDroidSpec('planner', mode, frameworks));
-    specs.push(createGenericDroidSpec('dev', mode, frameworks));
-    specs.push(createGenericDroidSpec('reviewer', mode, frameworks));
-    specs.push(createGenericDroidSpec('qa', mode, frameworks));
-    specs.push(createGenericDroidSpec('auditor', mode, frameworks));
-    
-    // Contextual droids based on frameworks
-    const contextualDroids = inferContextualDroids(frameworks);
-    for (const def of contextualDroids) {
-      specs.push(createContextualDroidSpec(def, frameworks));
-    }
-  } else if (mode === 'feature') {
-    // Only contextual droids for feature mode
-    const contextualDroids = inferContextualDroids(frameworks);
-    for (const def of contextualDroids) {
-      specs.push(createContextualDroidSpec(def, frameworks));
-    }
-  } else if (mode === 'action') {
-    // Create scoped droids based on goal keywords
-    const goal = plan.brief.intent.goal.toLowerCase();
-    
-    if (goal.includes('refactor')) {
-      specs.push({
-        name: 'refactor-agent',
-        type: 'contextual',
-        role: 'refactor-agent',
-        description: 'Short-lived agent for refactoring tasks',
-        tools: ['Read'],
-        scope: ['src/**', 'lib/**'],
-        procedure: ['Analyze refactor scope', 'Plan changes', 'Execute refactor', 'Verify functionality'],
-        proof: [buildExitCheckedCommand('npm test || pytest')],
-        outputSchema: 'Summary: <changes>\nResults:\n- files: <list>\nNotes:\n- <impact>',
-        lastReviewed: new Date().toISOString()
-      });
-    }
-    
-    if (goal.includes('upgrade') || goal.includes('migrate')) {
-      specs.push({
-        name: 'dep-upgrade-guard',
-        type: 'contextual',
-        role: 'dep-upgrade-guard',
-        description: 'Dependency upgrade and migration specialist',
-        tools: ['Read'],
-        scope: ['package.json', 'requirements.txt', 'Cargo.toml', 'go.mod', 'src/**'],
-        procedure: ['Review upgrade requirements', 'Check breaking changes', 'Update dependencies', 'Run tests'],
-        proof: [
-          buildExitCheckedCommand('npm test || pytest'),
-          buildExitCheckedCommand('npm audit || safety check')
-        ],
-        outputSchema: 'Summary: <upgrades>\nResults:\n- updated: <list>\nNotes:\n- <breaking-changes>',
-        lastReviewed: new Date().toISOString()
-      });
-    }
-  } else if (mode === 'maintenance') {
-    // Same as bootstrap for maintenance
-    specs.push(createGenericDroidSpec('planner', mode, frameworks));
-    specs.push(createGenericDroidSpec('dev', mode, frameworks));
-    specs.push(createGenericDroidSpec('reviewer', mode, frameworks));
-    specs.push(createGenericDroidSpec('qa', mode, frameworks));
-    specs.push(createGenericDroidSpec('auditor', mode, frameworks));
+
+  if (!analysis) {
+    // Fallback for old briefs without analysis
+    return createFallbackDroids(plan);
   }
-  
-  // Add script droids for all discovered scripts
-  for (const scriptPath of plan.scripts.files) {
-    specs.push(createScriptDroidSpec(scriptPath, frameworks));
-  }
-  
-  // Add npm script droids
-  for (const npmScript of plan.scripts.npmScripts) {
-    specs.push(createScriptDroidSpec(npmScript.path, frameworks));
-  }
-  
+
+  // Create domain-specific droids based on natural language analysis
+  const domainDroids = createDomainSpecificDroids(analysis);
+  specs.push(...domainDroids);
+
+  // Add common droids based on complexity and requirements
+  const commonDroids = createCommonDroids(analysis);
+  specs.push(...commonDroids);
+
+  // Add technical level-specific droids
+  const technicalDroids = createTechnicalDroids(analysis);
+  specs.push(...technicalDroids);
+
   return specs;
+}
+
+function createDomainSpecificDroids(analysis: any): DroidSpec[] {
+  const specs: DroidSpec[] = [];
+  const { domain, requirements, complexity } = analysis;
+
+  switch (domain) {
+    case 'medical/dental':
+      specs.push(
+        createDroidSpec('frontend-dental', 'frontend', {
+          description: 'Specialized in creating intuitive user interfaces for dental and medical applications',
+          scope: ['patient booking forms', 'treatment displays', 'medical history views', 'appointment calendars'],
+          domainExpertise: ['HIPAA compliance', 'medical terminology', 'patient privacy', 'appointment scheduling']
+        }),
+        createDroidSpec('backend-dental', 'backend', {
+          description: 'Expert in dental practice management systems and medical data handling',
+          scope: ['patient records', 'appointment scheduling', 'billing systems', 'insurance integration'],
+          domainExpertise: ['HIPAA compliance', 'medical databases', 'practice management', 'secure data handling']
+        })
+      );
+      if (requirements.includes('booking_system')) {
+        specs.push(createDroidSpec('scheduler-dental', 'fullstack', {
+          description: 'Specialized in dental appointment scheduling and calendar management',
+          scope: ['appointment booking', 'calendar integration', 'availability management', 'patient reminders'],
+          domainExpertise: ['time slot management', 'patient communications', 'scheduling conflicts', 'automated reminders']
+        }));
+      }
+      break;
+
+    case 'restaurant':
+      specs.push(
+        createDroidSpec('frontend-restaurant', 'frontend', {
+          description: 'Creates engaging user interfaces for restaurant and food service applications',
+          scope: ['menu displays', 'ordering systems', 'reservation forms', 'customer reviews'],
+          domainExpertise: ['restaurant UX patterns', 'food presentation', 'ordering flows', 'customer engagement']
+        }),
+        createDroidSpec('backend-restaurant', 'backend', {
+          description: 'Expert in restaurant management systems and food service operations',
+          scope: ['inventory management', 'order processing', 'table management', 'kitchen coordination'],
+          domainExpertise: ['restaurant operations', 'POS integration', 'inventory tracking', 'order management']
+        })
+      );
+      break;
+
+    case 'fitness':
+      specs.push(
+        createDroidSpec('frontend-fitness', 'frontend', {
+          description: 'Specialized in fitness and workout application interfaces',
+          scope: ['workout displays', 'progress tracking', 'exercise libraries', 'user profiles'],
+          domainExpertise: ['fitness app patterns', 'progress visualization', 'workout planning', 'motivation design']
+        }),
+        createDroidSpec('backend-fitness', 'backend', {
+          description: 'Expert in fitness tracking and workout management systems',
+          scope: ['workout data', 'user progress', 'exercise libraries', 'performance analytics'],
+          domainExpertise: ['fitness data modeling', 'performance tracking', 'workout algorithms', 'health metrics']
+        })
+      );
+      break;
+
+    case 'e-commerce':
+      specs.push(
+        createDroidSpec('frontend-ecommerce', 'frontend', {
+          description: 'Creates compelling shopping experiences and product presentations',
+          scope: ['product catalogs', 'shopping carts', 'checkout flows', 'user accounts'],
+          domainExpertise: ['e-commerce UX', 'conversion optimization', 'product presentation', 'trust signals']
+        }),
+        createDroidSpec('backend-ecommerce', 'backend', {
+          description: 'Expert in e-commerce platforms and transaction processing',
+          scope: ['product management', 'order processing', 'payment integration', 'inventory tracking'],
+          domainExpertise: ['payment systems', 'order management', 'e-commerce security', 'scalability patterns']
+        })
+      );
+      break;
+
+    default:
+      // General purpose droids for unspecified domains
+      specs.push(
+        createDroidSpec('frontend-general', 'frontend', {
+          description: 'Versatile frontend developer for various application types',
+          scope: ['user interfaces', 'responsive design', 'user experience', 'component development'],
+          domainExpertise: ['modern frontend frameworks', 'UI/UX principles', 'responsive design', 'accessibility']
+        }),
+        createDroidSpec('backend-general', 'backend', {
+          description: 'Full-stack backend developer for general application development',
+          scope: ['API development', 'database design', 'authentication', 'business logic'],
+          domainExpertise: ['RESTful APIs', 'database design', 'security patterns', 'system architecture']
+        })
+      );
+  }
+
+  return specs;
+}
+
+function createCommonDroids(analysis: any): DroidSpec[] {
+  const specs: DroidSpec[] = [];
+  const { complexity, requirements, technicalLevel } = analysis;
+
+  // Always include a code reviewer
+  specs.push(createDroidSpec('reviewer', 'quality', {
+    description: 'Code quality specialist focused on maintaining high standards',
+    scope: ['code reviews', 'best practices', 'code style', 'quality assurance'],
+    domainExpertise: ['code review patterns', 'quality standards', 'best practices', 'code maintainability']
+  }));
+
+  // Add QA for medium to complex projects
+  if (complexity === 'medium' || complexity === 'complex') {
+    specs.push(createDroidSpec('qa', 'testing', {
+      description: 'Testing specialist focused on ensuring application reliability',
+      scope: ['test planning', 'test execution', 'bug reporting', 'quality validation'],
+      domainExpertise: ['testing methodologies', 'test automation', 'quality assurance', 'bug tracking']
+    }));
+  }
+
+  // Add devops for complex projects
+  if (complexity === 'complex') {
+    specs.push(createDroidSpec('devops', 'deployment', {
+      description: 'Deployment and infrastructure specialist',
+      scope: ['deployment pipelines', 'infrastructure setup', 'monitoring', 'scaling'],
+      domainExpertise: ['CI/CD pipelines', 'cloud deployment', 'monitoring systems', 'infrastructure as code']
+    }));
+  }
+
+  // Add specialized droids based on requirements
+  if (requirements.includes('payment_processing')) {
+    specs.push(createDroidSpec('payments', 'backend', {
+      description: 'Payment processing and financial transaction specialist',
+      scope: ['payment integration', 'transaction security', 'billing systems', 'financial compliance'],
+      domainExpertise: ['payment gateways', 'PCI compliance', 'transaction security', 'financial regulations']
+    }));
+  }
+
+  if (requirements.includes('user_management')) {
+    specs.push(createDroidSpec('auth', 'backend', {
+      description: 'Authentication and authorization specialist',
+      scope: ['user authentication', 'authorization systems', 'security', 'user management'],
+      domainExpertise: ['OAuth implementations', 'JWT tokens', 'security best practices', 'user session management']
+    }));
+  }
+
+  return specs;
+}
+
+function createTechnicalDroids(analysis: any): DroidSpec[] {
+  const specs: DroidSpec[] = [];
+  const { technicalLevel } = analysis;
+
+  // Add additional technical droids based on user's technical level
+  if (technicalLevel === 'expert') {
+    specs.push(createDroidSpec('architect', 'system', {
+      description: 'System architecture specialist for complex application design',
+      scope: ['system architecture', 'scalability planning', 'technical decisions', 'design patterns'],
+      domainExpertise: ['system design', 'architecture patterns', 'scalability principles', 'technical leadership']
+    }));
+  }
+
+  return specs;
+}
+
+function createDroidSpec(name: string, role: string, customizations: any): DroidSpec {
+  const baseTools = role === 'frontend' ?
+    ['file:src/**/*', 'file:public/**/*', 'command:npm run dev'] :
+    role === 'backend' ?
+    ['file:server/**/*', 'file:api/**/*', 'command:npm start'] :
+    ['file:**/*'];
+
+  return {
+    name,
+    type: 'contextual',
+    role,
+    description: customizations.description,
+    tools: baseTools,
+    scope: customizations.scope || [],
+    procedure: [
+      `Analyze ${role} requirements`,
+      `Implement ${customizations.domainExpertise?.[0] || 'solution'}`,
+      `Test functionality`,
+      `Ensure quality standards`
+    ],
+    proof: [buildExitCheckedCommand('npm test')],
+    outputSchema: `Implementation: ${role} components\nResults:\n- Features: <list>\nQuality: <validation>`,
+    lastReviewed: new Date().toISOString(),
+    ...customizations
+  };
+}
+
+function createFallbackDroids(plan: DroidPlan): DroidSpec[] {
+  // Simple fallback for old briefs
+  return [
+    createDroidSpec('frontend', 'frontend', {
+      description: 'Frontend developer for user interface development',
+      scope: ['user interfaces', 'components', 'styling'],
+      domainExpertise: ['modern frontend development']
+    }),
+    createDroidSpec('backend', 'backend', {
+      description: 'Backend developer for server-side functionality',
+      scope: ['APIs', 'database', 'business logic'],
+      domainExpertise: ['server-side development']
+    })
+  ];
 }

@@ -101,8 +101,8 @@ Expected output:
   return examples;
 }
 
-export async function writeDroidGuide(opts: { bootstrap?: boolean; dryRun?: boolean; frameworks?: string[] } = {}) {
-  const { bootstrap = false, dryRun = false, frameworks = [] } = opts;
+export async function writeDroidGuide(opts: { dryRun?: boolean; frameworks?: string[] } = {}) {
+  const { dryRun = false, frameworks = [] } = opts;
 
   const cwd = process.cwd();
   const dir = path.join(cwd, 'docs');
@@ -124,12 +124,8 @@ The Factory droid system provides autonomous agents for software development tas
 
 `;
 
-  if (bootstrap) {
-    body += '- Global orchestrator installed at ~/.factory/droids/orchestrator.md\n\n';
-  }
-
   if (droids.length === 0) {
-    body += '> No droids found. Run `factory init` to bootstrap the system.\n';
+    body += '> No droids found. Run `droidforge synthesize` to create your AI team.\n';
   } else {
     body += `## Invocation Patterns
 

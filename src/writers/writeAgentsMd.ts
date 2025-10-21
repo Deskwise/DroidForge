@@ -10,8 +10,8 @@ function getScopeSummary(scope: string[]): string {
   return `${scope.slice(0, 3).join(', ')}...`;
 }
 
-export async function writeAgentsMd(opts: { bootstrap?: boolean; dryRun?: boolean } = {}) {
-  const { bootstrap = false, dryRun = false } = opts;
+export async function writeAgentsMd(opts: { dryRun?: boolean } = {}) {
+  const { dryRun = false } = opts;
 
   const cwd = process.cwd();
   const dest = path.join(cwd, 'AGENTS.md');
@@ -23,12 +23,8 @@ This repo uses Factory droids (interactive only).
 
 `;
 
-  if (bootstrap) {
-    body += '- Global orchestrator installed at ~/.factory/droids/orchestrator.md\n\n';
-  }
-
   if (droids.length === 0) {
-    body += '> No droids found. Run `factory init` to bootstrap the system.\n';
+    body += '> No droids found. Run `droidforge synthesize` to create your AI team.\n';
   } else {
     // Droid Map table
     body += `## Droid Map

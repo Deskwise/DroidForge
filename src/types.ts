@@ -1,7 +1,7 @@
 import { DroidSpec } from './orchestrator/droidPlanner';
 import { ClaimConflict } from './orchestrator/fileClaims';
 
-export type Mode = 'bootstrap' | 'feature' | 'action' | 'maintenance';
+export type Mode = 'new-project' | 'feature' | 'action' | 'maintenance';
 export type Persona = 'vibe' | 'pragmatic' | 'pro';
 export type AutonomyLevel = 'L1' | 'L2' | 'L3';
 
@@ -28,6 +28,14 @@ export interface ProjectBrief {
     frameworks: string[];
     scripts: string[];
     prdPaths: string[];
+  };
+  analysis?: {
+    domain: string;
+    complexity: 'simple' | 'medium' | 'complex';
+    technicalLevel: 'beginner' | 'intermediate' | 'expert';
+    userGoal: string;
+    requirements: string[];
+    domainSpecific: string[];
   };
 }
 
