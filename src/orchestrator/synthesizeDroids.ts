@@ -123,7 +123,7 @@ export async function synthesizeDroids(opts: SynthesisOptions) {
   
   const validation = await validateClaims(claims, cwd);
   if (!validation.valid) {
-    console.log(kleur.yellow('⚠ File claim conflicts detected:'));
+    console.log(kleur.yellow(' File claim conflicts detected:'));
     for (const conflict of validation.conflicts) {
       console.log(kleur.yellow(`  - ${conflict.droid1} vs ${conflict.droid2}: ${conflict.pattern}`));
     }
@@ -265,7 +265,7 @@ async function writeDroidFromSpec(
   }
   
   if (needsWidening) {
-    console.log(kleur.cyan(`  ↳ Tools widened: [${originalTools.join(', ')}] → [${spec.tools.join(', ')}]`));
+    console.log(kleur.cyan(`  ↳ Tools widened: [${originalTools.join(', ')}]  [${spec.tools.join(', ')}]`));
   }
   
   // Select template based on spec type

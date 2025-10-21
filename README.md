@@ -1,18 +1,18 @@
-# 🤖 DroidForge
+# DroidForge
 
 Transform any repository into a specialized AI droid army with the power of Factory CLI.
 
 DroidForge is a Node.js CLI that automatically analyzes your project and generates specialized AI assistants (droids) tailored to your codebase, team structure, and development workflow.
 
-## ✨ What DroidForge Does
+## What DroidForge Does
 
-- **🎯 Smart Analysis**: Scans your PRD/README, source code, and scripts to understand your project
-- **🤖 Droid Generation**: Creates specialized AI assistants with scoped tools and permissions
-- **👥 Team Coordination**: Installs a global orchestrator to manage droid collaboration
-- **📚 Documentation**: Generates comprehensive team guides and usage documentation
-- **🔄 Continuous Updates**: Reanalyzes and evolves your droid team as your project grows
+- **Smart Analysis**: Scans your PRD/README, source code, and scripts to understand your project
+- **Droid Generation**: Creates specialized AI assistants with scoped tools and permissions
+- **Team Coordination**: Installs a global orchestrator to manage droid collaboration
+- **Documentation**: Generates comprehensive team guides and usage documentation
+- **Continuous Updates**: Reanalyzes and evolves your droid team as your project grows
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Installation
 ```bash
@@ -41,9 +41,9 @@ factory droids list
 factory droids use dev "Implement user authentication"
 ```
 
-## 🎯 Core Features
+## Core Features
 
-### **🔍 Intelligent Project Analysis**
+### Intelligent Project Analysis
 DroidForge analyzes your repository to understand:
 - **Frameworks & Technologies**: React, Node.js, Python, etc.
 - **Project Structure**: Architecture patterns and organization
@@ -51,7 +51,7 @@ DroidForge analyzes your repository to understand:
 - **Team Patterns**: Development workflow and collaboration style
 - **Domain Knowledge**: Business logic and project purpose
 
-### **🤖 Specialized Droid Generation**
+### Specialized Droid Generation
 Creates role-specific AI assistants:
 
 | Droid Type | Role | Tools | Example Tasks |
@@ -63,46 +63,46 @@ Creates role-specific AI assistants:
 | **qa** | Testing & quality | Test files, test runner | Write tests, check coverage |
 | **script-\<name\>** | Automation | Specific scripts, tools | Build, deploy, migrate |
 
-### **👥 Team Orchestration**
+### Team Orchestration
 The global orchestrator coordinates multi-droid workflows:
 - Breaks complex tasks into sub-tasks
 - Assigns appropriate droids to each sub-task
 - Manages handoffs and dependencies
 - Ensures quality standards are met
 
-## 📋 Commands Overview
+##  Commands Overview
 
-### **`droidforge init`** 🚀
+### **`droidforge init`** 
 Initialize project and install global orchestrator
 ```bash
 droidforge init [--force]
 ```
 
-### **`droidforge synthesize`** 🤖
+### **`droidforge synthesize`** 
 Generate droids from analysis (main workflow)
 ```bash
 droidforge synthesize [--dry-run] [--force] [--optimized]
 ```
 
-### **`droidforge scan`** 🔍
+### **`droidforge scan`** 
 Analyze repository without generating droids
 ```bash
 droidforge scan
 ```
 
-### **`droidforge add-script`** 📦
+### **`droidforge add-script`** 
 Wrap a specific script as a droid
 ```bash
 droidforge add-script <script-path> [--dry-run]
 ```
 
-### **`droidforge reanalyze`** 🔄
+### **`droidforge reanalyze`** 
 Update existing droids for project changes
 ```bash
 droidforge reanalyze [--dry-run]
 ```
 
-## 🎯 Interactive Interview
+##  Interactive Interview
 
 The first `synthesize` command starts an interactive interview to understand your project:
 
@@ -122,7 +122,7 @@ Tech: React, Node.js, PostgreSQL, TypeScript
 Workflow: Feature branches, PR reviews, weekly deployments
 ```
 
-## 🏗️ Project Structure After Setup
+##  Project Structure After Setup
 
 ```
 your-project/
@@ -140,7 +140,7 @@ your-project/
 └── README.md
 ```
 
-## 🚀 Using Your Droids
+##  Using Your Droids
 
 Once droids are generated, use them with [Factory CLI](https://github.com/factory/cli):
 
@@ -149,7 +149,7 @@ Once droids are generated, use them with [Factory CLI](https://github.com/factor
 factory droids list
 ```
 ```
-🤖 Available Droids:
+ Available Droids:
 ├── dev - Full Stack Developer
 ├── frontend - Frontend Specialist
 ├── reviewer - Code Reviewer
@@ -182,7 +182,7 @@ The orchestrator will:
 2. Assign to: dev (API), dev (DB), frontend (UI), script-test (tests)
 3. Coordinate work and ensure quality standards
 
-## 🎯 Example Workflow
+##  Example Workflow
 
 ### Setting Up a New React Project
 
@@ -232,7 +232,7 @@ scope: "React components, UI/UX, styling, user interactions"
 ---
 ```
 
-## ⚡ Performance Features
+##  Performance Features
 
 ### **Optimized Scanning**
 For large repositories:
@@ -254,11 +254,11 @@ DroidForge caches:
 ### **Conflict Resolution**
 Automatic detection and resolution of overlapping droid responsibilities:
 ```bash
-⚠️  Conflict detected: dev and frontend both want src/components/**
-✅ Resolution: frontend handles components, dev handles state management
+  Conflict detected: dev and frontend both want src/components/**
+ Resolution: frontend handles components, dev handles state management
 ```
 
-## 🔧 Advanced Usage
+##  Advanced Usage
 
 ### **Custom Droid Patterns**
 Influence droid creation in your project brief:
@@ -309,7 +309,7 @@ Create `.droidforgerc.json`:
 }
 ```
 
-## 📚 Documentation
+##  Documentation
 
 - **[User Guide](./docs/USER_GUIDE.md)** - Comprehensive usage documentation
 - **[Tutorial](./docs/TUTORIAL.md)** - Step-by-step tutorial from zero to droid army
@@ -317,7 +317,7 @@ Create `.droidforgerc.json`:
 - **[Advanced Configuration](./docs/ADVANCED.md)** - Advanced customization options
 - **[Project Templates](./docs/TEMPLATES.md)** - Templates for different project types
 
-## 🎯 When to Use DroidForge
+##  When to Use DroidForge
 
 ### **Perfect For:**
 - **New Projects**: Set up AI assistance from day one
@@ -334,17 +334,17 @@ Create `.droidforgerc.json`:
 - **Data Projects**: Jupyter notebooks, data pipelines
 - **DevOps Tools**: Infrastructure as code, CI/CD pipelines
 
-## 🛠️ Requirements
+##  Requirements
 
 - **Node.js** 16+ (18+ recommended)
 - **Factory CLI** - Required to use generated droids (`npm install -g @factory/cli`)
 - **Git** repository (recommended for version control)
 
-**⚠️ Important**: DroidForge creates droids but requires Factory CLI to run them. Both tools work together:
+** Important**: DroidForge creates droids but requires Factory CLI to run them. Both tools work together:
 - **DroidForge**: Analyzes your repo and generates specialized AI droids
 - **Factory CLI**: Provides the runtime environment for droids to execute tasks
 
-## 🚀 Installation
+##  Installation
 
 ```bash
 # Install both required tools
@@ -360,7 +360,7 @@ factory --version
 - **DroidForge**: `npm install -g droidforge` - Creates AI droids from your codebase
 - **Factory CLI**: `npm install -g @factory/cli` - Runs the droids to execute tasks
 
-## 🤝 Contributing
+##  Contributing
 
 We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md) for details.
 
@@ -382,7 +382,7 @@ npm run build
 
 MIT License - see [LICENSE](./LICENSE) file for details.
 
-## 🔗 Links
+##  Links
 
 - **GitHub Repository**: https://github.com/factory/droidforge
 - **Factory CLI**: https://github.com/factory/cli
@@ -390,7 +390,7 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 - **Community**: https://discord.gg/factory
 - **Issues**: https://github.com/factory/droidforge/issues
 
-## ⚠️ Common Issue: Factory CLI Not Found
+##  Common Issue: Factory CLI Not Found
 
 **Problem**: After running `droidforge synthesize`, when you try:
 ```bash
@@ -422,6 +422,6 @@ factory --version     # Should show Factory CLI version
 
 ---
 
-**Transform your development workflow with AI-powered droids! 🚀**
+**Transform your development workflow with AI-powered droids! **
 
 Start with `droidforge init` and build your personalized AI development team today.

@@ -23,7 +23,7 @@ export async function resolveConflicts(conflicts: ClaimConflict[]): Promise<Conf
     resolutions.push(resolution);
 
     if (resolution.confidence < 0.7) {
-      warnings.push(`⚠️  Low confidence resolution for ${conflict.droid1} vs ${conflict.droid2}: ${resolution.resolution}`);
+      warnings.push(`  Low confidence resolution for ${conflict.droid1} vs ${conflict.droid2}: ${resolution.resolution}`);
     }
   }
 
@@ -54,7 +54,7 @@ async function analyzeConflict(conflict: ClaimConflict): Promise<ConflictResolut
       condition: (d1: string, d2: string) =>
         (isDevDroid(d1) && isReviewerDroid(d2)) ||
         (isGenericDroid(d1) && isContextualDroid(d2)),
-      getResolution: (d1: string, d2: string) => `Prioritize ${d1} over ${d2} (generic → specialized)`,
+      getResolution: (d1: string, d2: string) => `Prioritize ${d1} over ${d2} (generic  specialized)`,
       confidence: 0.8
     },
     {
@@ -155,19 +155,19 @@ export function generateConflictReport(resolution: ConflictResolutionReport): st
 
       const resolution = resolutions.find(r => r.conflict === conflict);
       if (resolution) {
-        const icon = resolution.strategy === 'merge' ? '🔗' :
+        const icon = resolution.strategy === 'merge' ? '' :
                      resolution.strategy === 'prioritize' ? '👑' :
-                     resolution.strategy === 'split' ? '✂️' : '❓';
+                     resolution.strategy === 'split' ? '✂' : '❓';
         report += `   ${icon} ${resolution.resolution} (confidence: ${Math.round(resolution.confidence * 100)}%)\n`;
       }
       report += '\n';
     });
   } else {
-    report += kleur.green('\n✅ No file claim conflicts detected\n');
+    report += kleur.green('\n No file claim conflicts detected\n');
   }
 
   if (warnings.length > 0) {
-    report += kleur.yellow('\n⚠️ Warnings:\n');
+    report += kleur.yellow('\n Warnings:\n');
     warnings.forEach(warning => {
       report += `• ${warning}\n`;
     });
@@ -206,7 +206,7 @@ export function suggestScopeAdjustments(resolution: ConflictResolutionReport): s
     }
 
     if (confidence < 0.7) {
-      suggestions.push(`⚠️ Low confidence - manually verify this resolution`);
+      suggestions.push(` Low confidence - manually verify this resolution`);
     }
   }
 
@@ -227,7 +227,7 @@ export function validateClaimPatterns(claims: FileClaim[]): string[] {
 
   for (const [pattern, count] of patternCounts.entries()) {
     if (count > 3) {
-      issues.push(`⚠️ Pattern "${pattern}" is claimed by ${count} droids - consider splitting or merging`);
+      issues.push(` Pattern "${pattern}" is claimed by ${count} droids - consider splitting or merging`);
     }
   }
 
@@ -236,7 +236,7 @@ export function validateClaimPatterns(claims: FileClaim[]): string[] {
   for (const claim of claims) {
     for (const pattern of claim.patterns) {
       if (broadPatterns.includes(pattern)) {
-        issues.push(`⚠️ Very broad pattern "${pattern}" claimed by ${claim.droidName} - consider more specific scope`);
+        issues.push(` Very broad pattern "${pattern}" claimed by ${claim.droidName} - consider more specific scope`);
       }
     }
   }
@@ -246,7 +246,7 @@ export function validateClaimPatterns(claims: FileClaim[]): string[] {
   for (const claim of claims) {
     for (const pattern of claim.patterns) {
       if (unsafePatterns.some(unsafe => pattern.includes(unsafe))) {
-        issues.push(`⚠️ Potentially unsafe pattern "${pattern}" claimed by ${claim.droidName}`);
+        issues.push(` Potentially unsafe pattern "${pattern}" claimed by ${claim.droidName}`);
       }
     }
   }

@@ -92,7 +92,7 @@ export async function confirmOperation(ctx: ConfirmationContext): Promise<boolea
   
   // Wrap risky operations in yellow
   if (isRiskyOperation(ctx.operation)) {
-    message = kleur.yellow(`⚠ ${message}`);
+    message = kleur.yellow(` ${message}`);
   }
   
   message += '?';
@@ -136,7 +136,7 @@ export async function confirmToolWidening(
   }
   
   // Construct details for confirmation prompt
-  const details = `${droidName}: [${fromTools.join(', ')}] → [${toTools.join(', ')}]`;
+  const details = `${droidName}: [${fromTools.join(', ')}]  [${toTools.join(', ')}]`;
   
   // Use confirmOperation with 'widen tools' operation
   return confirmOperation({

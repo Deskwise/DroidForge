@@ -2,7 +2,7 @@
 
 Thank you for your interest in contributing to DroidForge! This guide will help you get started with contributing to the project.
 
-## 🚀 Quick Start for Contributors
+##  Quick Start for Contributors
 
 ### Prerequisites
 - Node.js 16+ (18+ recommended)
@@ -38,7 +38,7 @@ npm test
 npm run build
 ```
 
-## 🏗️ Project Structure
+##  Project Structure
 
 ```
 droidforge/
@@ -134,7 +134,7 @@ export function validateProjectBrief(brief: ProjectBrief): boolean {
 }
 ```
 
-## 🔄 Development Workflow
+##  Development Workflow
 
 ### 1. Create an Issue
 - Check existing issues first
@@ -229,7 +229,7 @@ What other approaches did you consider?
 Any other relevant information
 ```
 
-## 📚 Documentation
+##  Documentation
 
 ### Types of Documentation
 - **User Guide**: How to use DroidForge
@@ -251,7 +251,7 @@ Any other relevant information
 - Add cross-references between related topics
 - Include examples and use cases
 
-## 🏷️ Release Process
+## 🏷 Release Process
 
 ### Version Management
 - Follow Semantic Versioning (SemVer)
@@ -268,7 +268,7 @@ Any other relevant information
 - [ ] GitHub release created
 - [ ] Published to NPM
 
-## 🤝 Community Guidelines
+##  Community Guidelines
 
 ### Code of Conduct
 - Be respectful and inclusive
@@ -288,7 +288,7 @@ Any other relevant information
 - **Discord**: Real-time chat and community support
 - **Email**: security@factory.ai (security issues only)
 
-## 🔧 Development Tools
+##  Development Tools
 
 ### Recommended VS Code Extensions
 - TypeScript and JavaScript Language Features
@@ -309,7 +309,7 @@ npm run format       # Format code
 npm run clean        # Clean build artifacts
 ```
 
-## 🎯 Contribution Areas
+##  Contribution Areas
 
 ### High Priority Areas
 - Bug fixes and stability improvements
@@ -329,7 +329,7 @@ npm run clean        # Clean build artifacts
 - Translations and internationalization
 - Community meetups and talks
 
-## 📋 Review Process
+##  Review Process
 
 ### What We Look For
 - Code quality and maintainability
@@ -345,7 +345,7 @@ npm run clean        # Clean build artifacts
 - [ ] Changes are backward compatible
 - [ ] Performance impact is considered
 
-## 🏆 Recognition
+##  Recognition
 
 ### Contributors
 - All contributors are recognized in our README
@@ -363,4 +363,4 @@ npm run clean        # Clean build artifacts
 
 Thank you for contributing to DroidForge! Your contributions help make AI-powered development accessible to everyone.
 
-🚀 **Happy coding!**
+ **Happy coding!**

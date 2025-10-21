@@ -24,11 +24,11 @@ export async function scanRepoOptimized(root: string): Promise<{
     prdContent: PRDContent | null;
   }>(cacheKey);
   if (cached) {
-    console.log(`📋 Using cached scan results (${Date.now() - startTime}ms)`);
+    console.log(` Using cached scan results (${Date.now() - startTime}ms)`);
     return cached;
   }
 
-  console.log('🔍 Scanning repository...');
+  console.log(' Scanning repository...');
 
   // Run all scans in parallel for better performance
   const [
@@ -56,7 +56,7 @@ export async function scanRepoOptimized(root: string): Promise<{
   // Cache the results
   cache.set(cacheKey, result, 10 * 60 * 1000); // 10 minutes TTL
 
-  console.log(`✅ Repository scan completed (${Date.now() - startTime}ms)`);
+  console.log(` Repository scan completed (${Date.now() - startTime}ms)`);
   return result;
 }
 
@@ -69,7 +69,7 @@ async function scanPRDPaths(root: string): Promise<string[]> {
       'README.md'
     ], { cwd: root, gitignore: true });
   } catch (error) {
-    console.warn('⚠️ Failed to scan PRD paths:', error instanceof Error ? error.message : String(error));
+    console.warn(' Failed to scan PRD paths:', error instanceof Error ? error.message : String(error));
     return [];
   }
 }
@@ -107,7 +107,7 @@ async function scanFrameworks(root: string): Promise<string[]> {
     cache.set(cacheKey, result, 5 * 60 * 1000); // 5 minutes cache
     return result;
   } catch (error) {
-    console.warn('⚠️ Failed to scan frameworks:', error instanceof Error ? error.message : String(error));
+    console.warn(' Failed to scan frameworks:', error instanceof Error ? error.message : String(error));
     return [];
   }
 }
@@ -137,7 +137,7 @@ async function scanTestConfigs(root: string): Promise<string[]> {
     cache.set(cacheKey, configs, 5 * 60 * 1000); // 5 minutes cache
     return configs;
   } catch (error) {
-    console.warn('⚠️ Failed to scan test configs:', error instanceof Error ? error.message : String(error));
+    console.warn(' Failed to scan test configs:', error instanceof Error ? error.message : String(error));
     return [];
   }
 }
@@ -166,7 +166,7 @@ async function parsePrdContentOptimized(root: string, prdPaths: string[]): Promi
             mtime: await getFileModificationTime(abs)
           };
         } catch (error) {
-          console.warn(`⚠️ Failed to read PRD file ${relPath}:`, error instanceof Error ? error.message : String(error));
+          console.warn(` Failed to read PRD file ${relPath}:`, error instanceof Error ? error.message : String(error));
           return { path: relPath, content: '', mtime: 0 };
         }
       })
@@ -207,7 +207,7 @@ async function parsePrdContentOptimized(root: string, prdPaths: string[]): Promi
     cache.set(cacheKey, result, 5 * 60 * 1000); // 5 minutes cache
     return result;
   } catch (error) {
-    console.warn('⚠️ Failed to parse PRD content:', error instanceof Error ? error.message : String(error));
+    console.warn(' Failed to parse PRD content:', error instanceof Error ? error.message : String(error));
     return null;
   }
 }

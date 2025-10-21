@@ -24,7 +24,7 @@ export async function applyChanges(
     const { type, droidName, reason, details, userModified } = change;
     console.log(kleur.cyan(`Processing ${type} change for ${droidName}: ${reason}`));
     if (userModified) {
-      console.log(kleur.yellow(`  ⚠ Warning: ${droidName} has been user-modified`));
+      console.log(kleur.yellow(`   Warning: ${droidName} has been user-modified`));
     }
 
     switch (type) {
@@ -185,7 +185,7 @@ export async function applyChanges(
         const approved = await confirmOperation({
           autonomy,
           operation: 'merge droids',
-          details: `${details.droid1} + ${details.droid2} → ${mergedName}`,
+          details: `${details.droid1} + ${details.droid2}  ${mergedName}`,
           dryRun
         });
 
@@ -261,14 +261,14 @@ async function updateDroidFrontmatter(
       const proposedStr = Array.isArray(proposedValue) ? proposedValue.sort().join(',') : String(proposedValue);
 
       if (existingStr !== proposedStr) {
-        conflicts.push(`${key}: [${existingStr}] → [${proposedStr}]`);
+        conflicts.push(`${key}: [${existingStr}]  [${proposedStr}]`);
       }
     }
   }
 
   // If user modified and conflicts exist, require explicit confirmation and show diff
   if (userModified && conflicts.length > 0) {
-    console.log(kleur.yellow(`  ⚠ Potential conflicts detected for ${path.basename(filePath)}:`));
+    console.log(kleur.yellow(`   Potential conflicts detected for ${path.basename(filePath)}:`));
     conflicts.forEach(conflict => console.log(kleur.red(`    ${conflict}`)));
 
     const unifiedDiff = createPatch(

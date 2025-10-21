@@ -48,7 +48,7 @@ export async function conductInterview(): Promise<ProjectBrief> {
         return parsed as ProjectBrief;
       }
 
-      console.log(kleur.yellow('⚠ Existing brief is missing required fields (mode/persona/autonomy/intent).'));
+      console.log(kleur.yellow(' Existing brief is missing required fields (mode/persona/autonomy/intent).'));
       const choice = await inquirer.prompt([
         {
           type: 'list',

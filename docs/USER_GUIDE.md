@@ -1,6 +1,6 @@
 # DroidForge User Guide
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites - Install Both Tools
 
@@ -35,9 +35,9 @@ factory droids list
 factory droids use dev "Build a new feature"
 ```
 
-⚠️ **Important**: After `droidforge synthesize`, use `factory` commands to interact with your droids.
+ **Important**: After `droidforge synthesize`, use `factory` commands to interact with your droids.
 
-## 📋 Core Commands
+##  Core Commands
 
 ### `droidforge init`
 Initialize a new project by installing the global orchestrator and creating starter documentation.
@@ -126,7 +126,7 @@ droidforge reanalyze [--dry-run]
 - Proposes updates to existing droids
 - Suggests new droids for new capabilities
 
-## 🎯 Interactive Interview
+##  Interactive Interview
 
 The interview process captures your project intent and requirements:
 
@@ -157,7 +157,7 @@ signals:
   specializations: ["ui", "backend", "testing"]
 ```
 
-## 🤖 Understanding Droids
+##  Understanding Droids
 
 ### What are Droids?
 Droids are AI assistants with specific roles, scoped permissions, and specialized tools.
@@ -214,7 +214,7 @@ scope: "UI components, styling, and user interactions"
 - **domain-specialist**: Business logic, domain expertise
 - **script-<name>**: Specific script execution
 
-## 🔄 Working with Droids
+##  Working with Droids
 
 ### Using Factory CLI
 Once droids are generated, use them via Factory CLI:
@@ -279,7 +279,7 @@ Comprehensive guide for team members on using droids effectively.
 #### **.factory/droids-manifest.json**
 Manifest of all droids with metadata and relationships.
 
-## ⚡ Performance Features
+##  Performance Features
 
 ### Optimized Scanning
 For large repositories, use the `--optimized` flag:
@@ -303,7 +303,7 @@ DroidForge maintains intelligent caches for:
 
 Cache is automatically invalidated when files change.
 
-## 🔧 Advanced Usage
+##  Advanced Usage
 
 ### Custom Droid Patterns
 Influence droid creation through your project brief:
@@ -379,7 +379,7 @@ droidforge init --force
 droidforge synthesize --force
 ```
 
-## 🎯 Best Practices
+##  Best Practices
 
 ### Project Setup
 1. **Clear README/PRD**: Have clear project documentation
@@ -396,14 +396,14 @@ droidforge synthesize --force
 2. **Tool Permissions**: Respect scoped access patterns
 3. **Quality Standards**: Let reviewer droid enforce standards
 
-## 📚 Next Steps
+##  Next Steps
 
 1. **Try the Tutorial**: [Step-by-step tutorial](./TUTORIAL.md)
 2. **View Examples**: [Project examples](./EXAMPLES.md)
 3. **Advanced Topics**: [Advanced configuration](./ADVANCED.md)
 4. **Troubleshooting**: [Common issues and solutions](./TROUBLESHOOTING.md)
 
-## 🔗 Additional Resources
+##  Additional Resources
 
 - [Factory CLI Documentation](https://github.com/factory/cli)
 - [Project Templates](./TEMPLATES.md)

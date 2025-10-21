@@ -32,9 +32,9 @@ factory run ui-ux
 
 Expected output:
 🎨 UI/UX droid analyzing frontend components...
-📋 Current task: Implement responsive navigation
-🔧 Tools available: Read, Write, Edit
-🎯 Scope: src/components/**/*.tsx
+ Current task: Implement responsive navigation
+ Tools available: Read, Write, Edit
+ Scope: src/components/**/*.tsx
 \`\`\``;
   }
 
@@ -47,9 +47,9 @@ factory run api
 
 Expected output:
 🔌 API droid analyzing backend routes...
-📋 Current task: Add authentication middleware
-🔧 Tools available: Read, Write, Shell, Edit
-🎯 Scope: src/routes/**/*.js
+ Current task: Add authentication middleware
+ Tools available: Read, Write, Shell, Edit
+ Scope: src/routes/**/*.js
 \`\`\``;
   }
 
@@ -62,9 +62,9 @@ factory run qa
 
 Expected output:
 🧪 QA droid analyzing test coverage...
-📋 Current task: Add unit tests for utility functions
-🔧 Tools available: Read, Write, Shell, Edit
-🎯 Scope: tests/**/*.test.js
+ Current task: Add unit tests for utility functions
+ Tools available: Read, Write, Shell, Edit
+ Scope: tests/**/*.test.js
 \`\`\``;
   }
 
@@ -77,9 +77,9 @@ factory run ui-ux
 
 Expected output:
 🎨 UI/UX droid implementing motion components...
-📋 Current task: Add smooth page transitions
-🔧 Tools available: Read, Write, Edit
-🎯 Scope: src/components/**/*.tsx
+ Current task: Add smooth page transitions
+ Tools available: Read, Write, Edit
+ Scope: src/components/**/*.tsx
 \`\`\``;
   }
 
@@ -91,10 +91,10 @@ Expected output:
 factory run dev
 
 Expected output:
-🛠️  Development droid analyzing codebase...
-📋 Current task: Feature implementation
-🔧 Tools available: Read, Write, Edit
-🎯 Scope: src/**/*.ts
+  Development droid analyzing codebase...
+ Current task: Feature implementation
+ Tools available: Read, Write, Edit
+ Scope: src/**/*.ts
 \`\`\``;
   }
 

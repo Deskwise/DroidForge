@@ -1,6 +1,6 @@
 # DroidForge Tutorial: From Zero to Droid Army
 
-## 🎯 Learning Goals
+##  Learning Goals
 
 This tutorial will teach you how to:
 - Set up DroidForge on any project
@@ -8,14 +8,14 @@ This tutorial will teach you how to:
 - Use droids effectively in your development workflow
 - Scale from small personal projects to large teams
 
-## 📋 Prerequisites
+##  Prerequisites
 
 - Node.js 16+ installed
 - A code project (any size - even a simple "hello world" works)
 - Basic familiarity with command line tools
 - [Factory CLI](https://github.com/factory/cli) installed
 
-## 🚀 Step 1: Create a Sample Project
+##  Step 1: Create a Sample Project
 
 Let's start with a simple Node.js/TypeScript project:
 
@@ -100,7 +100,7 @@ npm test       # Run tests
 ```
 ```
 
-## 🤖 Step 2: Initialize DroidForge
+##  Step 2: Initialize DroidForge
 
 Now let's set up DroidForge for our project:
 
@@ -114,12 +114,12 @@ droidforge init
 
 You'll see output like:
 ```
-✅ Installing global orchestrator...
-✅ Creating project documentation...
-✅ Generated AGENTS.md
-✅ Generated docs/droid-guide.md
-✅ Generated .factory/droids-manifest.json
-✅ Initialized: global orchestrator + project docs + manifest
+ Installing global orchestrator...
+ Creating project documentation...
+ Generated AGENTS.md
+ Generated docs/droid-guide.md
+ Generated .factory/droids-manifest.json
+ Initialized: global orchestrator + project docs + manifest
 ```
 
 ### What Just Happened?
@@ -129,7 +129,7 @@ You'll see output like:
 3. **Team Manifest**: Generated `.factory/droids-manifest.json`
 4. **Agent Overview**: Created `AGENTS.md` with team structure
 
-## 🗣️ Step 3: The Interview Process
+## 🗣 Step 3: The Interview Process
 
 Let's create our project droids:
 
@@ -171,16 +171,16 @@ A: Feature branches with pull requests, automated testing, weekly deployments.
 A: Backend API development, frontend React components, database schema design, testing and deployment.
 ```
 
-## 🔍 Step 4: Repository Scanning
+##  Step 4: Repository Scanning
 
 After the interview, DroidForge scans your repository:
 
 ```
-🔍 Scanning repository...
+ Scanning repository...
 📜 Discovering scripts...
 🧠 Fusing signals with project intent...
-🤖 Generating droids...
-✅ Droid synthesis complete!
+ Generating droids...
+ Droid synthesis complete!
 ```
 
 ### What DroidForge Found
@@ -209,7 +209,7 @@ After the interview, DroidForge scans your repository:
 }
 ```
 
-## 🤖 Step 5: Generated Droids
+##  Step 5: Generated Droids
 
 DroidForge creates specialized droids based on your project. Here's what you'll typically see:
 
@@ -262,7 +262,7 @@ scope: "Test writing, test execution, quality assurance"
 ---
 ```
 
-## 📋 Step 6: Review Generated Documentation
+##  Step 6: Review Generated Documentation
 
 ### AGENTS.md
 Your team overview is now available:
@@ -282,7 +282,7 @@ cat docs/droid-guide.md
 
 This guide explains how each droid should be used and coordinated.
 
-## 🚀 Step 7: Using Your Droids
+##  Step 7: Using Your Droids
 
 ### List Available Droids
 
@@ -292,7 +292,7 @@ factory droids list
 
 Output:
 ```
-🤖 Available Droids:
+ Available Droids:
 ├── dev - Full Stack Developer
 ├── frontend - Frontend Specialist
 ├── script-test - Testing Specialist
@@ -337,7 +337,7 @@ factory droids use script-test
 factory droids use script-lint
 ```
 
-## 🔄 Step 8: Orchestrated Workflows
+##  Step 8: Orchestrated Workflows
 
 Let the orchestrator coordinate complex tasks:
 
@@ -354,7 +354,7 @@ The orchestrator will:
 3. **Coordinate Work**: Ensure proper sequencing
 4. **Quality Check**: Use `reviewer` to validate implementation
 
-## 📊 Step 9: Performance Monitoring
+##  Step 9: Performance Monitoring
 
 ### Optimized Scanning
 
@@ -379,14 +379,14 @@ droidforge add-script scripts/deploy.sh
 
 If there are conflicts, you'll see:
 ```
-⚠️  File claim conflict detected:
+  File claim conflict detected:
 ├── script-deploy wants: scripts/deploy.sh
 ├── dev wants: scripts/**/*
 ├── Suggestion: Prioritize script-deploy for deployment scripts
-✅ Resolution applied automatically
+ Resolution applied automatically
 ```
 
-## 🎯 Step 10: Advanced Features
+##  Step 10: Advanced Features
 
 ### Custom Droid Creation
 
@@ -447,30 +447,30 @@ jobs:
           git commit -m "Auto-update droids" || exit 0
 ```
 
-## 🎉 Congratulations!
+##  Congratulations!
 
 You've successfully:
-✅ Set up DroidForge on a project
-✅ Created a custom droid team
-✅ Used droids for development tasks
-✅ Implemented orchestrated workflows
-✅ Set up performance optimizations
+ Set up DroidForge on a project
+ Created a custom droid team
+ Used droids for development tasks
+ Implemented orchestrated workflows
+ Set up performance optimizations
 
-## 🚀 Next Steps
+##  Next Steps
 
 1. **Explore Project Templates**: Check out different project types
 2. **Customize Droids**: Modify droid configurations for your needs
 3. **Team Collaboration**: Share droids with your team
 4. **Advanced Topics**: Learn about custom tools and integrations
 
-## 📚 Additional Resources
+##  Additional Resources
 
 - [Project Templates](./TEMPLATES.md)
 - [Advanced Configuration](./ADVANCED.md)
 - [Troubleshooting Guide](./TROUBLESHOOTING.md)
 - [Community Examples](https://github.com/factory/examples)
 
-## 🔧 Troubleshooting Common Issues
+##  Troubleshooting Common Issues
 
 ### "No droids generated"
 - Check if your project has recognizable patterns
@@ -492,4 +492,4 @@ You've successfully:
 - Consider using `.droidforgeignore` file
 - Break large projects into sub-projects
 
-Happy coding with your new droid army! 🚀
+Happy coding with your new droid army! 

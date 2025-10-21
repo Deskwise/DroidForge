@@ -4,7 +4,7 @@
 
 This guide helps you resolve common problems with DroidForge.
 
-## 📦 Installation Issues
+##  Installation Issues
 
 ### "Command not found: droidforge"
 
@@ -55,7 +55,7 @@ nvm use 18
 npm install -g droidforge
 ```
 
-## 🚀 Initialization Issues
+##  Initialization Issues
 
 ### "Global orchestrator installation failed"
 
@@ -95,7 +95,7 @@ echo "project:" > .factory/project-brief.yaml
 droidforge init --force
 ```
 
-## 🗣️ Interview Issues
+## 🗣 Interview Issues
 
 ### "Interview process seems stuck"
 
@@ -138,7 +138,7 @@ yamllint .factory/project-brief.yaml
 droidforge synthesize --force
 ```
 
-## 🔍 Scanning Issues
+##  Scanning Issues
 
 ### "No frameworks detected"
 
@@ -201,7 +201,7 @@ rm -rf .factory/cache
 # Move large unrelated folders outside project root
 ```
 
-## 🤖 Droid Generation Issues
+##  Droid Generation Issues
 
 ### "No droids generated"
 
@@ -263,7 +263,7 @@ rm .factory/droids/dev.md
 droidforge synthesize --force
 ```
 
-## 🔄 Factory CLI Integration Issues
+##  Factory CLI Integration Issues
 
 ### "factory: command not found"
 
@@ -365,7 +365,7 @@ DEBUG=droidforge:* npm test
 # Droids may work differently than manual processes
 ```
 
-## 📊 Performance Issues
+##  Performance Issues
 
 ### "Memory usage too high"
 
@@ -409,7 +409,7 @@ rm -rf .factory/cache/*
 echo '{"cache": {"maxAge": "7d", "maxSize": "100MB"}}' > .droidforgerc.json
 ```
 
-## 🌐 Network Issues
+##  Network Issues
 
 ### "Can't download orchestrator"
 
@@ -447,7 +447,7 @@ npm config set registry http://registry.npmjs.org/
 # Download orchestrator.md manually and place in ~/.factory/droids/
 ```
 
-## 🔧 Configuration Issues
+##  Configuration Issues
 
 ### "Custom configuration not working"
 
@@ -575,7 +575,7 @@ DEBUG=droidforge:* droidforge synthesize > debug.log 2>&1
 - [Discord Community](https://discord.gg/factory)
 - [Documentation](https://docs.factory.ai/droidforge)
 
-## 🎯 Prevention Tips
+##  Prevention Tips
 
 ### Best Practices
 
