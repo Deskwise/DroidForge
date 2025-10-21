@@ -545,7 +545,7 @@ DEBUG=droidforge:* droidforge synthesize
 
 # Specific component debugging
 DEBUG=droidforge:scan droidforge scan
-DEBUG=droidforge:interview droidforge synthesize
+DEBUG=droidforge:analysis droidforge synthesize
 DEBUG=droidforge:synthesis droidforge synthesize
 ```
 

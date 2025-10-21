@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2024-10-21
+
+### Added
+- Intelligent tech stack evaluation and completion system
+- Gap detection for missing tools (analytics, testing, deployment, etc.)
+- Targeted tech stack recommendations based on user preferences
+- Complete tech stack coverage analysis
+- Conversational guidance for beginners through experts
+- Smart completion questions for complete project stacks
+
+### Changed
+- Refined conversation flow to 2-5 concise questions max
+- Enhanced conversation system with real-time tech stack assessment
+- Improved confidence scoring for faster, more accurate completion
+- Better domain-specific droid generation based on complete tech stacks
+- Updated documentation with tech stack evaluation examples
+
+### Fixed
+- Optimized conversation termination threshold for quicker completion
+- Improved tech stack parsing and recognition
+- Enhanced user experience for both beginners and experts
+
+## [0.2.0] - 2024-10-21
+
+### Added
+- Natural language project analysis system
+- Domain-specific droid generation (dental, restaurant, fitness, e-commerce)
+- Automatic technical level detection from user descriptions
+- Natural language conversational analysis
+- Specialized contextual droids for common business domains
+
+### Changed
+- Replaced form-based interview system with natural language analysis
+- Simplified user interaction from multiple questions to single description
+- Enhanced droid planning to use domain-specific analysis
+- Updated all documentation to reflect natural language approach
+
+### Fixed
+- Missing templates directory causing initialization failures
+- Dynamic version detection in CLI output
+- Removed all bootstrap/form references from codebase
+- Fixed package.json to include templates in distribution
+
 ## [Unreleased]
 
 ### Added
@@ -27,7 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial release of DroidForge CLI tool
-- Interactive interview system for project analysis
+- Form-based interview system for project analysis
 - Repository scanning and signal detection
 - Droid generation with scoped tools and permissions
 - Global orchestrator installation and management
@@ -93,7 +136,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -  Core CLI functionality
 -  Basic droid generation
 -  Repository scanning
--  Interactive interview system
+-  Form-based interview system
 -  Documentation suite
 -  Testing framework
 -  Performance optimizations

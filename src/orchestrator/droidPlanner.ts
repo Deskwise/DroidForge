@@ -1,6 +1,4 @@
-import type { DroidPlan, Mode } from '../types.js';
-import { generateScopePatterns } from './fileClaims.js';
-import { generateProofCommands } from './proofGenerator.js';
+import type { DroidPlan } from '../types.js';
 
 /**
  * Specification for a droid to be created.
@@ -81,203 +79,6 @@ export function inferContextualDroids(frameworks: string[]): ContextualDroidDef[
   return droids;
 }
 
-/**
- * Create a generic droid spec with minimal tools.
- * Tools start as ['Read'] and may be widened to ['Read', 'Write'] during synthesis
- * based on user approval and autonomy settings.
- */
-function createGenericDroidSpec(role: string, mode: Mode, frameworks: string[]): DroidSpec {
-  const scope = generateScopePatterns(role, frameworks);
-  const outputSchema = `Summary: <1-2 lines>
-Results:
-- proof: <PASS|FAIL>
-Artifacts:
-- <files>
-Notes:
-- <next steps>`;
-  
-  const procedures: Record<string, string[]> = {
-    planner: [
-      'Analyze PRD and requirements documents',
-      'Draft implementation plan with milestones',
-      'Validate plan against constraints',
-      'Request approval before execution'
-    ],
-    dev: [
-      'Read relevant context and existing code',
-      'Implement changes following coding standards',
-      'Run proof commands to verify changes',
-      'Report results and request review'
-    ],
-    reviewer: [
-      'Read proposed changes and diffs',
-      'Check code against project standards',
-      'Identify potential issues or improvements',
-      'Provide constructive feedback'
-    ],
-    qa: [
-      'Run test suites and verify outputs',
-      'Check coverage and test results',
-      'Verify expected artifacts exist',
-      'Report pass/fail status with details'
-    ],
-    auditor: [
-      'Scan configuration files for issues',
-      'Check security and dependency vulnerabilities',
-      'Verify compliance with standards',
-      'Report findings and recommendations'
-    ]
-  };
-  
-  let proof: string[];
-  if (role === 'qa') {
-    // Detect which test runner based on frameworks
-    if (frameworks.some(f => ['jest', 'vitest', 'testing'].includes(f.toLowerCase()))) {
-      proof = [buildExitCheckedCommand('npm test')];
-    } else if (frameworks.some(f => ['pytest', 'python'].includes(f.toLowerCase()))) {
-      proof = [buildExitCheckedCommand('pytest')];
-    } else {
-      // Fallback: try npm test first, then pytest
-      proof = [buildExitCheckedCommand('npm test || pytest')];
-    }
-  } else {
-    proof = ['echo "No automated proof for this role"'];
-  }
-  
-  return {
-    name: role,
-    type: 'generic',
-    role,
-    description: `Generic ${role} droid for ${mode} mode`,
-    tools: ['Read'],
-    scope,
-    procedure: procedures[role] || ['Read context', 'Perform role duties', 'Report results'],
-    proof,
-    outputSchema,
-    lastReviewed: new Date().toISOString()
-  };
-}
-
-/**
- * Create a contextual droid spec with minimal tools.
- * Tools start as ['Read'] and may be widened to ['Read', 'Write'] during synthesis
- * based on user approval and autonomy settings.
- */
-function createContextualDroidSpec(def: ContextualDroidDef, frameworks: string[]): DroidSpec {
-  const scope = generateScopePatterns(def.role, frameworks);
-  const outputSchema = `Summary: <1-2 lines>
-Results:
-- changes: <list>
-Artifacts:
-- <files>
-Notes:
-- <follow-ups>`;
-  
-  const procedures: Record<string, string[]> = {
-    'ui-ux': [
-      'Review UI/UX requirements and designs',
-      'Implement or modify components and styles',
-      'Verify responsive behavior and accessibility',
-      'Report changes and request review'
-    ],
-    'api': [
-      'Review API specifications and requirements',
-      'Implement or modify routes and controllers',
-      'Verify endpoint functionality',
-      'Report changes and integration notes'
-    ],
-    'domain-specialist': [
-      'Analyze business requirements from PRD',
-      'Review and implement domain logic',
-      'Ensure consistency with domain model',
-      'Report implementation and edge cases'
-    ],
-    'qa-e2e': [
-      'Review E2E test requirements',
-      'Implement or update E2E test scenarios',
-      'Run E2E tests and verify results',
-      'Report test coverage and findings'
-    ],
-    'animation-specialist': [
-      'Review animation and motion requirements',
-      'Implement animations with performance in mind',
-      'Verify smooth playback and timing',
-      'Report implementation and optimization notes'
-    ]
-  };
-  
-  let proof: string[];
-  if (frameworks.some(f => ['testing', 'jest', 'vitest'].includes(f.toLowerCase()))) {
-    proof = [buildExitCheckedCommand('npm test')];
-  } else if (frameworks.some(f => ['pytest', 'python'].includes(f.toLowerCase()))) {
-    proof = [buildExitCheckedCommand('pytest')];
-  } else {
-    proof = ['echo "Manual verification required"'];
-  }
-  
-  return {
-    name: def.role,
-    type: 'contextual',
-    role: def.role,
-    description: def.description,
-    tools: ['Read'],
-    scope,
-    procedure: procedures[def.role] || ['Read context', 'Perform specialist duties', 'Report results'],
-    proof,
-    outputSchema,
-    lastReviewed: new Date().toISOString()
-  };
-}
-
-/**
- * Create a script droid spec with minimal tools.
- * Tools start as ['Read', 'Shell'] for script execution and may be widened
- * to ['Read', 'Shell', 'Write'] during synthesis based on user approval.
- */
-function createScriptDroidSpec(scriptPath: string, frameworks: string[]): DroidSpec {
-  let name: string;
-  
-  if (scriptPath.startsWith('npm:')) {
-    // For npm scripts, keep npm-<name> format
-    const npmName = scriptPath.replace('npm:', '');
-    name = `npm-${npmName}`;
-  } else {
-    // For file scripts, replace non-alphanumeric with -, collapse repeats
-    const baseName = scriptPath
-      .replace(/[^a-zA-Z0-9]/g, '-')  // Replace non-alphanumeric with -
-      .replace(/-+/g, '-')              // Collapse multiple dashes
-      .replace(/^-|-$/g, '')            // Remove leading/trailing dashes
-      .toLowerCase();
-    name = `script-${baseName}`;
-  }
-  
-  const proof = generateProofCommands(scriptPath, frameworks);
-  const outputSchema = `Summary: <status>
-Results:
-- exitCode: <number>
-- artifacts: <list>
-Notes:
-- <follow-ups>`;
-  
-  return {
-    name,
-    type: 'script',
-    role: 'script-executor',
-    description: `Wraps and executes ${scriptPath} with verification`,
-    tools: ['Read', 'Shell'],
-    scope: [scriptPath],
-    procedure: [
-      `Execute ${scriptPath}`,
-      'Verify exit code is 0',
-      'Check expected artifacts exist',
-      'Report status'
-    ],
-    proof,
-    outputSchema,
-    scriptPath,
-    lastReviewed: new Date().toISOString()
-  };
-}
 
 export function planDroids(plan: DroidPlan): DroidSpec[] {
   const analysis = plan.brief.analysis;
@@ -303,7 +104,7 @@ export function planDroids(plan: DroidPlan): DroidSpec[] {
 
 function createDomainSpecificDroids(analysis: any): DroidSpec[] {
   const specs: DroidSpec[] = [];
-  const { domain, requirements, complexity } = analysis;
+  const { domain, requirements } = analysis;
 
   switch (domain) {
   case 'medical/dental':
@@ -394,7 +195,7 @@ function createDomainSpecificDroids(analysis: any): DroidSpec[] {
 
 function createCommonDroids(analysis: any): DroidSpec[] {
   const specs: DroidSpec[] = [];
-  const { complexity, requirements, technicalLevel } = analysis;
+  const { complexity, requirements } = analysis;
 
   // Always include a code reviewer
   specs.push(createDroidSpec('reviewer', 'quality', {
@@ -443,10 +244,9 @@ function createCommonDroids(analysis: any): DroidSpec[] {
 
 function createTechnicalDroids(analysis: any): DroidSpec[] {
   const specs: DroidSpec[] = [];
-  const { technicalLevel } = analysis;
 
   // Add additional technical droids based on user's technical level
-  if (technicalLevel === 'expert') {
+  if (analysis.technicalLevel === 'expert') {
     specs.push(createDroidSpec('architect', 'system', {
       description: 'System architecture specialist for complex application design',
       scope: ['system architecture', 'scalability planning', 'technical decisions', 'design patterns'],
@@ -484,7 +284,7 @@ function createDroidSpec(name: string, role: string, customizations: any): Droid
   };
 }
 
-function createFallbackDroids(plan: DroidPlan): DroidSpec[] {
+function createFallbackDroids(_plan: DroidPlan): DroidSpec[] {
   // Simple fallback for old briefs
   return [
     createDroidSpec('frontend', 'frontend', {

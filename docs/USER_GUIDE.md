@@ -27,7 +27,7 @@ factory --version
 # 1. Initialize your project
 droidforge init
 
-# 2. Create your AI team (interactive interview)
+# 2. Create your AI team (natural language analysis)
 droidforge synthesize
 
 # 3. Start using your new AI team!
@@ -93,10 +93,10 @@ droidforge synthesize [--dry-run] [--force] [--optimized]
 - `--optimized`: Use faster scanning for large repositories
 
 **Process:**
-1. Interactive interview (if project brief missing)
-2. Repository scanning
-3. Signal fusion and droid planning
-4. Droid generation with conflict resolution
+1. Conversational analysis (if project brief missing)
+2. Repository scanning for frameworks and scripts
+3. Domain-specific droid generation
+4. Automatic conflict resolution
 5. Documentation updates
 
 ### `droidforge add-script`
@@ -126,35 +126,100 @@ droidforge reanalyze [--dry-run]
 - Proposes updates to existing droids
 - Suggests new droids for new capabilities
 
-##  Interactive Interview
+##  Conversational Project Analysis
 
-The interview process captures your project intent and requirements:
+The synthesis process starts with an intelligent conversation where DroidForge acts as your technical analyst. The conversation continues until DroidForge has enough information to create the perfect specialized AI team for your project.
 
-### Key Questions
-1. **Project Goal**: What problem does your project solve?
-2. **Team Size**: How many people are working on this?
-3. **Primary Tech Stack**: What languages/frameworks are you using?
-4. **Development Workflow**: How does your team work together?
-5. **Target Users**: Who will use the final product?
+### How It Works
+1. **Start the Conversation**: Describe your project in plain English
+2. **Progressive Discovery**: DroidForge asks intelligent follow-up questions to understand your needs
+3. **Technical Guidance**: Get personalized tech stack recommendations based on your experience level
+4. **Perfect Understanding**: Conversation continues until deep understanding is achieved
+5. **Smart Generation**: Creates specialized domain-specific droids based on your actual needs
+
+### Example Conversations
+
+**Dental Office App:**
+```
+Hello! I'm here to help you create the perfect AI team for your project.
+
+What do you want to build?
+> I want to build a web app for a dentist office
+
+That's exciting! What's the biggest challenge you're trying to solve in your
+dental practice right now?
+
+> We keep losing appointments and patients call to cancel
+
+Ah, appointment management! What's been most frustrating about how you handle
+appointments now?
+
+> We're still using a paper calendar
+
+[Conversation continues with more specific questions...]
+```
+*Creates: `frontend-dental`, `backend-dental`, `scheduler-dental`*
+
+**Restaurant System:**
+```
+> I need a restaurant ordering system
+
+Excellent! What kind of restaurant service do you need most help with?
+Taking orders, managing tables, kitchen display, or something else?
+
+> Taking orders and table management
+
+When customers come in, what's the most frustrating part of managing tables now?
+
+> We get overwhelmed during peak hours...
+
+[Conversation explores peak hour challenges, current workflow, etc...]
+```
+*Creates: `frontend-restaurant`, `backend-restaurant`*
+
+**User with No Technical Experience:**
+```
+> I want to build a fitness app but I've never coded before
+
+That's completely fine! Everyone starts somewhere. I'll make sure to set you up
+with beginner-friendly tools. Are you more interested in building something that
+works quickly (no-code/low-code) or are you excited to learn some coding?
+
+> I want to learn coding
+
+Great attitude! Since you're eager to learn, I'd recommend starting with something
+like HTML/CSS/JavaScript. What sounds more exciting - web development or mobile?
+
+[Conversation guides user toward appropriate learning path...]
+```
+
+### What DroidForge Discovers Through Conversation
+- **Domain**: Medical/dental, restaurant, fitness, e-commerce, education, finance, etc.
+- **Pain Points**: Current workflow problems and frustrations to solve
+- **Requirements**: Features that will actually solve your problems
+- **Technical Comfort**: Your experience level and learning preferences
+- **Complexity**: Project scope based on real requirements, not assumptions
+- **Tech Stack**: Personalized recommendations matching your goals and experience
 
 ### Project Brief Structure
-The interview creates `.factory/project-brief.yaml`:
+The analysis creates `.factory/project-brief.yaml`:
 ```yaml
-project:
-  name: "My Project"
-  vision: "Transform user experience through innovative solutions"
-  team_size: 3-5
-  target_users: "Enterprise developers"
-
-workflow:
-  development_style: "collaborative"
-  testing_approach: "comprehensive"
-  deployment_frequency: "weekly"
-
+version: 1
+mode: "new-project"
+persona: "pragmatic"
+autonomy: "L3"
+domain:
+  type: "medical/dental"  # Auto-detected
+  stack: []
 signals:
-  frameworks: ["react", "typescript", "node"]
-  patterns: ["component-driven", "api-first"]
-  specializations: ["ui", "backend", "testing"]
+  frameworks: []          # Auto-scanned
+  scripts: []             # Auto-scanned
+  prdPaths: []            # Auto-scanned
+analysis:                 # Natural language analysis results
+  domain: "medical/dental"
+  complexity: "medium"
+  technicalLevel: "intermediate"
+  requirements: ["booking_system", "user_management"]
 ```
 
 ##  Understanding Droids
@@ -208,7 +273,18 @@ scope: "UI components, styling, and user interactions"
 - **security**: Security audits, vulnerability scanning
 - **performance**: Performance optimization
 
-#### **Specialized Droids**
+#### **Domain-Specific Droids**
+- **frontend-dental**: Dental office UI/UX specialist
+- **backend-dental**: Dental practice management systems
+- **scheduler-dental**: Dental appointment booking specialist
+- **frontend-restaurant**: Restaurant ordering systems
+- **backend-restaurant**: Restaurant kitchen/management systems
+- **frontend-fitness**: Fitness app interfaces
+- **backend-fitness**: Workout tracking systems
+- **frontend-ecommerce**: E-commerce shopping experiences
+- **backend-ecommerce**: Payment and inventory systems
+
+#### **General Droids**
 - **ui-ux**: Design system, user experience
 - **api**: API design, documentation
 - **domain-specialist**: Business logic, domain expertise
@@ -344,7 +420,7 @@ factory droids list --docs > docs/current-team.md
 
 #### **"Missing project brief"**
 ```bash
-# Run interview to create project brief
+# Run natural language analysis to create project brief
 droidforge synthesize
 ```
 

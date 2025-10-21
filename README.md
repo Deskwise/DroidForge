@@ -102,25 +102,67 @@ Update existing droids for project changes
 droidforge reanalyze [--dry-run]
 ```
 
-##  Interactive Interview
+##  Conversational Project Analysis
 
-The first `synthesize` command starts an interactive interview to understand your project:
+The first `synthesize` command starts an intelligent conversation to understand your project. DroidForge acts as a technical analyst who will help you discover and refine your requirements through dialogue.
 
-**Sample Questions:**
-- What is the primary goal of this project?
-- Who are your target users?
-- What's your team size and structure?
-- What technologies are you using?
-- How does your team work together?
-
-**Sample Answers:**
+**Example Conversation:**
 ```
-Goal: Build a task management app for small teams
-Users: Small business teams (5-50 people)
-Team: 3 developers, 1 designer
-Tech: React, Node.js, PostgreSQL, TypeScript
-Workflow: Feature branches, PR reviews, weekly deployments
+Hello! I'm here to help you create the perfect AI team for your project.
+I'll ask you some questions to understand what you want to build, and we'll keep talking
+until I have enough detail to create the ideal specialized droids for you.
+
+What do you want to build?
+> I want to build a web app for a dentist office
+
+That's exciting! Tell me about your dental practice - are you replacing an existing
+system or starting something fresh?
+
+> Starting fresh, we're tired of losing appointments
+
+Ah, appointment management! What's been most frustrating about how you handle
+appointments now?
+
+> We're still using a paper calendar and patients keep calling to cancel
+
+[Conversation continues until DroidForge has deep understanding...]
 ```
+
+**How It Works:**
+- **No Technical Knowledge Required**: You don't need to know frameworks, databases, or technical terms
+- **Progressive Discovery**: DroidForge helps you think through your requirements and pain points
+- **Tech Stack Guidance**: Get personalized recommendations based on your experience level
+- **Domain Expertise**: Specialized questions for your specific industry (medical, restaurant, fitness, etc.)
+- **Adaptive Conversation**: Continues until perfect understanding is achieved
+
+**Conversation Examples by Domain:**
+
+**Restaurant:**
+```
+> I need a restaurant ordering system
+Excellent! What kind of restaurant service do you need most help with?
+Taking orders, managing tables, kitchen display, or something else?
+```
+
+**E-commerce:**
+```
+> Building an online store
+What kind of products will you be selling, and what's been your biggest
+challenge with managing sales so far?
+```
+
+**Fitness:**
+```
+> I want a fitness tracking app
+Great! Are you building this for personal use, a gym, or for fitness
+trainers to work with clients?
+```
+
+Based on your conversation, DroidForge creates specialized domain-specific droids:
+- **Dental Projects**: `frontend-dental`, `backend-dental`, `scheduler-dental`
+- **Restaurant Projects**: `frontend-restaurant`, `backend-restaurant`
+- **Fitness Projects**: `frontend-fitness`, `backend-fitness`
+- **E-commerce**: `frontend-ecommerce`, `backend-ecommerce`
 
 ##  Project Structure After Setup
 
@@ -194,12 +236,8 @@ cd my-app
 # 2. Initialize DroidForge
 droidforge init
 
-# 3. Interview (sample answers)
-# Goal: Task management app for teams
-# Users: Small business teams
-# Team: 2 developers, 1 designer
-# Tech: React, TypeScript, Node.js, PostgreSQL
-# Workflow: Agile sprints, PR reviews
+# 3. Natural language analysis
+# Just describe: "I want to build a task management app for small teams with React and Node.js"
 
 # 4. Generate droids
 droidforge synthesize

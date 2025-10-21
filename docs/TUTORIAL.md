@@ -129,7 +129,7 @@ You'll see output like:
 3. **Team Manifest**: Generated `.factory/droids-manifest.json`
 4. **Agent Overview**: Created `AGENTS.md` with team structure
 
-## 🗣 Step 3: The Interview Process
+## 🗣 Step 3: Conversational Analysis
 
 Let's create our project droids:
 
@@ -137,43 +137,93 @@ Let's create our project droids:
 droidforge synthesize
 ```
 
-DroidForge will ask you several questions. Here's how to answer them for our sample project:
+DroidForge will start an intelligent conversation to understand your project needs. This isn't a questionnaire - it's a dialogue that continues until DroidForge has enough information to create the perfect specialized AI team.
 
-### Interview Questions & Sample Answers
+### Example Conversation
 
-**Q: What is the primary goal of this project?**
+**Starting the conversation:**
 ```
-A: Build a user management and product catalog system with a REST API for small businesses.
-```
+Hello! I'm here to help you create the perfect AI team for your project.
+I'll ask you some questions to understand what you want to build, and we'll keep talking
+until I have enough detail to create the ideal specialized droids for you.
 
-**Q: Who are the target users of this project?**
-```
-A: Small business owners who need to manage customers and products.
-```
+What do you want to build?
+> I want to build a user management and product catalog system
 
-**Q: What is your team size and structure?**
-```
-A: 3-person team: 1 full-stack developer, 1 frontend specialist, 1 part-time devops.
-```
+That's interesting! Tell me more about who will be using this system and what problems
+they face right now.
 
-**Q: What technologies are you using?**
-```
-A: Node.js, TypeScript, Express, PostgreSQL, React for frontend, Jest for testing.
-```
+> Small business owners who are struggling with spreadsheets and manual processes
 
-**Q: How would you describe your development workflow?**
-```
-A: Feature branches with pull requests, automated testing, weekly deployments.
+Ah, manual processes can be so frustrating! What's the most time-consuming part of
+their current workflow?
+
+> Tracking customer information and managing product inventory separately
+
+[Conversation continues...]
 ```
 
-**Q: What are the main areas of work?**
+DroidForge continues asking intelligent follow-up questions to understand:
+- **Pain Points**: Current workflow problems and frustrations
+- **User Needs**: Who will use the system and what they need to accomplish
+- **Technical Comfort**: Experience level and learning preferences
+- **Domain Requirements**: Industry-specific needs and challenges
+
+### Domain-Specific Examples
+
+**Dental Office:**
 ```
-A: Backend API development, frontend React components, database schema design, testing and deployment.
+> I want to build a web app for a dentist office
+
+That's exciting! What's the biggest challenge you're trying to solve in your
+dental practice right now?
+
+> We keep losing appointments and patients call to cancel
+
+Ah, appointment management! What's been most frustrating about how you handle
+appointments now?
+
+> We're still using a paper calendar...
+
+[Leads to: frontend-dental, backend-dental, scheduler-dental]
 ```
+
+**Restaurant:**
+```
+> I need a restaurant ordering system
+
+Excellent! What kind of restaurant service do you need most help with?
+Taking orders, managing tables, kitchen display, or something else?
+
+> Taking orders and table management
+
+When customers come in, what's the most frustrating part of managing tables now?
+
+> We get overwhelmed during peak hours...
+
+[Leads to: frontend-restaurant, backend-restaurant]
+```
+
+**Beginner-Friendly:**
+```
+> I want to build a fitness app but I've never coded before
+
+That's completely fine! Everyone starts somewhere. I'll make sure to set you up
+with beginner-friendly tools. Are you more interested in building something that
+works quickly or are you excited to learn some coding?
+
+> I want to learn coding
+
+Great attitude! I'd recommend starting with web development...
+
+[Leads to: beginner-friendly tech stack recommendations]
+```
+
+The conversation continues until DroidForge achieves deep understanding of your needs, then creates the perfect specialized AI team.
 
 ##  Step 4: Repository Scanning
 
-After the interview, DroidForge scans your repository:
+After the conversational analysis, DroidForge scans your repository:
 
 ```
  Scanning repository...
@@ -477,9 +527,9 @@ You've successfully:
 - Ensure package.json has scripts
 - Add a README.md with project description
 
-### "Interview seems stuck"
+### "Analysis seems stuck"
 - Use Ctrl+C to cancel and restart
-- Try shorter, more focused answers
+- Try a more detailed project description
 - Check that Node.js is properly installed
 
 ### "Droids not working with Factory CLI"
