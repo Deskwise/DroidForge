@@ -283,25 +283,6 @@ export function planDroids(plan: DroidPlan): DroidSpec[] {
   const specs: DroidSpec[] = [];
   const analysis = plan.brief.analysis;
   const frameworks = plan.signals.frameworks;
-
-  if (!analysis) {
-    // Fallback for old briefs without analysis
-    return createFallbackDroids(plan);
-  }
-
-  // Create domain-specific droids based on natural language analysis
-  const domainDroids = createDomainSpecificDroids(analysis);
-  specs.push(...domainDroids);
-
-  // Add common droids based on complexity and requirements
-  const commonDroids = createCommonDroids(analysis);
-  specs.push(...commonDroids);
-
-  // Add technical level-specific droids
-  const technicalDroids = createTechnicalDroids(analysis);
-  specs.push(...technicalDroids);
-
-  return specs;
 }
 
 function createDomainSpecificDroids(analysis: any): DroidSpec[] {
@@ -309,87 +290,87 @@ function createDomainSpecificDroids(analysis: any): DroidSpec[] {
   const { domain, requirements, complexity } = analysis;
 
   switch (domain) {
-    case 'medical/dental':
-      specs.push(
-        createDroidSpec('frontend-dental', 'frontend', {
-          description: 'Specialized in creating intuitive user interfaces for dental and medical applications',
-          scope: ['patient booking forms', 'treatment displays', 'medical history views', 'appointment calendars'],
-          domainExpertise: ['HIPAA compliance', 'medical terminology', 'patient privacy', 'appointment scheduling']
-        }),
-        createDroidSpec('backend-dental', 'backend', {
-          description: 'Expert in dental practice management systems and medical data handling',
-          scope: ['patient records', 'appointment scheduling', 'billing systems', 'insurance integration'],
-          domainExpertise: ['HIPAA compliance', 'medical databases', 'practice management', 'secure data handling']
-        })
-      );
-      if (requirements.includes('booking_system')) {
-        specs.push(createDroidSpec('scheduler-dental', 'fullstack', {
-          description: 'Specialized in dental appointment scheduling and calendar management',
-          scope: ['appointment booking', 'calendar integration', 'availability management', 'patient reminders'],
-          domainExpertise: ['time slot management', 'patient communications', 'scheduling conflicts', 'automated reminders']
-        }));
-      }
-      break;
+  case 'medical/dental':
+    specs.push(
+      createDroidSpec('frontend-dental', 'frontend', {
+        description: 'Specialized in creating intuitive user interfaces for dental and medical applications',
+        scope: ['patient booking forms', 'treatment displays', 'medical history views', 'appointment calendars'],
+        domainExpertise: ['HIPAA compliance', 'medical terminology', 'patient privacy', 'appointment scheduling']
+      }),
+      createDroidSpec('backend-dental', 'backend', {
+        description: 'Expert in dental practice management systems and medical data handling',
+        scope: ['patient records', 'appointment scheduling', 'billing systems', 'insurance integration'],
+        domainExpertise: ['HIPAA compliance', 'medical databases', 'practice management', 'secure data handling']
+      })
+    );
+    if (requirements.includes('booking_system')) {
+      specs.push(createDroidSpec('scheduler-dental', 'fullstack', {
+        description: 'Specialized in dental appointment scheduling and calendar management',
+        scope: ['appointment booking', 'calendar integration', 'availability management', 'patient reminders'],
+        domainExpertise: ['time slot management', 'patient communications', 'scheduling conflicts', 'automated reminders']
+      }));
+    }
+    break;
 
-    case 'restaurant':
-      specs.push(
-        createDroidSpec('frontend-restaurant', 'frontend', {
-          description: 'Creates engaging user interfaces for restaurant and food service applications',
-          scope: ['menu displays', 'ordering systems', 'reservation forms', 'customer reviews'],
-          domainExpertise: ['restaurant UX patterns', 'food presentation', 'ordering flows', 'customer engagement']
-        }),
-        createDroidSpec('backend-restaurant', 'backend', {
-          description: 'Expert in restaurant management systems and food service operations',
-          scope: ['inventory management', 'order processing', 'table management', 'kitchen coordination'],
-          domainExpertise: ['restaurant operations', 'POS integration', 'inventory tracking', 'order management']
-        })
-      );
-      break;
+  case 'restaurant':
+    specs.push(
+      createDroidSpec('frontend-restaurant', 'frontend', {
+        description: 'Creates engaging user interfaces for restaurant and food service applications',
+        scope: ['menu displays', 'ordering systems', 'reservation forms', 'customer reviews'],
+        domainExpertise: ['restaurant UX patterns', 'food presentation', 'ordering flows', 'customer engagement']
+      }),
+      createDroidSpec('backend-restaurant', 'backend', {
+        description: 'Expert in restaurant management systems and food service operations',
+        scope: ['inventory management', 'order processing', 'table management', 'kitchen coordination'],
+        domainExpertise: ['restaurant operations', 'POS integration', 'inventory tracking', 'order management']
+      })
+    );
+    break;
 
-    case 'fitness':
-      specs.push(
-        createDroidSpec('frontend-fitness', 'frontend', {
-          description: 'Specialized in fitness and workout application interfaces',
-          scope: ['workout displays', 'progress tracking', 'exercise libraries', 'user profiles'],
-          domainExpertise: ['fitness app patterns', 'progress visualization', 'workout planning', 'motivation design']
-        }),
-        createDroidSpec('backend-fitness', 'backend', {
-          description: 'Expert in fitness tracking and workout management systems',
-          scope: ['workout data', 'user progress', 'exercise libraries', 'performance analytics'],
-          domainExpertise: ['fitness data modeling', 'performance tracking', 'workout algorithms', 'health metrics']
-        })
-      );
-      break;
+  case 'fitness':
+    specs.push(
+      createDroidSpec('frontend-fitness', 'frontend', {
+        description: 'Specialized in fitness and workout application interfaces',
+        scope: ['workout displays', 'progress tracking', 'exercise libraries', 'user profiles'],
+        domainExpertise: ['fitness app patterns', 'progress visualization', 'workout planning', 'motivation design']
+      }),
+      createDroidSpec('backend-fitness', 'backend', {
+        description: 'Expert in fitness tracking and workout management systems',
+        scope: ['workout data', 'user progress', 'exercise libraries', 'performance analytics'],
+        domainExpertise: ['fitness data modeling', 'performance tracking', 'workout algorithms', 'health metrics']
+      })
+    );
+    break;
 
-    case 'e-commerce':
-      specs.push(
-        createDroidSpec('frontend-ecommerce', 'frontend', {
-          description: 'Creates compelling shopping experiences and product presentations',
-          scope: ['product catalogs', 'shopping carts', 'checkout flows', 'user accounts'],
-          domainExpertise: ['e-commerce UX', 'conversion optimization', 'product presentation', 'trust signals']
-        }),
-        createDroidSpec('backend-ecommerce', 'backend', {
-          description: 'Expert in e-commerce platforms and transaction processing',
-          scope: ['product management', 'order processing', 'payment integration', 'inventory tracking'],
-          domainExpertise: ['payment systems', 'order management', 'e-commerce security', 'scalability patterns']
-        })
-      );
-      break;
+  case 'e-commerce':
+    specs.push(
+      createDroidSpec('frontend-ecommerce', 'frontend', {
+        description: 'Creates compelling shopping experiences and product presentations',
+        scope: ['product catalogs', 'shopping carts', 'checkout flows', 'user accounts'],
+        domainExpertise: ['e-commerce UX', 'conversion optimization', 'product presentation', 'trust signals']
+      }),
+      createDroidSpec('backend-ecommerce', 'backend', {
+        description: 'Expert in e-commerce platforms and transaction processing',
+        scope: ['product management', 'order processing', 'payment integration', 'inventory tracking'],
+        domainExpertise: ['payment systems', 'order management', 'e-commerce security', 'scalability patterns']
+      })
+    );
+    break;
 
-    default:
-      // General purpose droids for unspecified domains
-      specs.push(
-        createDroidSpec('frontend-general', 'frontend', {
-          description: 'Versatile frontend developer for various application types',
-          scope: ['user interfaces', 'responsive design', 'user experience', 'component development'],
-          domainExpertise: ['modern frontend frameworks', 'UI/UX principles', 'responsive design', 'accessibility']
-        }),
-        createDroidSpec('backend-general', 'backend', {
-          description: 'Full-stack backend developer for general application development',
-          scope: ['API development', 'database design', 'authentication', 'business logic'],
-          domainExpertise: ['RESTful APIs', 'database design', 'security patterns', 'system architecture']
-        })
-      );
+  default:
+    // General purpose droids for unspecified domains
+    specs.push(
+      createDroidSpec('frontend-general', 'frontend', {
+        description: 'Versatile frontend developer for various application types',
+        scope: ['user interfaces', 'responsive design', 'user experience', 'component development'],
+        domainExpertise: ['modern frontend frameworks', 'UI/UX principles', 'responsive design', 'accessibility']
+      }),
+      createDroidSpec('backend-general', 'backend', {
+        description: 'Full-stack backend developer for general application development',
+        scope: ['API development', 'database design', 'authentication', 'business logic'],
+        domainExpertise: ['RESTful APIs', 'database design', 'security patterns', 'system architecture']
+      })
+    );
   }
 
   return specs;
@@ -464,8 +445,8 @@ function createDroidSpec(name: string, role: string, customizations: any): Droid
   const baseTools = role === 'frontend' ?
     ['file:src/**/*', 'file:public/**/*', 'command:npm run dev'] :
     role === 'backend' ?
-    ['file:server/**/*', 'file:api/**/*', 'command:npm start'] :
-    ['file:**/*'];
+      ['file:server/**/*', 'file:api/**/*', 'command:npm start'] :
+      ['file:**/*'];
 
   return {
     name,
@@ -477,8 +458,8 @@ function createDroidSpec(name: string, role: string, customizations: any): Droid
     procedure: [
       `Analyze ${role} requirements`,
       `Implement ${customizations.domainExpertise?.[0] || 'solution'}`,
-      `Test functionality`,
-      `Ensure quality standards`
+      'Test functionality',
+      'Ensure quality standards'
     ],
     proof: [buildExitCheckedCommand('npm test')],
     outputSchema: `Implementation: ${role} components\nResults:\n- Features: <list>\nQuality: <validation>`,

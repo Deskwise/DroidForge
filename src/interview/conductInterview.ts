@@ -200,7 +200,7 @@ export async function conductInterview(): Promise<ProjectBrief> {
   const serialized = yaml.dump(brief, { noRefs: true, lineWidth: 120 });
   await fs.writeFile(briefAbs, serialized, 'utf8');
 
-  console.log(kleur.green(`\nPerfect! I've analyzed your project and I'm ready to create your specialized AI team.`));
+  console.log(kleur.green('\nPerfect! I\'ve analyzed your project and I\'m ready to create your specialized AI team.'));
   console.log(kleur.blue(`Domain: ${analysis.domain}`));
   console.log(kleur.blue(`Complexity: ${analysis.complexity}`));
   console.log(kleur.blue(`Features detected: ${analysis.requirements.join(', ') || 'general purpose'}\n`));
