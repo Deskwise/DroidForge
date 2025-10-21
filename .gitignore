@@ -99,10 +99,20 @@ temp/
 .factory/cache/
 .factory/temp/
 .droidforge-temp/
+.droidforge-cache/
+.claude/
+.codex/
+.specify/
 
 # Test files
 test-results/
 test-output/
+test-debug/
+templates/
+
+# Development artifacts
+DroidForge-scaffold.zip
+examples/
 
 # Local configuration
 .droidforgerc.local.json

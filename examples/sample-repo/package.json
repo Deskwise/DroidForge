@@ -1,8 +1,0 @@
-{
-  "name": "sample-repo",
-  "version": "0.0.1",
-  "scripts": {
-    "build": "bash scripts/build.sh",
-    "test": "bash scripts/test.sh"
-  }
-}
