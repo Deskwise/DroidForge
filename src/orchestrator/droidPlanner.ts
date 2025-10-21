@@ -280,9 +280,25 @@ Notes:
 }
 
 export function planDroids(plan: DroidPlan): DroidSpec[] {
-  const specs: DroidSpec[] = [];
   const analysis = plan.brief.analysis;
-  const frameworks = plan.signals.frameworks;
+
+  if (!analysis) {
+    // Fallback for old briefs without analysis
+    return createFallbackDroids(plan);
+  }
+
+  const specs: DroidSpec[] = [];
+
+  // Create domain-specific droids based on natural language analysis
+  specs.push(...createDomainSpecificDroids(analysis));
+
+  // Add common droids based on complexity and requirements
+  specs.push(...createCommonDroids(analysis));
+
+  // Add technical level-specific droids
+  specs.push(...createTechnicalDroids(analysis));
+
+  return specs;
 }
 
 function createDomainSpecificDroids(analysis: any): DroidSpec[] {
