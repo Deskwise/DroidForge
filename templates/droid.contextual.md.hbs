@@ -1,0 +1,53 @@
+---
+name: {{ name }}
+model: inherit
+description: "{{ description }}"
+tools:
+{{#tools}}
+  - {{.}}
+{{/tools}}
+scope:
+{{#scope}}
+  - "{{.}}"
+{{/scope}}
+procedure:
+{{#procedure}}
+  - "{{.}}"
+{{/procedure}}
+proof:
+{{#proof}}
+  - "{{.}}"
+{{/proof}}
+outputSchema: |
+  {{{ outputSchema }}}
+lastReviewed: "{{ lastReviewed }}"
+---
+# Role
+{{ description }}
+
+Specialist focused on {{ role }} concerns within the project.
+
+# Scope
+Allowed file patterns:
+{{#scope}}
+- {{.}}
+{{/scope}}
+
+# Procedure
+{{#procedure}}
+- {{.}}
+{{/procedure}}
+
+# Proof
+Verification commands:
+{{#proof}}
+- {{.}}
+{{/proof}}
+
+# Constraints
+- Least privilege. Start read-only unless user widens tools.
+- Stay within declared scope patterns.
+- Focus on {{ role }} domain expertise.
+
+# Output
+{{{ outputSchema }}}
