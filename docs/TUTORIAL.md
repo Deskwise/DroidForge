@@ -518,7 +518,7 @@ You've successfully:
 - [Project Templates](./TEMPLATES.md)
 - [Advanced Configuration](./ADVANCED.md)
 - [Troubleshooting Guide](./TROUBLESHOOTING.md)
-- [Community Examples](https://github.com/factory/examples)
+- [Community Examples](https://github.com/Deskwise/DroidForge/examples)
 
 ##  Troubleshooting Common Issues
 

@@ -5,6 +5,67 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.4] - 2025-01-21
+
+### Added
+- Comprehensive documentation updates for removeall command usage
+- Added detailed examples and use cases for the removeall command
+- Updated USER_GUIDE with complete command reference
+- Updated TUTORIAL with correct directory structure references
+
+### Changed
+- Updated all GitHub repository URLs from factory/droidforge to Deskwise/DroidForge
+- Updated all community links and support references
+- Updated all documentation to reflect .droidforge directory structure
+- Changed branding references from factory to droidforge communities
+
+### Fixed
+- Fixed broken repository links in all documentation files
+- Updated community support links to point to correct resources
+- Synchronized all documentation with recent structural changes
+
+## [0.3.3] - 2025-01-21
+
+### Added
+- New `droidforge removeall` command to clean all droids and DroidForge files from repository
+- Interactive confirmation prompt for safe removal with `--confirm` flag to bypass
+- Intelligent detection of existing DroidForge files before removal
+- Complete migration from `.factory` to `.droidforge` directory structure
+- Updated all branding to remove "Factory" references throughout the codebase
+
+### Changed
+- Migrated all internal references from `.factory/` to `.droidforge/` directories
+- Updated CLI descriptions from "Factory droid army" to "specialized AI droid army"
+- Updated all documentation files to reflect new directory structure
+- Fixed deprecation warnings by using `fs.rm` instead of `fs.rmdir`
+- Updated GitHub repository references from factory/droidforge to Deskwise/DroidForge
+- Updated support links and community references to point to correct resources
+
+### Fixed
+- Removed dependency on Factory CLI branding to avoid trademark conflicts
+- Fixed filesystem deprecation warnings for Node.js compatibility
+- Updated help text to reference correct `droidforge` commands instead of `factory` commands
+
+### Security
+- Safer file removal with proper error handling and user confirmation
+- Better validation of file existence before attempting removal
+
+## [0.3.2] - 2025-01-21
+
+### Fixed
+- Fixed conversation system that was ending immediately without asking questions
+- Added proper first question "What do you want to build?" to start conversations
+- Improved domain detection logic for general user responses
+- System now properly engages users in dialogue instead of defaulting to random droids
+
+## [0.3.1] - 2025-01-21
+
+### Fixed
+- Updated repository URLs from factory/droidforge to Deskwise/DroidForge
+- Changed author and homepage links to point to correct Deskwise resources
+- Removed "Factory CLI" references from package description and keywords
+- Fixed branding inconsistencies in NPM package metadata
+
 ## [0.3.0] - 2024-10-21
 
 ### Added

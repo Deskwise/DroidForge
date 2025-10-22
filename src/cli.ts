@@ -47,7 +47,7 @@ ${kleur.bold(' Common Workflows:')}
   $ droidforge removeall                # Clean all droids from repo
 
 ${kleur.bold(' Learn More:')}
-  ${kleur.cyan('https://github.com/your-org/droidforge#readme')}
+  ${kleur.cyan('https://github.com/Deskwise/DroidForge#readme')}
     `);
   });
 

@@ -1,6 +1,6 @@
 # DroidForge
 
-Transform any repository into a specialized AI droid army with the power of Factory CLI.
+Transform any repository into a specialized AI droid army with intelligent conversational analysis.
 
 DroidForge is a Node.js CLI that automatically analyzes your project and generates specialized AI assistants (droids) tailored to your codebase, team structure, and development workflow.
 
@@ -26,9 +26,8 @@ npx droidforge --help
 ### 5-Minute Setup
 
 ```bash
-# 1. Install dependencies (both are required)
+# 1. Install DroidForge
 npm install -g droidforge
-npm install -g @factory/cli
 
 # 2. Initialize your project
 droidforge init
@@ -37,8 +36,11 @@ droidforge init
 droidforge synthesize
 
 # 4. Start using your droids!
-factory droids list
-factory droids use dev "Implement user authentication"
+droidforge droids list
+droidforge droids use dev "Implement user authentication"
+
+# 5. Clean up when done (optional)
+droidforge removeall
 ```
 
 ## Core Features
@@ -96,10 +98,16 @@ Wrap a specific script as a droid
 droidforge add-script <script-path> [--dry-run]
 ```
 
-### **`droidforge reanalyze`** 
+### **`droidforge reanalyze`**
 Update existing droids for project changes
 ```bash
 droidforge reanalyze [--dry-run]
+```
+
+### **`droidforge removeall`**
+Clean all droids and DroidForge files from repository
+```bash
+droidforge removeall [--confirm]
 ```
 
 ##  Conversational Project Analysis
@@ -404,7 +412,7 @@ We welcome contributions! Please see our [Contributing Guide](./CONTRIBUTING.md)
 
 ### Development Setup
 ```bash
-git clone https://github.com/factory/droidforge.git
+git clone https://github.com/Deskwise/DroidForge.git
 cd droidforge
 npm install
 npm run dev
@@ -422,11 +430,11 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 
 ##  Links
 
-- **GitHub Repository**: https://github.com/factory/droidforge
+- **GitHub Repository**: https://github.com/Deskwise/DroidForge
 - **Factory CLI**: https://github.com/factory/cli
 - **Documentation**: https://docs.droidforge.ai/droidforge
-- **Community**: https://discord.gg/factory
-- **Issues**: https://github.com/factory/droidforge/issues
+- **Community**: https://discord.gg/droidforge
+- **Issues**: https://github.com/Deskwise/DroidForge/issues
 
 ##  Common Issue: Factory CLI Not Found
 
@@ -454,9 +462,9 @@ factory --version     # Should show Factory CLI version
 ## 🆘 Support
 
 - **Troubleshooting**: [Troubleshooting Guide](./docs/TROUBLESHOOTING.md)
-- **Community**: [GitHub Discussions](https://github.com/factory/droidforge/discussions)
-- **Issues**: [GitHub Issues](https://github.com/factory/droidforge/issues)
-- **Email**: support@factory.ai
+- **Community**: [GitHub Discussions](https://github.com/Deskwise/DroidForge/discussions)
+- **Issues**: [GitHub Issues](https://github.com/Deskwise/DroidForge/issues)
+- **Email**: support@deskwise.ai
 
 ---
 

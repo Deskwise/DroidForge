@@ -423,7 +423,7 @@ curl -I https://raw.githubusercontent.com
 # Use manual installation
 mkdir -p ~/.droidforge/droids
 curl -o ~/.droidforge/droids/orchestrator.md \
-  https://raw.githubusercontent.com/factory/droidforge/main/droids/orchestrator.md
+  https://raw.githubusercontent.com/Deskwise/DroidForge/main/droids/orchestrator.md
 
 # Or use offline mode
 export DROIDFORGE_OFFLINE=true
@@ -571,8 +571,8 @@ DEBUG=droidforge:* droidforge synthesize > debug.log 2>&1
 
 ### Community Support
 
-- [GitHub Issues](https://github.com/factory/droidforge/issues)
-- [Discord Community](https://discord.gg/factory)
+- [GitHub Issues](https://github.com/Deskwise/DroidForge/issues)
+- [Discord Community](https://discord.gg/droidforge)
 - [Documentation](https://docs.droidforge.ai/droidforge)
 
 ##  Prevention Tips
@@ -602,4 +602,4 @@ droidforge reanalyze               # Update droids for new structure
 
 ---
 
-**Still having issues?** Check the [Advanced Configuration Guide](./ADVANCED.md) or [Community Examples](https://github.com/factory/examples) for more specific solutions.
+**Still having issues?** Check the [Advanced Configuration Guide](./ADVANCED.md) or [Community Examples](https://github.com/Deskwise/DroidForge/examples) for more specific solutions.

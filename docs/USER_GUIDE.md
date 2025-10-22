@@ -126,6 +126,36 @@ droidforge reanalyze [--dry-run]
 - Proposes updates to existing droids
 - Suggests new droids for new capabilities
 
+### `droidforge removeall`
+Clean all droids and DroidForge files from your repository.
+```bash
+droidforge removeall [--confirm]
+```
+
+**What it removes:**
+- `.droidforge/` directory (all generated droids and project brief)
+- `AGENTS.md` (team overview)
+- `docs/droid-guide.md` (usage documentation)
+
+**Options:**
+- `--confirm`: Skip the interactive confirmation prompt
+
+**Use cases:**
+- When you're done with the project and want to clean up
+- Before switching to a completely different project setup
+- To reset and start fresh with new droids
+
+**Example:**
+```bash
+$ droidforge removeall
+⚠️  This will permanently remove:
+  - .droidforge/ directory
+  - AGENTS.md
+  - docs/droid-guide.md
+? Are you sure you want to remove all DroidForge files? (y/N): y
+✅ All DroidForge files removed successfully
+```
+
 ##  Conversational Project Analysis
 
 The synthesis process starts with an intelligent conversation where DroidForge acts as your technical analyst. The conversation continues until DroidForge has enough information to create the perfect specialized AI team for your project.
@@ -483,5 +513,5 @@ droidforge synthesize --force
 
 - [Factory CLI Documentation](https://github.com/factory/cli)
 - [Project Templates](./TEMPLATES.md)
-- [Community Examples](https://github.com/factory/examples)
-- [Support](https://github.com/factory/droidforge/issues)
+- [Community Examples](https://github.com/Deskwise/DroidForge/examples)
+- [Support](https://github.com/Deskwise/DroidForge/issues)
