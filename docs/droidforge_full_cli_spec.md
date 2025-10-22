@@ -1,6 +1,6 @@
 # 📘 DroidForge MCP Server & Slash Command Specification
 
-This specification defines the end-to-end architecture and implementation plan for the **DroidForge** experience inside Droid CLI. It replaces the legacy standalone CLI flow. Every requirement below must be met so that an AI agent (or engineering team) can implement the system without additional clarification.
+This specification defines the end-to-end architecture and implementation plan for the **DroidForge** experience inside Droid CLI. It replaces the legacy standalone CLI flow. Every requirement below must be met so that an AI agent (or engineering team) can implement the system without additional clarification. For guidance on safe multi-droid concurrency, see the companion document [`docs/droidforge_parallel_orchestration_spec.md`](./droidforge_parallel_orchestration_spec.md).
 
 ---
 

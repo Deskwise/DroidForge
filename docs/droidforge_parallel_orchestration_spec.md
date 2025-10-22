@@ -43,6 +43,8 @@ Out of scope: Auto-splitting natural-language goals into graphs (the orchestrato
 └──────────────────────────────────────────────────────────┘
 ```
 
+This document builds on the base MCP specification and only describes the additional behaviour required for parallel orchestration. Whenever an item is unchanged, implementers should follow the guidance in [`docs/droidforge_full_cli_spec.md`](./droidforge_full_cli_spec.md).
+
 Key additions:
 - **Parallel Execution Engine (PEE)** inside the MCP server that manages task DAGs, run slots, and conflict resolution.
 - **Execution State Assets** under `.droidforge/exec/` to persist graph state, run metadata, and timeline logs for resumability.
@@ -55,12 +57,46 @@ Key additions:
 
 ### 3.1 Task Graph
 
+`plan_execution` receives a JSON payload describing the graph:
+
+```json
+{
+  "graph": {
+    "nodes": [
+      {
+        "nodeId": "plan",
+        "droidId": "df-orchestrator",
+        "title": "Draft Windows build plan",
+        "description": "Break the work into build/test/doc tasks",
+        "mode": "read-only",
+        "resourceClaims": [],
+        "inputs": {},
+        "outputs": {}
+      },
+      {
+        "nodeId": "builder",
+        "droidId": "df-builder",
+        "title": "Compile Windows artifacts",
+        "mode": "write",
+        "resourceClaims": ["src/windows/**", "build/windows/**"],
+        "inputs": {"planNode": "plan"},
+        "outputs": {"artifactPath": "build/windows/installer.exe"}
+      }
+    ],
+    "edges": [
+      { "from": "plan", "to": "builder" },
+      { "from": "plan", "to": "tester" }
+    ]
+  },
+  "concurrency": 2
+}
+```
+
 - Each orchestrator request (`/df …`) yields an **Execution Graph**: nodes represent droid tasks; edges encode dependencies (must-complete-before).
 - Graph can be provided by df-orchestrator’s planner or injected via the CLI (future: user-specified).
 - Nodes carry metadata:
-  - `droidId`, `description`, `inputs`, expected outputs.
-  - `resourceClaims` → list of files/globs; used to acquire locks before run.
-  - `mode`: `read-only`, `write`, or `analysis` (affects concurrency heuristics).
+  - `droidId`, `description`, `inputs`, expected outputs, `mode`, and `resourceClaims` (list of files/globs that must be locked before run).
+  - Optional `timeout`, `retry` policy, and `validationHooks` for post-run checks.
 
 ### 3.2 Scheduler
 
@@ -99,7 +135,7 @@ Key additions:
 | `.droidforge/exec/<executionId>/graph.json` | Persisted execution graph with status for resumability |
 | `.droidforge/exec/<executionId>/timeline.jsonl` | Append-only event stream for streaming & debugging |
 | `.droidforge/exec/<executionId>/staging/<nodeId>/` | Temporary workspace per node (copy-on-write) |
-| `.droidforge/exec/<executionId>/locks.json` | Captured lock ownership for crash recovery |
+| `.droidforge/exec/<executionId>/locks.json` | Captured lock ownership for crash recovery (see schema below) |
 | `.droidforge/exec/history.jsonl` | Summary of past executions (metadata only) |
 
 Permissions/time-to-live: clean up when execution resolved (success/abort) or after configurable TTL.
@@ -168,7 +204,41 @@ Tool Input/Output extensions (select examples):
 ### 6.2 Timeline Events
 
 - Append-only JSONL with events such as `task.scheduled`, `task.started`, `task.stdout`, `task.completed`, `task.failed`, `execution.paused`, `execution.merged`.
-- Used for incremental streaming to CLI; truncated tail provided by `poll_execution`.
+- Each line is a JSON object:
+  ```json
+  {
+    "timestamp": "2024-09-25T11:03:27.120Z",
+    "executionId": "df-2024-09-25T12-04-33Z",
+    "nodeId": "builder",
+    "event": "task.stdout",
+    "status": "ok",
+    "payload": {
+      "message": "Packaging Windows artifacts…"
+    }
+  }
+  ```
+- Used for incremental streaming to CLI; truncated tail provided by `poll_execution`. Clients may request full history via `/forge-logs --execution <id>`.
+
+#### Lock File Snapshot
+
+- Stored at `.droidforge/exec/<executionId>/locks.json`:
+  ```json
+  {
+    "locks": {
+      "src/windows/**": {
+        "mode": "write",
+        "nodeId": "builder",
+        "acquiredAt": "2024-09-25T11:03:19.884Z"
+      },
+      "docs/**": {
+        "mode": "read",
+        "nodeId": "doc",
+        "acquiredAt": "2024-09-25T11:03:20.112Z"
+      }
+    }
+  }
+  ```
+- Restored on crash so the scheduler can cleanly resume or release stale locks before continuing.
 
 ---
 
@@ -235,6 +305,30 @@ Tool Input/Output extensions (select examples):
 
 - If CLI disconnects mid-run, user runs `/forge-status`. Prompt lists active execution(s); selecting one triggers `resume_execution` followed by streaming updates from timeline tail.
 
+### 8.4 Serial Fallback Example
+
+If the planner submits a single-node graph (or the user opts into `--serial`), execution collapses to the legacy behaviour:
+```
+User: /df Fix the README typo
+[df-orchestrator] Running in serial mode (1 task)
+[11:05:12] ▶ docfix • updating README.md
+[11:05:14] ✓ docfix • committed change
+Ready to merge? (1 Yes  2 Review diff  3 Abort)
+```
+The merge prompt mirrors the existing single-task flow and no scheduler state is created under `.droidforge/exec/`.
+
+### 8.5 Merge-Conflict Recovery Example
+
+If a node produces changes that conflict with repo HEAD:
+```
+[11:22:04] ⚠ merge block • builder output conflicts with src/api/server.ts
+Options:
+ 1 Retry builder after sync
+ 2 Open diff summary
+ 3 Abort execution (keeps snapshot df-2024-09-25T11-22-04Z)
+```
+Choosing option 2 triggers a prompt that shows the conflicting hunks and allows the user to edit the staging file before retrying `merge_execution`.
+
 ---
 
 ## 9. CLI & Slash Commands
@@ -285,8 +379,10 @@ Slash command templates updated via `install_commands` to include `/forge-status
 - **Load/Stress**
   - Many small nodes (10+) to ensure scheduler fairness.
   - Long-running node + quick nodes verifying streaming remains responsive.
+  - Timeline truncation tests: verify `poll_execution` tail remains bounded and pagination works for >1k events.
 - **CLI Simulation**
   - Mock prompts to ensure streaming text matches spec (friendly, numbered options, no pattern matching).
+  - Crash/restart harness: kill MCP mid-run, restart, call `list_executions`, and resume.
 
 ---
 

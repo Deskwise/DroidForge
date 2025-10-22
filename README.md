@@ -7,7 +7,7 @@ This repository contains:
 - Shared detectors for repo scanning and signal extraction.
 - Documentation and specs for flows, slash commands, and data formats.
 
-For the full contract, see [`docs/droidforge_full_cli_spec.md`](docs/droidforge_full_cli_spec.md).
+For the full contract, see [`docs/droidforge_full_cli_spec.md`](docs/droidforge_full_cli_spec.md). For safe multi-droid concurrency, consult the companion [`docs/droidforge_parallel_orchestration_spec.md`](docs/droidforge_parallel_orchestration_spec.md).
 
 ---
 
@@ -18,6 +18,7 @@ For the full contract, see [`docs/droidforge_full_cli_spec.md`](docs/droidforge_
 - **Writable artifacts** — droid definitions (`.droidforge/droids/*.json`), manifests, docs (`docs/DroidForge_user_guide_en.md`), optional `DROIDS.md`, and session snapshots.
 - **Return-friendly experience** — repeat `/forge-start` shows a dashboard with quick options and inserts `/df ` so users jump straight to the orchestrator.
 - **Extensible tools** — hooks for snapshots, cleanup, log retrieval, and future task gates are built in.
+- **Parallel orchestration (opt-in)** — `/df` can run multiple specialists at once with safe locking (see parallel spec for details).
 
 ---
 
@@ -106,5 +107,6 @@ docs/
 - Generate slash-command files during onboarding and cleanup automatically.
 - Port logging, snapshots, and guide rendering to the new JSON/Markdown formats.
 - Add automated tests that exercise the full `/forge-start` → `/df` path.
+- Roll out parallel orchestration scheduler (see parallel spec) with feature-flagged rollout.
 
 If you contribute changes, update the spec first, keep the README in sync, and add checklist entries in `docs/droidforge_full_cli_spec.md` where relevant.
