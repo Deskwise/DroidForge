@@ -60,7 +60,10 @@ function createConversationState(): ConversationState {
 
 function generateFollowUpQuestion(state: ConversationState): string | null {
   const lastMessage = state.messages[state.messages.length - 1];
-  if (!lastMessage) return null;
+  if (!lastMessage) {
+    // First question - ask what they want to build
+    return 'What do you want to build?';
+  }
 
   const userInput = lastMessage.content.toLowerCase();
 
@@ -178,6 +181,15 @@ function generateFollowUpQuestion(state: ConversationState): string | null {
     }
   }
 
+  // If no domain detected yet, set it based on conversation context
+  if (!state.currentAnalysis.domain && state.currentAnalysis.userGoal) {
+    // Set a default domain based on the user's goal
+    const goal = state.currentAnalysis.userGoal.toLowerCase();
+    if (goal.includes('app') || goal.includes('website') || goal.includes('platform')) {
+      state.currentAnalysis.domain = 'general';
+    }
+  }
+
   // If we have good understanding, check if we need more
   const confidence = calculateConfidence(state);
   if (confidence > 0.75) {
@@ -190,7 +202,7 @@ function generateFollowUpQuestion(state: ConversationState): string | null {
   }
 
   if (!state.currentAnalysis.domain) {
-    return 'What field or industry does this project relate to? For example, retail, healthcare, education, etc.';
+    return 'What field or industry does this project relate to? For example, retail, healthcare, education, or is this a personal project?';
   }
 
   if (!state.currentAnalysis.requirements || state.currentAnalysis.requirements.length === 0) {
