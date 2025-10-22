@@ -1,7 +1,7 @@
 {
   "name": "droidforge",
-  "version": "0.3.0",
-  "description": "Transform any repository into a specialized AI droid army with the power of Factory CLI",
+  "version": "0.3.1",
+  "description": "Transform any repository into a specialized AI droid army with intelligent conversational analysis",
   "type": "module",
   "main": "./dist/index.js",
   "bin": {
@@ -32,7 +32,6 @@
   "keywords": [
     "ai",
     "droids",
-    "factory",
     "cli",
     "code-generation",
     "automation",
@@ -43,17 +42,17 @@
     "nodejs"
   ],
   "author": {
-    "name": "Factory Team",
-    "email": "team@factory.ai",
-    "url": "https://factory.ai"
+    "name": "Deskwise Team",
+    "email": "team@deskwise.ai",
+    "url": "https://deskwise.ai"
   },
-  "homepage": "https://github.com/factory/droidforge#readme",
+  "homepage": "https://github.com/Deskwise/DroidForge#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/factory/droidforge.git"
+    "url": "git+https://github.com/Deskwise/DroidForge.git"
   },
   "bugs": {
-    "url": "https://github.com/factory/droidforge/issues"
+    "url": "https://github.com/Deskwise/DroidForge/issues"
   },
   "engines": {
     "node": ">=16.0.0",
