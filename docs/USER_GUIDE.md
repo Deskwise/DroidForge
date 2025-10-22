@@ -50,10 +50,10 @@ droidforge init [--force]
 - `--force`: Overwrite existing global orchestrator
 
 **What it does:**
-- Installs global orchestrator at `~/.factory/droids/orchestrator.md`
+- Installs global orchestrator at `~/.droidforge/droids/orchestrator.md`
 - Creates `AGENTS.md` with team overview
 - Generates `docs/droid-guide.md` for team usage
-- Creates `.factory/droids-manifest.json`
+- Creates `.droidforge/droids-manifest.json`
 
 ### `droidforge scan`
 Analyze your repository to detect frameworks, scripts, and PRD content.
@@ -202,7 +202,7 @@ like HTML/CSS/JavaScript. What sounds more exciting - web development or mobile?
 - **Tech Stack**: Personalized recommendations matching your goals and experience
 
 ### Project Brief Structure
-The analysis creates `.factory/project-brief.yaml`:
+The analysis creates `.droidforge/project-brief.yaml`:
 ```yaml
 version: 1
 mode: "new-project"
@@ -329,7 +329,7 @@ After synthesis, your project structure includes:
 
 ```
 project/
-├── .factory/
+├── .droidforge/
 │   ├── droids/
 │   │   ├── dev.md
 │   │   ├── reviewer.md
@@ -352,7 +352,7 @@ Team overview with droid descriptions and usage guidelines.
 #### **docs/droid-guide.md**
 Comprehensive guide for team members on using droids effectively.
 
-#### **.factory/droids-manifest.json**
+#### **.droidforge/droids-manifest.json**
 Manifest of all droids with metadata and relationships.
 
 ##  Performance Features
@@ -448,7 +448,7 @@ DEBUG=droidforge:* droidforge synthesize
 ### Reset and Recovery
 ```bash
 # Clear cache (if issues persist)
-rm -rf .factory/cache
+rm -rf .droidforge/cache
 
 # Regenerate all droids
 droidforge init --force

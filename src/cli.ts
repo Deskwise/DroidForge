@@ -28,7 +28,7 @@ export function runCli() {
   const program = new Command();
   program
     .name('droidforge')
-    .description(' DroidForge - Transform your repo into a Factory droid army')
+    .description(' DroidForge - Transform your repo into a specialized AI droid army')
     .version(getVersion())
     .option('-v, --verbose', 'Enable detailed logging');
 
@@ -44,6 +44,7 @@ ${kleur.bold(' Common Workflows:')}
   $ droidforge synthesize --dry-run    # Preview changes without writing
   $ droidforge add-script build.sh      # Wrap a script as droid
   $ droidforge reanalyze --dry-run      # Check for updates needed
+  $ droidforge removeall                # Clean all droids from repo
 
 ${kleur.bold(' Learn More:')}
   ${kleur.cyan('https://github.com/your-org/droidforge#readme')}
@@ -70,7 +71,7 @@ ${kleur.bold(' Learn More:')}
     });
 
   program.command('synthesize')
-    .description(' Generate droids - interview  scan  create Factory droids')
+    .description(' Generate droids - interview  scan  create specialized droids')
     .option('--dry-run', ' Preview changes without writing files')
     .option('--force', 'Skip interview confirmation prompts')
     .option('--optimized', ' Use optimized scanning (faster for large repos)')
@@ -144,10 +145,10 @@ ${kleur.bold(' Learn More:')}
         await writeDroidGuide({ frameworks: signals.frameworks });
         await writeManifest({ dryRun: false });
         console.log(kleur.green(' Success! Droids created and documentation updated'));
-        console.log(kleur.gray(` Next: Run 'factory droids list' to see your new droid army`));
+        console.log(kleur.gray(` Next: Run 'droidforge list' to see your new droid army`));
       } else {
         console.log(kleur.yellow(' [DRY-RUN] Would update AGENTS.md and docs/droid-guide.md'));
-        console.log(kleur.yellow(' [DRY-RUN] Would generate .factory/droids-manifest.json'));
+        console.log(kleur.yellow(' [DRY-RUN] Would generate .droidforge/droids-manifest.json'));
         console.log(kleur.gray(' Run without --dry-run to apply changes'));
       }
     });
@@ -188,7 +189,7 @@ ${kleur.bold(' Learn More:')}
       } else {
         console.log(kleur.yellow(`[DRY-RUN] Would wrap script: ${scriptPath}`));
         console.log(kleur.yellow('[DRY-RUN] Would update AGENTS.md and docs/droid-guide.md'));
-        console.log(kleur.yellow('[DRY-RUN] Would generate .factory/droids-manifest.json'));
+        console.log(kleur.yellow('[DRY-RUN] Would generate .droidforge/droids-manifest.json'));
         console.log(kleur.gray('Run without --dry-run to apply changes'));
       }
     });
@@ -242,8 +243,88 @@ ${kleur.bold(' Learn More:')}
         console.log(' Reanalysis complete. Review proposals in AGENTS.md and docs/droid-guide.md');
       } else {
         console.log(kleur.yellow('[DRY-RUN] Would update AGENTS.md and docs/droid-guide.md'));
-        console.log(kleur.yellow('[DRY-RUN] Would generate .factory/droids-manifest.json'));
+        console.log(kleur.yellow('[DRY-RUN] Would generate .droidforge/droids-manifest.json'));
         console.log(kleur.gray('Run without --dry-run to apply changes'));
+      }
+    });
+
+  program.command('removeall')
+    .description(' Clean all droids and DroidForge files from repository')
+    .option('--confirm', 'Skip confirmation prompt')
+    .action(async (options) => {
+      const fs = await import('node:fs/promises');
+      const path = await import('node:path');
+      const cwd = process.cwd();
+
+      const droidforgeDir = path.join(cwd, '.droidforge');
+      const agentsMd = path.join(cwd, 'AGENTS.md');
+      const docsDir = path.join(cwd, 'docs');
+
+      // Check what exists
+      const exists = [];
+      try {
+        await fs.stat(droidforgeDir);
+        exists.push('.droidforge/ directory');
+      } catch {}
+
+      try {
+        await fs.stat(agentsMd);
+        exists.push('AGENTS.md');
+      } catch {}
+
+      try {
+        const droidGuide = path.join(docsDir, 'droid-guide.md');
+        await fs.stat(droidGuide);
+        exists.push('docs/droid-guide.md');
+      } catch {}
+
+      if (exists.length === 0) {
+        console.log(kleur.yellow(' No DroidForge files found to remove'));
+        return;
+      }
+
+      console.log(kleur.red('\n⚠️  This will permanently remove:'));
+      exists.forEach(item => console.log(`  - ${item}`));
+
+      if (!options.confirm) {
+        const inquirer = await import('inquirer');
+        const { confirm } = await inquirer.default.prompt([
+          {
+            type: 'confirm',
+            name: 'confirm',
+            message: 'Are you sure you want to remove all DroidForge files?',
+            default: false
+          }
+        ]);
+
+        if (!confirm) {
+          console.log(kleur.gray(' Cancelled'));
+          return;
+        }
+      }
+
+      // Remove files
+      try {
+        if (exists.includes('.droidforge/ directory')) {
+          await fs.rm(droidforgeDir, { recursive: true, force: true });
+          console.log(kleur.green('  ✓ Removed .droidforge/ directory'));
+        }
+
+        if (exists.includes('AGENTS.md')) {
+          await fs.unlink(agentsMd);
+          console.log(kleur.green('  ✓ Removed AGENTS.md'));
+        }
+
+        if (exists.includes('docs/droid-guide.md')) {
+          const droidGuide = path.join(docsDir, 'droid-guide.md');
+          await fs.unlink(droidGuide);
+          console.log(kleur.green('  ✓ Removed docs/droid-guide.md'));
+        }
+
+        console.log(kleur.green('\n✅ All DroidForge files removed successfully'));
+        console.log(kleur.gray(' Your repository is now clean'));
+      } catch (error) {
+        console.error(kleur.red(' Error removing files:'), (error as Error).message);
       }
     });
 

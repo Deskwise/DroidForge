@@ -168,7 +168,7 @@ Based on your conversation, DroidForge creates specialized domain-specific droid
 
 ```
 your-project/
-├── .factory/
+├── .droidforge/
 │   ├── droids/
 │   │   ├── dev.md              # Full-stack developer
 │   │   ├── frontend.md         # Frontend specialist
@@ -302,7 +302,7 @@ Automatic detection and resolution of overlapping droid responsibilities:
 Influence droid creation in your project brief:
 
 ```yaml
-# .factory/project-brief.yaml
+# .droidforge/project-brief.yaml
 signals:
   custom_patterns:
     - name: "microservices"
@@ -324,7 +324,7 @@ jobs:
       - name: Update droids
         run: |
           droidforge reanalyze --dry-run
-          git add .factory/
+          git add .droidforge/
           git commit -m "Auto-update droids" || exit 0
 ```
 
@@ -424,7 +424,7 @@ MIT License - see [LICENSE](./LICENSE) file for details.
 
 - **GitHub Repository**: https://github.com/factory/droidforge
 - **Factory CLI**: https://github.com/factory/cli
-- **Documentation**: https://docs.factory.ai/droidforge
+- **Documentation**: https://docs.droidforge.ai/droidforge
 - **Community**: https://discord.gg/factory
 - **Issues**: https://github.com/factory/droidforge/issues
 

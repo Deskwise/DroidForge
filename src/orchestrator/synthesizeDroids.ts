@@ -23,7 +23,7 @@ interface SynthesisMetrics {
 
 export async function synthesizeDroids(opts: SynthesisOptions) {
   const cwd = process.cwd();
-  const droidDir = path.join(cwd, '.factory', 'droids');
+  const droidDir = path.join(cwd, '.droidforge', 'droids');
   await mkdirp(droidDir);
   
   // Extract autonomy and dry-run settings

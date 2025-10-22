@@ -96,7 +96,7 @@ tmp/
 temp/
 
 # DroidForge specific
-.factory/
+.droidforge/
 .droidforge-temp/
 .droidforge-cache/
 .claude/

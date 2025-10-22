@@ -118,15 +118,15 @@ You'll see output like:
  Creating project documentation...
  Generated AGENTS.md
  Generated docs/droid-guide.md
- Generated .factory/droids-manifest.json
+ Generated .droidforge/droids-manifest.json
  Initialized: global orchestrator + project docs + manifest
 ```
 
 ### What Just Happened?
 
-1. **Global Orchestrator**: Installed at `~/.factory/droids/orchestrator.md`
+1. **Global Orchestrator**: Installed at `~/.droidforge/droids/orchestrator.md`
 2. **Project Brief**: Created `docs/droid-guide.md` with usage guidelines
-3. **Team Manifest**: Generated `.factory/droids-manifest.json`
+3. **Team Manifest**: Generated `.droidforge/droids-manifest.json`
 4. **Agent Overview**: Created `AGENTS.md` with team structure
 
 ## 🗣 Step 3: Conversational Analysis
@@ -265,7 +265,7 @@ DroidForge creates specialized droids based on your project. Here's what you'll 
 
 ### Core Development Droids
 
-**.factory/droids/dev.md:**
+**.droidforge/droids/dev.md:**
 ```markdown
 ---
 name: "Full Stack Developer"
@@ -290,7 +290,7 @@ scope: "Backend API, database operations, core business logic"
 - **Database**: Read/write access to PostgreSQL
 ```
 
-**.factory/droids/frontend.md:**
+**.droidforge/droids/frontend.md:**
 ```markdown
 ---
 name: "Frontend Specialist"
@@ -301,7 +301,7 @@ scope: "React components, user interface, user experience"
 ---
 ```
 
-**.factory/droids/script-test.md:**
+**.droidforge/droids/script-test.md:**
 ```markdown
 ---
 name: "Testing Specialist"
@@ -493,7 +493,7 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add .factory/
+          git add .droidforge/
           git commit -m "Auto-update droids" || exit 0
 ```
 
@@ -534,7 +534,7 @@ You've successfully:
 
 ### "Droids not working with Factory CLI"
 - Ensure Factory CLI is installed
-- Check that `.factory/droids/` directory exists
+- Check that `.droidforge/droids/` directory exists
 - Verify droid files have correct YAML frontmatter
 
 ### "Performance issues on large projects"

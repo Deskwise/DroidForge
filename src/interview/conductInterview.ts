@@ -6,7 +6,7 @@ import yaml from 'js-yaml';
 import kleur from 'kleur';
 import type { ProjectBrief } from '../types.js';
 
-const BRIEF_DIR = '.factory';
+const BRIEF_DIR = '.droidforge';
 const BRIEF_PATH = path.join(BRIEF_DIR, 'project-brief.yaml');
 
 async function fileExists(p: string) {

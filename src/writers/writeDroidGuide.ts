@@ -253,7 +253,7 @@ Error: Proof validation failed
 Error: Tool 'Write' not permitted in scope
 \`\`\`
 **Solution**:
-1. Check the droid's defined scope in \`.factory/droids/*.md\`
+1. Check the droid's defined scope in \`.droidforge/droids/*.md\`
 2. Verify target files are within allowed directories
 3. Update scope if necessary and regenerate droids
 

@@ -6,7 +6,7 @@ import mustache from 'mustache';
 
 export async function installGlobalOrchestrator() {
   const home = os.homedir();
-  const dir = path.join(home, '.factory', 'droids');
+  const dir = path.join(home, '.droidforge', 'droids');
   await mkdirp(dir);
   const dest = path.join(dir, 'orchestrator.md');
   const tplPath = new URL('../../templates/orchestrator.md.hbs', import.meta.url);

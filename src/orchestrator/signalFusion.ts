@@ -12,9 +12,9 @@ export async function fuseSignals(
   scripts: { files: string[]; npmScripts: Array<{name: string; command: string; path: string}> }
 ): Promise<DroidPlan> {
   const cwd = process.cwd();
-  const briefPath = path.join(cwd, '.factory', 'project-brief.yaml');
+  const briefPath = path.join(cwd, '.droidforge', 'project-brief.yaml');
   if (!(await fileExists(briefPath))) {
-    throw new Error('Missing .factory/project-brief.yaml. Run the interview first to create a project brief.');
+    throw new Error('Missing .droidforge/project-brief.yaml. Run the interview first to create a project brief.');
   }
 
   const raw = await fs.readFile(briefPath, 'utf8');

@@ -120,7 +120,7 @@ export function generateScopePatterns(role: string, frameworks: string[], script
   
   switch (role) {
   case 'planner':
-    patterns.push('docs/**/*.md', 'README.md', '.factory/**');
+    patterns.push('docs/**/*.md', 'README.md', '.droidforge/**');
     break;
       
   case 'dev':

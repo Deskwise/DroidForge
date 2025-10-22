@@ -22,7 +22,7 @@ function isUserModified(droid: ExistingDroid, fileMtime?: Date): boolean {
 }
 
 async function readExistingDroids(cwd: string): Promise<ExistingDroid[]> {
-  const droidFiles = await globby('.factory/droids/*.md', { cwd });
+  const droidFiles = await globby('.droidforge/droids/*.md', { cwd });
   const existingDroids: ExistingDroid[] = [];
 
   for (const file of droidFiles) {

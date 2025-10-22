@@ -72,7 +72,7 @@ export async function writeManifest(opts: { dryRun?: boolean } = {}) {
   const { dryRun = false } = opts;
 
   const cwd = process.cwd();
-  const dest = path.join(cwd, '.factory/droids-manifest.json');
+  const dest = path.join(cwd, '.droidforge/droids-manifest.json');
   const droids = await readDroidMetadataWithType(cwd);
   const summary = generateSummary(droids);
 
@@ -86,7 +86,7 @@ export async function writeManifest(opts: { dryRun?: boolean } = {}) {
   const content = JSON.stringify(manifest, null, 2);
 
   if (dryRun) {
-    console.log(kleur.yellow('[DRY-RUN] Would write .factory/droids-manifest.json'));
+    console.log(kleur.yellow('[DRY-RUN] Would write .droidforge/droids-manifest.json'));
     console.log(kleur.gray('Preview:'));
     console.log(kleur.gray(content.slice(0, 400) + (content.length > 400 ? '...' : '')));
     return;

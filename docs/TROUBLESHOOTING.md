@@ -64,32 +64,32 @@ npm install -g droidforge
 **Solutions:**
 ```bash
 # Check directory permissions
-ls -la ~/.factory/
+ls -la ~/.droidforge/
 
 # Create directory manually
-mkdir -p ~/.factory/droids
+mkdir -p ~/.droidforge/droids
 
 # Force reinstall
 droidforge init --force
 
 # Check if orchestrator file exists
-ls -la ~/.factory/droids/orchestrator.md
+ls -la ~/.droidforge/droids/orchestrator.md
 ```
 
 ### "Project brief creation failed"
 
-**Problem:** Can't create `.factory/project-brief.yaml`.
+**Problem:** Can't create `.droidforge/project-brief.yaml`.
 
 **Solutions:**
 ```bash
 # Check directory structure
-mkdir -p .factory
+mkdir -p .droidforge
 
 # Check permissions
-ls -la .factory/
+ls -la .droidforge/
 
 # Try manual creation
-echo "project:" > .factory/project-brief.yaml
+echo "project:" > .droidforge/project-brief.yaml
 
 # Retry initialization
 droidforge init --force
@@ -111,10 +111,10 @@ droidforge synthesize
 DEBUG=droidforge:* droidforge synthesize
 
 # Check if project brief exists
-ls -la .factory/project-brief.yaml
+ls -la .droidforge/project-brief.yaml
 
 # Remove corrupted brief and retry
-rm .factory/project-brief.yaml
+rm .droidforge/project-brief.yaml
 droidforge synthesize
 ```
 
@@ -125,9 +125,9 @@ droidforge synthesize
 **Solutions:**
 ```bash
 # Check YAML syntax
-cat .factory/project-brief.yaml
+cat .droidforge/project-brief.yaml
 # Or use:
-yamllint .factory/project-brief.yaml
+yamllint .droidforge/project-brief.yaml
 
 # Common issues:
 # - Missing colons
@@ -195,7 +195,7 @@ droidforge synthesize --optimized
 echo "node_modules/\n.git/\ndist/\n*.log" > .droidforgeignore
 
 # Clear cache if corrupted
-rm -rf .factory/cache
+rm -rf .droidforge/cache
 
 # Limit scanning scope
 # Move large unrelated folders outside project root
@@ -213,7 +213,7 @@ rm -rf .factory/cache
 droidforge synthesize --dry-run
 
 # Verify project brief exists
-cat .factory/project-brief.yaml
+cat .droidforge/project-brief.yaml
 
 # Check scan results
 droidforge scan
@@ -236,11 +236,11 @@ droidforge synthesize --force
 # Check conflict report
 droidforge synthesize --dry-run
 
-# Manually resolve conflicts in .factory/droids/
+# Manually resolve conflicts in .droidforge/droids/
 # Each droid should have unique file patterns
 
 # Remove conflicting droids and retry
-rm .factory/droids/conflicting-droid.md
+rm .droidforge/droids/conflicting-droid.md
 droidforge synthesize
 ```
 
@@ -251,7 +251,7 @@ droidforge synthesize
 **Solutions:**
 ```bash
 # Check YAML frontmatter
-head -20 .factory/droids/dev.md
+head -20 .droidforge/droids/dev.md
 
 # Common YAML issues:
 # - Missing quotes in values
@@ -259,7 +259,7 @@ head -20 .factory/droids/dev.md
 # - Missing required fields (name, role, tools, scope)
 
 # Regenerate specific droid
-rm .factory/droids/dev.md
+rm .droidforge/droids/dev.md
 droidforge synthesize --force
 ```
 
@@ -281,7 +281,7 @@ factory --version
 factory droids list
 
 # Alternative: Use direct file paths
-factory use .factory/droids/dev.md "Hello world"
+factory use .droidforge/droids/dev.md "Hello world"
 ```
 
 ### "Droids not listed in Factory"
@@ -291,13 +291,13 @@ factory use .factory/droids/dev.md "Hello world"
 **Solutions:**
 ```bash
 # Check droid directory
-ls -la .factory/droids/
+ls -la .droidforge/droids/
 
 # Verify manifest
-cat .factory/droids-manifest.json
+cat .droidforge/droids-manifest.json
 
 # Check droid file format
-head -10 .factory/droids/dev.md
+head -10 .droidforge/droids/dev.md
 # Must have YAML frontmatter with proper fields
 
 # Regenerate manifest
@@ -311,7 +311,7 @@ droidforge init --force
 **Solutions:**
 ```bash
 # Check droid permissions
-cat .factory/droids/dev.md | grep "tools:"
+cat .droidforge/droids/dev.md | grep "tools:"
 
 # Ensure tools are properly formatted:
 # tools: ["file:src/**/*", "command:npm run build"]
@@ -321,7 +321,7 @@ ls -la src/
 chmod -R +r src/
 
 # Update droid with correct tools
-# Edit .factory/droids/dev.md manually
+# Edit .droidforge/droids/dev.md manually
 ```
 
 ## 🧪 Testing Issues
@@ -333,13 +333,13 @@ chmod -R +r src/
 **Solutions:**
 ```bash
 # Check what droids changed
-git diff .factory/droids/
+git diff .droidforge/droids/
 
 # Review test changes
 git diff tests/
 
 # Revert problematic changes
-git checkout HEAD -- .factory/droids/problematic-droid.md
+git checkout HEAD -- .droidforge/droids/problematic-droid.md
 
 # Regenerate with conservative settings
 droidforge synthesize --dry-run
@@ -381,7 +381,7 @@ export NODE_OPTIONS="--max-old-space-size=2048"
 droidforge synthesize
 
 # Clear cache regularly
-rm -rf .factory/cache
+rm -rf .droidforge/cache
 
 # Use .droidforgeignore
 echo "large-assets/\n*.mp4\nnode_modules/" > .droidforgeignore
@@ -394,15 +394,15 @@ echo "large-assets/\n*.mp4\nnode_modules/" > .droidforgeignore
 **Solutions:**
 ```bash
 # Check cache size
-du -sh .factory/cache/
+du -sh .droidforge/cache/
 
 # Clear old cache
-rm -rf .factory/cache/*
+rm -rf .droidforge/cache/*
 
 # Set up automatic cache cleaning
 # Add to package.json:
 # "scripts": {
-#   "clean-cache": "rm -rf .factory/cache/*"
+#   "clean-cache": "rm -rf .droidforge/cache/*"
 # }
 
 # Limit cache retention in droidforge config
@@ -421,8 +421,8 @@ echo '{"cache": {"maxAge": "7d", "maxSize": "100MB"}}' > .droidforgerc.json
 curl -I https://raw.githubusercontent.com
 
 # Use manual installation
-mkdir -p ~/.factory/droids
-curl -o ~/.factory/droids/orchestrator.md \
+mkdir -p ~/.droidforge/droids
+curl -o ~/.droidforge/droids/orchestrator.md \
   https://raw.githubusercontent.com/factory/droidforge/main/droids/orchestrator.md
 
 # Or use offline mode
@@ -444,7 +444,7 @@ npm config set https-proxy http://proxy.company.com:8080
 npm config set registry http://registry.npmjs.org/
 
 # Manual mode
-# Download orchestrator.md manually and place in ~/.factory/droids/
+# Download orchestrator.md manually and place in ~/.droidforge/droids/
 ```
 
 ##  Configuration Issues
@@ -500,10 +500,10 @@ echo "DROIDFORGE_LOG_LEVEL=debug" > .env
 
 ```bash
 # Backup current configuration
-cp -r .factory .factory.backup
+cp -r .droidforge .droidforge.backup
 
 # Remove all DroidForge files
-rm -rf .factory
+rm -rf .droidforge
 rm AGENTS.md
 rm docs/droid-guide.md
 rm .droidforgeignore .droidforgerc.json
@@ -512,8 +512,8 @@ rm .droidforgeignore .droidforgerc.json
 droidforge init --force
 
 # Restore if needed
-rm -rf .factory
-mv .factory.backup .factory
+rm -rf .droidforge
+mv .droidforge.backup .droidforge
 ```
 
 ### Selective Recovery
@@ -522,7 +522,7 @@ mv .factory.backup .factory
 
 ```bash
 # Regenerate only droids
-rm .factory/droids/*
+rm .droidforge/droids/*
 droidforge synthesize --force
 
 # Regenerate only documentation
@@ -530,7 +530,7 @@ rm AGENTS.md docs/droid-guide.md
 droidforge init
 
 # Clear only cache
-rm -rf .factory/cache
+rm -rf .droidforge/cache
 ```
 
 ## 📞 Getting Help
@@ -573,14 +573,14 @@ DEBUG=droidforge:* droidforge synthesize > debug.log 2>&1
 
 - [GitHub Issues](https://github.com/factory/droidforge/issues)
 - [Discord Community](https://discord.gg/factory)
-- [Documentation](https://docs.factory.ai/droidforge)
+- [Documentation](https://docs.droidforge.ai/droidforge)
 
 ##  Prevention Tips
 
 ### Best Practices
 
-1. **Regular Backups**: Back up `.factory/` directory regularly
-2. **Version Control**: Commit `.factory/` to git (excluding cache)
+1. **Regular Backups**: Back up `.droidforge/` directory regularly
+2. **Version Control**: Commit `.droidforge/` to git (excluding cache)
 3. **Incremental Updates**: Use `--dry-run` before major changes
 4. **Performance Monitoring**: Use `--optimized` flag for large projects
 5. **Documentation**: Keep `docs/droid-guide.md` updated
@@ -590,7 +590,7 @@ DEBUG=droidforge:* droidforge synthesize > debug.log 2>&1
 ```bash
 # Weekly maintenance
 droidforge reanalyze --dry-run  # Check for needed updates
-rm -rf .factory/cache/*         # Clear old cache
+rm -rf .droidforge/cache/*         # Clear old cache
 
 # Monthly maintenance
 droidforge synthesize --optimized  # Full regeneration

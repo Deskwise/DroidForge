@@ -53,7 +53,7 @@ function normalizeToolName(tool: string): string {
 
 export async function readDroidMetadata(cwd: string): Promise<DroidMetadata[]> {
   try {
-    const droidFiles = await globby('.factory/droids/*.md', { cwd });
+    const droidFiles = await globby('.droidforge/droids/*.md', { cwd });
 
     // Parallelize file reads using Promise.all
     const fileReadPromises = droidFiles.map(async (filePath) => {

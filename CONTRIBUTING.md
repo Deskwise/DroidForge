@@ -53,7 +53,7 @@ droidforge/
 ├── docs/                  # Documentation
 ├── bin/                   # CLI binary files
 ├── dist/                  # Compiled JavaScript (generated)
-└── .factory/              # Generated droid files (example)
+└── .droidforge/              # Generated droid files (example)
 ```
 
 ## 🧪 Testing

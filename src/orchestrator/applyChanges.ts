@@ -53,7 +53,7 @@ export async function applyChanges(
       const tpl = await fs.readFile(tplPath, 'utf8');
       const context = { ...spec, lastReviewed: spec.lastReviewed || new Date().toISOString() };
       const body = mustache.render(tpl, context);
-      const filePath = path.join(cwd, '.factory', 'droids', `${spec.name}.md`);
+      const filePath = path.join(cwd, '.droidforge', 'droids', `${spec.name}.md`);
       await previewFileWrite(filePath, body);
       const approved = await confirmOperation({
         autonomy,
@@ -195,13 +195,13 @@ export async function applyChanges(
         const tpl = await fs.readFile(tplPath, 'utf8');
         const context = { ...mergedSpec, lastReviewed: mergedSpec.lastReviewed };
         const body = mustache.render(tpl, context);
-        const filePath = path.join(cwd, '.factory', 'droids', `${mergedSpec.name}.md`);
+        const filePath = path.join(cwd, '.droidforge', 'droids', `${mergedSpec.name}.md`);
         await previewFileWrite(filePath, body);
         if (!dryRun) {
           await fs.writeFile(filePath, body, 'utf8');
         }
         // Retire old droids
-        const retiredDir = path.join(cwd, '.factory', 'droids', 'retired');
+        const retiredDir = path.join(cwd, '.droidforge', 'droids', 'retired');
         await mkdirp(retiredDir);
         if (!dryRun) {
           await fs.rename(droid1.filePath, path.join(retiredDir, path.basename(droid1.filePath)));
