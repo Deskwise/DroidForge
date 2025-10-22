@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-01-21
+
+### 🔥 **MAJOR REWRITE - AI-POWERED INTERVIEWS**
+- **COMPLETELY REPLACED** keyword-matching interview system with AI-powered analysis
+- **BMAD ANALYST APPROACH**: Now uses AI to understand user intent and generate intelligent follow-up questions
+- **CONVERSATIONAL INTELLIGENCE**: AI analyzes full conversation context instead of simple keyword matching
+- **DYNAMIC QUESTION GENERATION**: Follow-up questions adapt based on user responses and conversation flow
+- **ELIMINATED ALL KEYWORD MATCHING**: No more hardcoded patterns or rigid keyword detection
+
+### Fixed
+- **Completely removed** all keyword-based domain detection
+- **Replaced** static question patterns with AI-generated responses
+- **Fixed** conversation flow that was basically a digital form
+- **Eliminated** false positive domain assignments and confusing question sequences
+
+### New Architecture
+- `generateFollowUpQuestion()` now uses AI to analyze conversation and generate intelligent responses
+- `analyzeConversationWithAI()` uses AI to extract project insights from conversation
+- `generateAIResponse()` framework for integrating with AI models (Claude/OpenAI/etc.)
+- Async conversation loop that properly handles AI response generation
+
+### Example Transformation
+**Before (Keyword Matching):**
+User: "software" → System: "That's fantastic! Education is such an important field..." ❌
+
+**After (AI-Powered):**
+User: "We're a bakery struggling with manual orders" → AI: "Tell me about the problem you're trying to solve." ✅
+
+### Technical Changes
+- Removed ALL keyword-based functions and pattern matching
+- Implemented async AI analysis functions
+- Created conversation context awareness
+- Added framework for AI model integration (TODO: Connect to actual AI APIs)
+
 ## [0.3.5] - 2025-01-21
 
 ### Fixed
