@@ -1,5 +1,15 @@
-import { FileClaim, ClaimConflict } from '../orchestrator/fileClaims.js';
 import kleur from 'kleur';
+
+export interface FileClaim {
+  droidName: string;
+  patterns: string[];
+}
+
+export interface ClaimConflict {
+  droid1: string;
+  droid2: string;
+  pattern: string;
+}
 
 export interface ConflictResolutionReport {
   conflicts: ClaimConflict[];
