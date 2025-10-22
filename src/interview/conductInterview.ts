@@ -112,7 +112,10 @@ function generateFollowUpQuestion(state: ConversationState): string | null {
     }
   }
 
-  if (userInput.includes('school') || userInput.includes('course') || userInput.includes('education') || userInput.includes('learning')) {
+  // Only detect education if there's clear educational context, not just the word appearing
+  if ((userInput.includes('school') || userInput.includes('course') || userInput.includes('education') || userInput.includes('learning')) &&
+      (userInput.includes('student') || userInput.includes('teacher') || userInput.includes('classroom') || userInput.includes('curriculum') ||
+       userInput.includes('grade') || userInput.includes('lesson') || userInput.includes('university') || userInput.includes('college'))) {
     if (!state.currentAnalysis.domain) {
       state.currentAnalysis.domain = 'education';
       return 'That\'s fantastic! Education is such an important field. Are you building for students, teachers, or administrators?';
@@ -137,8 +140,8 @@ function generateFollowUpQuestion(state: ConversationState): string | null {
   // Tech stack evaluation and completion
   if (!state.currentAnalysis.techStackEvaluated) {
     if (!state.currentAnalysis.userTechStack) {
-      // First tech stack question
-      if (userInput.includes('swift') || userInput.includes('spritekit') || userInput.includes('xcode')) {
+      // First tech stack question - detect when user mentions tech preferences
+      if (userInput.includes('swift') || userInput.includes('spritekit') || userInput.includes('xcode') || userInput.includes('ios')) {
         state.currentAnalysis.userTechStack = 'swift-spritekit';
         return 'Good choice for native iOS! For a complete iOS project, you\'ll also need: asset creation tools, sound effects, analytics, and testing frameworks. Which of these do you already have covered?';
       }
@@ -146,16 +149,22 @@ function generateFollowUpQuestion(state: ConversationState): string | null {
         state.currentAnalysis.userTechStack = 'unity';
         return 'Great for game development! For a complete mobile game, you\'ll also need: mobile optimization, analytics, monetization, and testing. What do you have covered?';
       }
-      if (userInput.includes('react') || userInput.includes('vue') || userInput.includes('angular')) {
+      if (userInput.includes('react') || userInput.includes('vue') || userInput.includes('angular') || userInput.includes('web')) {
         state.currentAnalysis.userTechStack = 'web-framework';
         return 'Solid choice for web! For a complete web app, you\'ll also need: database, authentication, hosting, and testing. Which of these do you already have?';
       }
-      if (userInput.includes('node') || userInput.includes('python') || userInput.includes('rails') || userInput.includes('django')) {
+      if (userInput.includes('node') || userInput.includes('python') || userInput.includes('rails') || userInput.includes('django') || userInput.includes('backend')) {
         state.currentAnalysis.userTechStack = 'backend-framework';
         return 'Great for backend! For a complete application, you\'ll also need: frontend framework, database, authentication, and deployment. What\'s covered on your end?';
       }
 
-      // User hasn't mentioned specific tech
+      // Handle when user says "software" or general tech terms
+      if (userInput.includes('software') || userInput.includes('app') || userInput.includes('application') || userInput.includes('program')) {
+        // Ask what type of software/app they want to build
+        return 'What type of software are you thinking - web app, mobile app, desktop application, or something else?';
+      }
+
+      // User hasn't mentioned specific tech yet
       if (!state.currentAnalysis.techStackQuestionAsked) {
         state.currentAnalysis.techStackQuestionAsked = true;
         return 'Perfect! Do you have a tech stack in mind you\'d like to use, or would you like help selecting one?';

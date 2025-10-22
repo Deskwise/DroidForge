@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.5] - 2025-01-21
+
+### Fixed
+- Fixed conversation system incorrectly assuming domains from single words
+- Improved tech stack detection for "software", "app", "application" responses
+- Enhanced domain detection to require contextual keywords (not just word matching)
+- Fixed education domain triggering from non-educational contexts
+- Better conversation flow that distinguishes between tech type and industry domain
+
+### Improved
+- More intelligent question sequencing: tech type → domain → requirements
+- Context-aware domain detection requiring multiple related keywords
+- Clearer separation between technology stack and business domain conversations
+- Reduced false positive domain assignments
+
 ## [0.3.4] - 2025-01-21
 
 ### Added
