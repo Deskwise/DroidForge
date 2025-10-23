@@ -1,6 +1,9 @@
 import { createToolRegistry } from './tools/index.js';
 import { SessionStore } from './sessionStore.js';
 import type { ToolDefinition, ToolInvocation } from './types.js';
+import { createPromptRegistry, type PromptBuilderContext } from './prompts/registry.js';
+import { PromptRunner } from './prompts/runner.js';
+import { ExecutionManager } from './execution/manager.js';
 
 export interface DroidForgeServerOptions {
   repoRoot: string;
@@ -8,10 +11,12 @@ export interface DroidForgeServerOptions {
 
 export class DroidForgeServer {
   private readonly sessionStore = new SessionStore();
+  private readonly executionManager = new ExecutionManager();
   private readonly tools: Map<string, ToolDefinition>;
+  private readonly prompts = createPromptRegistry({ sessionStore: this.sessionStore, executionManager: this.executionManager });
 
   constructor(private readonly options: DroidForgeServerOptions) {
-    this.tools = createToolRegistry({ sessionStore: this.sessionStore });
+    this.tools = createToolRegistry({ sessionStore: this.sessionStore, executionManager: this.executionManager });
   }
 
   listTools(): string[] {
@@ -28,6 +33,21 @@ export class DroidForgeServer {
       throw new Error(`Tool not registered: ${invocation.name}`);
     }
     return tool.handler(invocation.input) as Promise<TOutput>;
+  }
+
+  listPrompts(): string[] {
+    return Array.from(this.prompts.keys());
+  }
+
+  async createPromptRunner(name: string, ctx: PromptBuilderContext): Promise<PromptRunner> {
+    const builder = this.prompts.get(name);
+    if (!builder) {
+      throw new Error(`Prompt not registered: ${name}`);
+    }
+    const repoRoot = ctx.repoRoot ?? this.options.repoRoot;
+    const script = await builder({ ...ctx, repoRoot });
+    const runner = new PromptRunner(script, invocation => this.invoke(invocation));
+    return runner;
   }
 }
 

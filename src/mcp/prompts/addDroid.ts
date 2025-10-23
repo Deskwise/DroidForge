@@ -20,17 +20,17 @@ export function createAddDroidScript(sessionId: string, repoRoot: string): Promp
       {
         kind: 'tool',
         name: 'add_custom_droid',
-        input: { sessionId, repoRoot, fromInput: 'custom-droid-description' }
+        input: { sessionId, repoRoot, description: { fromInput: 'custom-droid-description' } }
       },
       {
         kind: 'tool',
         name: 'generate_user_guide',
-        input: { sessionId, repoRoot, rosterFrom: 'add_custom_droid' }
+        input: { repoRoot }
       },
       {
         kind: 'tool',
         name: 'install_commands',
-        input: { sessionId, repoRoot, rosterFrom: 'add_custom_droid' }
+        input: { repoRoot }
       },
       {
         kind: 'say',

@@ -60,6 +60,29 @@ describe('ExecutionManager', () => {
     assert.notEqual(second?.nodeId, first?.nodeId);
   });
 
+  it('respects concurrency limits', () => {
+    const manager = new ExecutionManager();
+    const plan: ExecutionPlan = {
+      nodes: [
+        { nodeId: 'a', droidId: 'df-a' },
+        { nodeId: 'b', droidId: 'df-b' }
+      ],
+      edges: [],
+      concurrency: 1
+    };
+    const record = manager.plan('/repo', plan);
+    manager.start(record.id);
+
+    const first = manager.requestNext(record.id);
+    assert.ok(first);
+    const second = manager.requestNext(record.id);
+    assert.equal(second, null);
+
+    manager.completeNode(record.id, first!.nodeId);
+    const third = manager.requestNext(record.id);
+    assert.ok(third);
+  });
+
   it('marks execution failed when a node fails', () => {
     const manager = new ExecutionManager();
     const record = manager.plan('/repo', samplePlan());

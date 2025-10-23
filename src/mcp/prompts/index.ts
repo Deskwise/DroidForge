@@ -7,3 +7,4 @@ export * from './showGuide.js';
 export * from './restoreSnapshot.js';
 export * from './logs.js';
 export * from './help.js';
+export * from './orchestratorParallel.js';

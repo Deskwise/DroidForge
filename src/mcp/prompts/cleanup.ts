@@ -31,7 +31,11 @@ export function createCleanupScript(repoRoot: string): PromptScript {
       {
         kind: 'tool',
         name: 'cleanup_repo',
-        input: { repoRoot, fromChoice: { confirm: 'cleanup-confirm', keepGuide: 'cleanup-keep-guide' } }
+        input: {
+          repoRoot,
+          confirm: { fromChoice: 'cleanup-confirm' },
+          keepGuide: { fromChoice: 'cleanup-keep-guide' }
+        }
       },
       {
         kind: 'say',

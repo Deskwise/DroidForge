@@ -22,7 +22,7 @@
     "version": "npm run build",
     "postversion": "git push && git push --tags",
     "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\"",
-    "test": "tsx --test src/mcp/execution/__tests__/manager.test.ts src/mcp/tools/__tests__/routeRequests.test.ts src/mcp/prompts/__tests__/runner.test.ts"
+    "test": "tsx --test src/mcp/**/*.test.ts"
   },
   "keywords": [
     "ai",

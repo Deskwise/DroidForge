@@ -54,7 +54,8 @@ export async function forgeDroids(input: ForgeRosterInput, ctx: ForgeContext): P
   };
 
   const entries: ManifestEntryInput[] = [mandatory];
-  for (const item of input.selected) {
+  const selected = input.selected ?? [];
+  for (const item of selected) {
     entries.push({
       id: item.id,
       label: item.label,
@@ -171,4 +172,24 @@ export async function addCustomDroid(
   await writeJsonAtomic(manifestPath, manifest);
 
   return { definition, manifest, manifestPath };
+}
+
+export function inferCustomSeed(description: string): CustomDroidSeed {
+  const text = description.trim();
+  const [maybeName, maybeGoal] = text.split(/[—–:-]+/, 2);
+  const nameRaw = (maybeName ?? 'custom specialist').trim();
+  const goalRaw = (maybeGoal ?? `Focuses on ${nameRaw.toLowerCase()}.`).trim();
+  const slugBase = nameRaw
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'custom';
+  const slug = slugBase.startsWith('df-') ? slugBase : `df-${slugBase}`;
+
+  return {
+    slug,
+    label: slug,
+    goal: goalRaw,
+    abilities: [`Primary focus: ${goalRaw}`],
+    description: text
+  };
 }

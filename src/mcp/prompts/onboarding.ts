@@ -42,7 +42,7 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'tool',
         name: 'record_project_goal',
-        input: { sessionId, repoRoot, fromInput: 'project-goal' }
+        input: { sessionId, repoRoot, description: { fromInput: 'project-goal' } }
       },
       {
         kind: 'say',
@@ -58,7 +58,7 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'tool',
         name: 'select_methodology',
-        input: { sessionId, repoRoot, fromChoice: 'methodology-choice' }
+        input: { sessionId, repoRoot, choice: { fromChoice: 'methodology-choice' } }
       },
       {
         kind: 'say',
@@ -79,7 +79,7 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'tool',
         name: 'forge_roster',
-        input: { sessionId, repoRoot, fromSelection: 'custom-droids' }
+        input: { sessionId, repoRoot, customInput: { fromInput: 'custom-droids' } }
       },
       {
         kind: 'say',
