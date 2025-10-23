@@ -1,14 +1,48 @@
-import { forgeDroids } from '../generation/droids.js';
+import { forgeDroids, inferCustomSeed } from '../generation/droids.js';
+import { buildSuggestions } from '../suggestions.js';
 import { appendLog } from '../logging.js';
 import { SessionStore } from '../sessionStore.js';
 import type {
+  CustomDroidSeed,
   ForgeRosterInput,
   ForgeRosterOutput,
+  OnboardingSession,
   ToolDefinition
 } from '../types.js';
 
 interface Deps {
   sessionStore: SessionStore;
+}
+
+function buildDefaultSelection(session: OnboardingSession) {
+  const suggestions = buildSuggestions(session);
+  return suggestions.map(suggestion => ({
+    id: suggestion.id,
+    label: suggestion.label ?? suggestion.id,
+    abilities: [],
+    goal: suggestion.summary
+  }));
+}
+
+function normaliseSelection(input: ForgeRosterInput, session: OnboardingSession) {
+  if (input.selected && input.selected.length > 0) {
+    return input.selected;
+  }
+  return buildDefaultSelection(session);
+}
+
+function normaliseCustom(input: ForgeRosterInput): CustomDroidSeed[] {
+  if (input.custom && input.custom.length > 0) {
+    return input.custom;
+  }
+  if (!input.customInput) {
+    return [];
+  }
+  return input.customInput
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => inferCustomSeed(line));
 }
 
 export function createForgeRosterTool(deps: Deps): ToolDefinition<ForgeRosterInput, ForgeRosterOutput> {
@@ -25,12 +59,16 @@ export function createForgeRosterTool(deps: Deps): ToolDefinition<ForgeRosterInp
         throw new Error(`No active onboarding session for ${sessionId}`);
       }
       session.state = 'forging';
-      session.selectedDroids = input.selected.map(item => item.id);
-      session.customDroids = input.custom ?? [];
+
+      const selected = normaliseSelection(input, session);
+      const custom = normaliseCustom(input);
+
+      session.selectedDroids = selected.map(item => item.id);
+      session.customDroids = custom;
       await deps.sessionStore.save(repoRoot, session);
 
       const ctx = { repoRoot, methodology: session.methodology ?? null };
-      const result = await forgeDroids(input, ctx);
+      const result = await forgeDroids({ ...input, selected, custom }, ctx);
 
       session.state = 'complete';
       await deps.sessionStore.save(repoRoot, session);

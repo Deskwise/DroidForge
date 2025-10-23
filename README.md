@@ -30,6 +30,7 @@ For the full contract, see [`docs/droidforge_full_cli_spec.md`](docs/droidforge_
 2. Follow the prompts (project sentence, methodology, roster tweaks).  
 3. After boot logs finish, read the custom guide (auto-opened) and press Enter.  
 4. Run `/df Make this Windows 11 compatible` (or any request). df-orchestrator handles the rest.
+5. Check `/forge-status` to watch the execution timeline (each `/df` call creates a plan automatically).
 
 Key slash commands installed by the server:
 
@@ -42,6 +43,7 @@ Key slash commands installed by the server:
 | `/forge-removeall` | Double-confirm cleanup of all DroidForge data. |
 | `/forge-restore` | Restore a snapshot (when backups exist). |
 | `/forge-logs` | View recent actions. |
+| `/forge-status` | Show active and recent executions. |
 | `/forge-help` | Cheat sheet for all commands. |
 | `/df <request>` | Talk to df-orchestrator directly (primary workflow). |
 
@@ -79,6 +81,11 @@ npm run build       # emits dist/mcp/server.js
 During development, run:
 ```bash
 npm run dev         # executes src/mcp/server.ts via ts-node
+```
+
+Tests (pass by default with tsx):
+```bash
+npm run test
 ```
 
 > **Note:** `tsc` currently expects the new MCP modules only. The legacy CLI has been removed.

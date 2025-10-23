@@ -1,4 +1,7 @@
+import type { ExecutionPlan, ExecutionStatus, NodeSchedule, PollSnapshot } from './execution/manager.js';
 import type { DroidDefinition, DroidManifest, PRDContent } from '../types.js';
+
+export type { ExecutionPlan, ExecutionStatus, NodeSchedule, PollSnapshot } from './execution/manager.js';
 
 export type OnboardingState =
   | 'collecting-goal'
@@ -98,13 +101,14 @@ export interface RecommendDroidsOutput {
 export interface RecommendDroidsInput extends ToolContext {}
 
 export interface ForgeRosterInput extends ToolContext {
-  selected: Array<{
+  selected?: Array<{
     id: string;
     label: string;
     abilities: string[];
     goal: string;
   }>;
   custom?: CustomDroidSeed[];
+  customInput?: string;
 }
 
 export interface ForgeRosterOutput {
@@ -126,7 +130,7 @@ export interface AddCustomDroidOutput {
 }
 
 export interface GenerateUserGuideInput extends ToolContext {
-  roster: string[];
+  roster?: string[];
   savePath?: string;
 }
 
@@ -152,7 +156,8 @@ export interface InstallCommandsOutput {
 
 export interface CleanupRepoInput {
   repoRoot: string;
-  keepGuide?: boolean;
+  confirm?: string | boolean;
+  keepGuide?: string | boolean;
 }
 
 export interface CleanupRepoOutput {
@@ -222,11 +227,109 @@ export interface GetStatusOutput {
 export interface RouteRequestInput extends ToolContext {
   request: string;
   droidId?: string;
+  executionId?: string;
+}
+
+export interface PlanExecutionInput extends ToolContext {
+  executionId?: string;
+  plan: ExecutionPlan;
+}
+
+export interface PlanExecutionOutput {
+  executionId: string;
+  status: ExecutionStatus;
+}
+
+export interface StartExecutionInput extends ToolContext {
+  executionId: string;
+}
+
+export interface StartExecutionOutput {
+  executionId: string;
+  status: ExecutionStatus;
+}
+
+export interface PollExecutionInput extends ToolContext {
+  executionId: string;
+}
+
+export interface PollExecutionOutput extends PollSnapshot {}
+
+export interface PauseExecutionInput extends ToolContext {
+  executionId: string;
+}
+
+export interface PauseExecutionOutput {
+  executionId: string;
+  status: ExecutionStatus;
+}
+
+export interface ResumeExecutionInput extends ToolContext {
+  executionId: string;
+}
+
+export interface ResumeExecutionOutput {
+  executionId: string;
+  status: ExecutionStatus;
+}
+
+export interface AbortExecutionInput extends ToolContext {
+  executionId: string;
+}
+
+export interface AbortExecutionOutput {
+  executionId: string;
+  status: ExecutionStatus;
+}
+
+export interface MergeExecutionInput extends ToolContext {
+  executionId: string;
+}
+
+export interface MergeExecutionOutput {
+  executionId: string;
+  status: ExecutionStatus;
+}
+
+export interface NextExecutionTaskInput extends ToolContext {
+  executionId: string;
+}
+
+export interface NextExecutionTaskOutput {
+  executionId: string;
+  task: NodeSchedule | null;
+}
+
+export interface CompleteExecutionTaskInput extends ToolContext {
+  executionId: string;
+  nodeId: string;
+  outcome: 'succeeded' | 'failed';
+  detail?: Record<string, unknown>;
+}
+
+export interface CompleteExecutionTaskOutput {
+  executionId: string;
+  status: ExecutionStatus;
+}
+
+export interface ExecutionSummary {
+  executionId: string;
+  status: ExecutionStatus;
+  createdAt: string;
+  lastUpdated: string;
+  requestCount: number;
+}
+
+export interface ListExecutionsInput extends ToolContext {}
+
+export interface ListExecutionsOutput {
+  executions: ExecutionSummary[];
 }
 
 export interface RouteRequestOutput {
   acknowledged: boolean;
   routedTo: string;
+  executionId?: string;
 }
 
 export interface ToolDefinition<I = unknown, O = unknown> {

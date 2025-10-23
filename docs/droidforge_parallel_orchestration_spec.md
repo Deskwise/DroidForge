@@ -102,16 +102,14 @@ Key additions:
 
 - Maintains three sets: `ready`, `running (<= concurrency limit)`, `blocked` (waiting on deps or locks).
 - Support configurable concurrency: default 2 parallel slots; override via manifest or command flag.
-- For each ready node:
+- `next_execution_task` dequeues the next ready node if slots available, returning its `resourceClaims` so callers can route to the appropriate droid.
+- For each ready node dequeued via `next_execution_task`:
   1. Acquire resource locks (based on `resourceClaims`).
-  2. Insert timeline event: `task.scheduled`.
-  3. Call `route_specialist` tool asynchronously.
-- On completion:
-  - Release locks.
-  - Persist generated artefacts to staged workspace under `.droidforge/exec/<executionId>/output/<nodeId>`.
-  - Run validation hooks (tests/diff checks) if defined.
-  - If successful → mark dependents ready.
-  - If failed → pause graph, emit timeline (`task.failed`) and surface recovery options.
+  2. Insert timeline event: `task.started`.
+  3. Caller invokes `route_specialist` (or `route_orchestrator`) to actually run the task.
+- `complete_execution_task` (success or failure) releases locks, persists artefacts, and marks dependents ready.
+- On failure, execution transitions to `failed` until user retries or aborts; timeline logs emit `task.failed` and `execution.failed` events.
+- When `/df <goal>` is invoked without an existing plan, the MCP server auto-generates a single-node plan that routes the request to `df-orchestrator`, captures the timeline, and returns an executionId so `/forge-status` can report progress.
 
 ### 3.3 Isolation & Merge
 
@@ -153,10 +151,12 @@ Permissions/time-to-live: clean up when execution resolved (success/abort) or af
 | `poll_execution` | **New** | Returns live snapshot: running nodes, statuses, timeline tail. Used for streaming. |
 | `pause_execution` | **New** | Gracefully pause after current nodes, releasing locks. |
 | `resume_execution` | **New** | Opposite of pause. |
-| `abort_execution` | **New** | Cancels outstanding nodes, discards staging outputs (unless `keepPartial` flag). |
+| `abort_execution` | **New** | Cancels outstanding nodes, discards staged outputs (unless `keepPartial` flag). |
 | `merge_execution` | **New** | Applies staged changes if safe; auto-snapshot before merge. |
+| `next_execution_task` | **New** | Dequeues the next ready node (includes resource claims) respecting concurrency limits. |
+| `complete_execution_task` | **New** | Marks a node as succeeded or failed, releasing locks and promoting dependents. |
 | `list_executions` | **New** | Lists active/recent execution IDs with statuses. |
-| `route_orchestrator` | **Updated** | Accepts optional `executionId`. If provided, forwards status/commands to scheduler; otherwise behaves as legacy single-task route. |
+| `route_orchestrator` | **Updated** | Accepts optional `executionId`. When none is supplied, auto-creates a single-node plan for the request and starts execution (yielding timeline + executionId). |
 | `route_specialist` | **Updated** | Accepts `executionId` + `nodeId` for context; returns streaming updates + outputs. |
 | `fetch_logs` | **Updated** | Optionally filter by `executionId`. |
 | `create_snapshot` / `restore_snapshot` | **Updated** | Called automatically by `merge_execution`/`abort_execution` when needed. |
@@ -335,7 +335,7 @@ Choosing option 2 triggers a prompt that shows the conflicting hunks and allows 
 
 | Command | Update |
 |---------|--------|
-| `/df <goal>` | Automatically invokes parallel prompt flow. Legacy single-task mode still available via `--serial` flag or fallback when plan has single node. |
+| `/df <goal>` | Automatically creates a minimal execution plan (single node by default) and routes to df-orchestrator. Legacy serial mode still available via `--serial`. |
 | `/forge-status` | **New**; lists live/recent executions using `list_executions` prompt. |
 | `/forge-resume` | Extended: lists paused executions alongside onboarding sessions. |
 | `/forge-guide`, `/forge-add-droid`, `/forge-removeall`, `/forge-restore`, `/forge-logs` | Continue to work; prompts reference parallel features where relevant. |

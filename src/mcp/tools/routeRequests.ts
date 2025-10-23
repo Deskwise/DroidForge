@@ -1,25 +1,69 @@
 import { appendLog } from '../logging.js';
-import type { RouteRequestInput, RouteRequestOutput, ToolDefinition } from '../types.js';
+import type { ExecutionPlan, RouteRequestInput, RouteRequestOutput, ToolDefinition } from '../types.js';
+import { ExecutionManager } from '../execution/manager.js';
 
-function buildRouteTool(name: string, defaultDroid: string): ToolDefinition<RouteRequestInput, RouteRequestOutput> {
+interface RouteDeps {
+  manager: ExecutionManager;
+}
+
+function ensureExecution(deps: RouteDeps, input: RouteRequestInput, routedTo: string): string {
+  if (input.executionId) {
+    deps.manager.enqueue({
+      executionId: input.executionId,
+      droidId: routedTo,
+      request: input.request,
+      repoRoot: input.repoRoot
+    });
+    return input.executionId;
+  }
+
+  const nodeId = `node-${Date.now()}`;
+  const plan: ExecutionPlan = {
+    nodes: [
+      {
+        nodeId,
+        droidId: routedTo,
+        title: input.request.slice(0, 60),
+        description: input.request
+      }
+    ],
+    edges: []
+  };
+  const record = deps.manager.plan(input.repoRoot, plan);
+  deps.manager.enqueue({ executionId: record.id, droidId: routedTo, request: input.request, repoRoot: input.repoRoot });
+  deps.manager.start(record.id);
+  const schedule = deps.manager.requestNext(record.id);
+  if (schedule) {
+    deps.manager.completeNode(record.id, schedule.nodeId, { request: input.request });
+  }
+  return record.id;
+}
+
+function buildRouteTool(name: string, defaultDroid: string, deps: RouteDeps): ToolDefinition<RouteRequestInput, RouteRequestOutput> {
   return {
     name,
     description: 'Proxy user instructions to the orchestrator or a specialist.',
     handler: async input => {
       const routedTo = input.droidId ?? defaultDroid;
+      const executionId = ensureExecution(deps, input, routedTo);
       await appendLog(input.repoRoot, {
         timestamp: new Date().toISOString(),
         event: name,
         status: 'ok',
-        payload: { routedTo, snippet: input.request.slice(0, 120) }
+        payload: { routedTo, executionId, snippet: input.request.slice(0, 120) }
       });
       return {
         acknowledged: true,
-        routedTo
+        routedTo,
+        executionId
       };
     }
   };
 }
 
-export const routeOrchestratorTool = buildRouteTool('route_orchestrator', 'df-orchestrator');
-export const routeSpecialistTool = buildRouteTool('route_specialist', 'df-specialist');
+export function createRouteTools(deps: RouteDeps) {
+  return {
+    routeOrchestratorTool: buildRouteTool('route_orchestrator', 'df-orchestrator', deps),
+    routeSpecialistTool: buildRouteTool('route_specialist', 'df-specialist', deps)
+  };
+}

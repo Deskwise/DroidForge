@@ -19,14 +19,31 @@ const TARGETS = [
   '.factory/commands/df'
 ];
 
+function toBoolean(value: string | boolean | undefined, truthyValues: string[]): boolean {
+  if (typeof value === 'boolean') {
+    return value;
+  }
+  if (typeof value === 'string') {
+    return truthyValues.includes(value.toLowerCase());
+  }
+  return false;
+}
+
 export function createCleanupRepoTool(): ToolDefinition<CleanupRepoInput, CleanupRepoOutput> {
   return {
     name: 'cleanup_repo',
     description: 'Remove all DroidForge data from the repository, optionally keeping the guide.',
     handler: async input => {
+      const confirmed = toBoolean(input.confirm, ['yes', 'y', '1', 'true']);
+      if (!confirmed) {
+        return { removed: [] };
+      }
+
+      const keepGuide = toBoolean(input.keepGuide, ['keep', 'yes', 'y', 'true']);
+
       const removed: string[] = [];
       for (const rel of TARGETS) {
-        if (input.keepGuide && rel === 'docs/DroidForge_user_guide_en.md') {
+        if (keepGuide && rel === 'docs/DroidForge_user_guide_en.md') {
           continue;
         }
         const abs = path.join(input.repoRoot, rel);
