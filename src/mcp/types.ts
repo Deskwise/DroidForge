@@ -1,5 +1,5 @@
 import type { ExecutionPlan, ExecutionStatus, NodeSchedule, PollSnapshot } from './execution/manager.js';
-import type { DroidDefinition, DroidManifest, PRDContent } from '../types.js';
+import type { DroidManifest, PRDContent } from '../types.js';
 
 export type { ExecutionPlan, ExecutionStatus, NodeSchedule, PollSnapshot } from './execution/manager.js';
 
