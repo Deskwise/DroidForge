@@ -11,7 +11,7 @@ export function createNextExecutionTaskTool(deps: Deps): ToolDefinition<NextExec
     name: 'next_execution_task',
     description: 'Retrieve the next ready task for the given execution, if capacity allows.',
     handler: async input => {
-      const task: NodeSchedule | null = deps.executionManager.requestNext(input.executionId);
+      const task: NodeSchedule | null = await deps.executionManager.requestNext(input.executionId);
       if (task) {
         await appendLog(input.repoRoot, {
           timestamp: new Date().toISOString(),

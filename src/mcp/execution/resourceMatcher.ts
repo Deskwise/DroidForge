@@ -4,7 +4,7 @@
  */
 
 import micromatch from 'micromatch';
-import { normalize, sep } from 'node:path';
+import { normalize } from 'node:path';
 import { globby } from 'globby';
 
 /**
@@ -97,9 +97,14 @@ export class ResourceMatcher implements IResourceMatcher {
     const cleanAncestor = this.removeGlobPatterns(ancestor);
     const cleanDescendant = this.removeGlobPatterns(descendant);
 
-    // Normalize paths
-    const normAncestor = this.normalizePath(cleanAncestor);
-    const normDescendant = this.normalizePath(cleanDescendant);
+    // Normalize paths - use forward slashes for consistency
+    const normAncestor = this.normalizePath(cleanAncestor).replace(/\\/g, '/');
+    const normDescendant = this.normalizePath(cleanDescendant).replace(/\\/g, '/');
+
+    // Root directory (. or empty) is ancestor of everything
+    if (normAncestor === '.' || normAncestor === '' || normAncestor === '/') {
+      return true;
+    }
 
     // Check if descendant starts with ancestor path
     if (normDescendant === normAncestor) {
@@ -107,7 +112,7 @@ export class ResourceMatcher implements IResourceMatcher {
     }
 
     // Ensure we're checking directory boundaries
-    const ancestorWithSep = normAncestor.endsWith(sep) ? normAncestor : normAncestor + sep;
+    const ancestorWithSep = normAncestor.endsWith('/') ? normAncestor : `${normAncestor}/`;
     return normDescendant.startsWith(ancestorWithSep);
   }
 
@@ -147,7 +152,9 @@ export class ResourceMatcher implements IResourceMatcher {
         });
 
         this.expansionCache.set(cacheKey, files);
-        files.forEach(f => expanded.add(f));
+        for (const f of files) {
+          expanded.add(f);
+        }
       } catch (error) {
         // If glob expansion fails, treat as literal path
         console.warn(`Failed to expand glob pattern ${claim}:`, error);
@@ -165,7 +172,7 @@ export class ResourceMatcher implements IResourceMatcher {
    */
   invalidateCache(repoRoot: string): void {
     for (const key of this.expansionCache.keys()) {
-      if (key.startsWith(repoRoot + ':')) {
+      if (key.startsWith(`${repoRoot}:`)) {
         this.expansionCache.delete(key);
       }
     }
@@ -199,7 +206,7 @@ export class ResourceMatcher implements IResourceMatcher {
    * @returns true if path contains glob patterns
    */
   private isGlobPattern(path: string): boolean {
-    return path.includes('*') || path.includes('?') || path.includes('[') || path.includes('{');
+    return /[*?[{]/u.test(path);
   }
 
   /**

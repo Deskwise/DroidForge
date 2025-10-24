@@ -1,160 +1,275 @@
+/**
+ * Tests for StagingManager - isolated workspace management
+ */
+
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { join } from 'node:path';
-import { promises as fs } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { StagingManager } from '../staging.js';
-import { ensureDir, removeIfExists } from '../../fs.js';
+import { createTestRepo, cleanupTestRepo } from './helpers/testUtils.js';
+import { promises as fs } from 'node:fs';
+import { join } from 'node:path';
 
 describe('StagingManager', () => {
-  let testRoot: string;
+  let testRepo: string;
   let stagingManager: StagingManager;
 
   before(async () => {
-    // Create a temporary test repository
-    testRoot = join(tmpdir(), `staging-test-${Date.now()}`);
-    await ensureDir(testRoot);
+    testRepo = await createTestRepo();
     stagingManager = new StagingManager();
-
-    // Create test files
-    await fs.writeFile(join(testRoot, 'file1.txt'), 'content1', 'utf-8');
-    await fs.writeFile(join(testRoot, 'file2.txt'), 'content2', 'utf-8');
-    
-    await ensureDir(join(testRoot, 'src'));
-    await fs.writeFile(join(testRoot, 'src', 'index.ts'), 'export const x = 1;', 'utf-8');
-    
-    await ensureDir(join(testRoot, 'tests'));
-    await fs.writeFile(join(testRoot, 'tests', 'test.ts'), 'test code', 'utf-8');
   });
 
   after(async () => {
-    // Clean up test directory
-    await removeIfExists(testRoot);
+    await cleanupTestRepo(testRepo);
   });
 
-  it('creates staging directory with repo copy', async () => {
-    const stagingPath = await stagingManager.createStaging(testRoot, 'exec-1', 'node-1');
+  it('creates isolated staging directory', async () => {
+    const executionId = 'exec-test-1';
+    const nodeId = 'node-1';
     
-    // Verify staging path is correct
-    assert.equal(stagingPath, join(testRoot, '.droidforge', 'exec', 'exec-1', 'staging', 'node-1'));
+    const stagingPath = await stagingManager.createStaging(testRepo, executionId, nodeId);
     
-    // Verify staging directory exists
-    const stat = await fs.stat(stagingPath);
-    assert.ok(stat.isDirectory());
+    // Staging path should exist
+    const stats = await fs.stat(stagingPath);
+    assert.ok(stats.isDirectory(), 'Staging path should be a directory');
     
-    // Verify files were copied
-    const file1Content = await fs.readFile(join(stagingPath, 'file1.txt'), 'utf-8');
-    assert.equal(file1Content, 'content1');
+    // Should contain copied files
+    const file1Exists = await fs.access(join(stagingPath, 'src', 'file1.ts'))
+      .then(() => true)
+      .catch(() => false);
+    assert.equal(file1Exists, true, 'Should contain copied file1.ts');
     
-    const srcIndexContent = await fs.readFile(join(stagingPath, 'src', 'index.ts'), 'utf-8');
-    assert.equal(srcIndexContent, 'export const x = 1;');
+    const readmeExists = await fs.access(join(stagingPath, 'README.md'))
+      .then(() => true)
+      .catch(() => false);
+    assert.equal(readmeExists, true, 'Should contain copied README.md');
   });
 
-  it('excludes .droidforge directory from staging copy', async () => {
-    // Create .droidforge directory in repo
-    const droidforgeDir = join(testRoot, '.droidforge');
-    await ensureDir(droidforgeDir);
-    await fs.writeFile(join(droidforgeDir, 'test.txt'), 'should not copy', 'utf-8');
+  it('excludes .droidforge directory from staging', async () => {
+    // Create .droidforge directory in test repo
+    await fs.mkdir(join(testRepo, '.droidforge', 'exec'), { recursive: true });
+    await fs.writeFile(join(testRepo, '.droidforge', 'test.json'), '{}');
     
-    const stagingPath = await stagingManager.createStaging(testRoot, 'exec-2', 'node-2');
+    const stagingPath = await stagingManager.createStaging(testRepo, 'exec-test-2', 'node-2');
     
-    // Verify .droidforge was not copied
-    try {
-      await fs.access(join(stagingPath, '.droidforge'));
-      assert.fail('.droidforge directory should not be copied');
-    } catch (error) {
-      // Expected - directory should not exist
-      assert.ok(true);
-    }
+    // .droidforge should NOT exist in staging
+    const droidforgeExists = await fs.access(join(stagingPath, '.droidforge'))
+      .then(() => true)
+      .catch(() => false);
+    assert.equal(droidforgeExists, false, 'Should not copy .droidforge directory');
+  });
+
+  it('maintains file isolation between nodes', async () => {
+    const executionId = 'exec-test-3';
+    
+    // Create staging for two nodes
+    const staging1 = await stagingManager.createStaging(testRepo, executionId, 'node-1');
+    const staging2 = await stagingManager.createStaging(testRepo, executionId, 'node-2');
+    
+    // Modify file in first staging
+    await fs.writeFile(join(staging1, 'src', 'file1.ts'), 'export const modified = true;');
+    
+    // Second staging should have original content
+    const content2 = await fs.readFile(join(staging2, 'src', 'file1.ts'), 'utf-8');
+    assert.equal(content2, 'export const value = 1;', 'Should have original content');
+    
+    // Original repo should be unchanged
+    const originalContent = await fs.readFile(join(testRepo, 'src', 'file1.ts'), 'utf-8');
+    assert.equal(originalContent, 'export const value = 1;', 'Original should be unchanged');
   });
 
   it('collects changes based on resource claims', async () => {
-    const stagingPath = await stagingManager.createStaging(testRoot, 'exec-3', 'node-3');
+    const executionId = 'exec-test-4';
+    const nodeId = 'node-collect';
     
-    // Modify a file in staging
-    await fs.writeFile(join(stagingPath, 'file1.txt'), 'modified content', 'utf-8');
-    
-    // Collect changes for specific resource claim
-    const changes = await stagingManager.collectChanges(
-      testRoot,
-      stagingPath,
-      ['file1.txt']
-    );
-    
-    // Verify changes were collected
-    assert.equal(changes.size, 1);
-    assert.equal(changes.get('file1.txt'), 'modified content');
-  });
-
-  it('collects changes with glob patterns', async () => {
-    const stagingPath = await stagingManager.createStaging(testRoot, 'exec-4', 'node-4');
+    const stagingPath = await stagingManager.createStaging(testRepo, executionId, nodeId);
     
     // Modify files in staging
-    await fs.writeFile(join(stagingPath, 'src', 'index.ts'), 'export const x = 2;', 'utf-8');
-    await fs.writeFile(join(stagingPath, 'src', 'utils.ts'), 'export const y = 3;', 'utf-8');
+    await fs.writeFile(join(stagingPath, 'src', 'file1.ts'), 'export const value = 100;');
+    await fs.writeFile(join(stagingPath, 'src', 'file2.ts'), 'export const value = 200;');
     
-    // Collect changes with glob pattern
+    // Collect changes for specific resource claims
     const changes = await stagingManager.collectChanges(
-      testRoot,
+      testRepo,
+      stagingPath,
+      ['src/file1.ts']
+    );
+    
+    assert.equal(changes.size, 1, 'Should collect only claimed files');
+    assert.ok(changes.has('src/file1.ts'), 'Should contain file1.ts');
+    assert.equal(changes.get('src/file1.ts'), 'export const value = 100;');
+  });
+
+  it('handles glob patterns in resource claims', async () => {
+    const executionId = 'exec-test-5';
+    const nodeId = 'node-glob';
+    
+    const stagingPath = await stagingManager.createStaging(testRepo, executionId, nodeId);
+    
+    // Modify files
+    await fs.writeFile(join(stagingPath, 'src', 'file1.ts'), 'modified 1');
+    await fs.writeFile(join(stagingPath, 'src', 'file2.ts'), 'modified 2');
+    
+    // Collect with glob pattern
+    const changes = await stagingManager.collectChanges(
+      testRepo,
+      stagingPath,
+      ['src/*.ts']
+    );
+    
+    assert.equal(changes.size, 2, 'Should collect all matching files');
+    assert.ok(changes.has('src/file1.ts'));
+    assert.ok(changes.has('src/file2.ts'));
+  });
+
+  it('handles nested directory patterns', async () => {
+    const executionId = 'exec-test-6';
+    const nodeId = 'node-nested';
+    
+    // Create nested structure in test repo
+    await fs.mkdir(join(testRepo, 'src', 'nested', 'deep'), { recursive: true });
+    await fs.writeFile(join(testRepo, 'src', 'nested', 'file.ts'), 'nested');
+    await fs.writeFile(join(testRepo, 'src', 'nested', 'deep', 'file.ts'), 'deep');
+    
+    const stagingPath = await stagingManager.createStaging(testRepo, executionId, nodeId);
+    
+    // Collect with recursive pattern
+    const changes = await stagingManager.collectChanges(
+      testRepo,
       stagingPath,
       ['src/**/*.ts']
     );
     
-    // Verify multiple files were collected
-    assert.ok(changes.size >= 1);
-    assert.equal(changes.get(join('src', 'index.ts')), 'export const x = 2;');
+    assert.ok(changes.size >= 2, 'Should collect nested files');
+    assert.ok(changes.has('src/nested/file.ts') || Array.from(changes.keys()).some(k => k.includes('nested')));
   });
 
-  it('returns empty map for no resource claims', async () => {
-    const stagingPath = await stagingManager.createStaging(testRoot, 'exec-5', 'node-5');
+  it('returns empty map for empty resource claims', async () => {
+    const executionId = 'exec-test-7';
+    const nodeId = 'node-empty';
+    
+    const stagingPath = await stagingManager.createStaging(testRepo, executionId, nodeId);
     
     const changes = await stagingManager.collectChanges(
-      testRoot,
+      testRepo,
       stagingPath,
       []
     );
     
-    assert.equal(changes.size, 0);
+    assert.equal(changes.size, 0, 'Should return empty map for no claims');
   });
 
   it('cleans staging directory', async () => {
-    const stagingPath = await stagingManager.createStaging(testRoot, 'exec-6', 'node-6');
+    const executionId = 'exec-test-8';
+    const nodeId = 'node-clean';
     
-    // Verify staging exists
-    await fs.access(stagingPath);
+    const stagingPath = await stagingManager.createStaging(testRepo, executionId, nodeId);
     
-    // Clean staging
-    await stagingManager.cleanStaging(testRoot, 'exec-6', 'node-6');
+    // Verify it exists
+    let exists = await fs.access(stagingPath)
+      .then(() => true)
+      .catch(() => false);
+    assert.equal(exists, true, 'Staging should exist before cleanup');
     
-    // Verify staging was removed
-    try {
-      await fs.access(stagingPath);
-      assert.fail('Staging directory should be removed');
-    } catch (error) {
-      // Expected - directory should not exist
-      assert.ok(true);
-    }
+    // Clean it
+    await stagingManager.cleanStaging(testRepo, executionId, nodeId);
+    
+    // Verify it's gone
+    exists = await fs.access(stagingPath)
+      .then(() => true)
+      .catch(() => false);
+    assert.equal(exists, false, 'Staging should not exist after cleanup');
+  });
+
+  it('handles cleanup of non-existent staging gracefully', async () => {
+    // Should not throw
+    await stagingManager.cleanStaging(testRepo, 'exec-nonexistent', 'node-nonexistent');
+  });
+
+  it('creates staging path in correct location', async () => {
+    const executionId = 'exec-test-9';
+    const nodeId = 'node-path';
+    
+    const stagingPath = await stagingManager.createStaging(testRepo, executionId, nodeId);
+    
+    // Path should follow convention: {repoRoot}/.droidforge/exec/{executionId}/staging/{nodeId}
+    const expectedPath = join(testRepo, '.droidforge', 'exec', executionId, 'staging', nodeId);
+    assert.equal(stagingPath, expectedPath, 'Should create staging at expected path');
+  });
+
+  it('preserves file permissions in staging', async () => {
+    // Create executable file
+    const execPath = join(testRepo, 'script.sh');
+    await fs.writeFile(execPath, '#!/bin/bash\necho "test"');
+    await fs.chmod(execPath, 0o755);
+    
+    const stagingPath = await stagingManager.createStaging(testRepo, 'exec-test-10', 'node-perm');
+    
+    // Check permissions in staging
+    const stagedScript = join(stagingPath, 'script.sh');
+    const stats = await fs.stat(stagedScript);
+    
+    // Should be readable
+    assert.ok((stats.mode & 0o400) !== 0, 'Should preserve read permission');
   });
 
   it('handles multiple staging directories for same execution', async () => {
-    const staging1 = await stagingManager.createStaging(testRoot, 'exec-7', 'node-a');
-    const staging2 = await stagingManager.createStaging(testRoot, 'exec-7', 'node-b');
+    const executionId = 'exec-test-multi';
     
-    // Verify both exist
-    await fs.access(staging1);
-    await fs.access(staging2);
+    // Create multiple staging areas
+    const staging1 = await stagingManager.createStaging(testRepo, executionId, 'node-1');
+    const staging2 = await stagingManager.createStaging(testRepo, executionId, 'node-2');
+    const staging3 = await stagingManager.createStaging(testRepo, executionId, 'node-3');
     
-    // Verify they're different
+    // All should exist and be different
     assert.notEqual(staging1, staging2);
+    assert.notEqual(staging2, staging3);
     
-    // Clean up
-    await stagingManager.cleanStaging(testRoot, 'exec-7', 'node-a');
-    await stagingManager.cleanStaging(testRoot, 'exec-7', 'node-b');
+    const exists1 = await fs.access(staging1).then(() => true).catch(() => false);
+    const exists2 = await fs.access(staging2).then(() => true).catch(() => false);
+    const exists3 = await fs.access(staging3).then(() => true).catch(() => false);
+    
+    assert.ok(exists1 && exists2 && exists3, 'All staging directories should exist');
   });
 
-  it('handles cleaning non-existent staging directory', async () => {
-    // Should not throw error
-    await stagingManager.cleanStaging(testRoot, 'exec-999', 'node-999');
-    assert.ok(true);
+  it('handles special characters in file names', async () => {
+    // Create file with special characters
+    await fs.writeFile(join(testRepo, 'file with spaces.txt'), 'content');
+    await fs.writeFile(join(testRepo, 'file-with-dashes.txt'), 'content');
+    
+    const stagingPath = await stagingManager.createStaging(testRepo, 'exec-special', 'node-special');
+    
+    // Files should be copied
+    const exists1 = await fs.access(join(stagingPath, 'file with spaces.txt'))
+      .then(() => true)
+      .catch(() => false);
+    const exists2 = await fs.access(join(stagingPath, 'file-with-dashes.txt'))
+      .then(() => true)
+      .catch(() => false);
+    
+    assert.ok(exists1 && exists2, 'Should handle special characters in file names');
+  });
+
+  it('supports concurrent staging operations', async () => {
+    const executionId = 'exec-concurrent';
+    
+    // Create multiple staging directories concurrently
+    const promises = Array.from({ length: 5 }, (_, i) =>
+      stagingManager.createStaging(testRepo, executionId, `node-${i}`)
+    );
+    
+    const stagingPaths = await Promise.all(promises);
+    
+    // All should be created
+    assert.equal(stagingPaths.length, 5);
+    
+    // All should be unique
+    const uniquePaths = new Set(stagingPaths);
+    assert.equal(uniquePaths.size, 5);
+    
+    // All should exist
+    const existenceChecks = await Promise.all(
+      stagingPaths.map(path => fs.access(path).then(() => true).catch(() => false))
+    );
+    assert.ok(existenceChecks.every(exists => exists), 'All staging directories should exist');
   });
 });

@@ -1,262 +1,372 @@
+/**
+ * Tests for ExecutionMerger - merging changes from staging areas
+ */
+
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { join } from 'node:path';
-import { promises as fs } from 'node:fs';
-import { tmpdir } from 'node:os';
 import { ExecutionMerger } from '../merger.js';
 import { StagingManager } from '../staging.js';
-import { ensureDir, removeIfExists, writeJsonAtomic } from '../../fs.js';
+import { createTestRepo, cleanupTestRepo } from './helpers/testUtils.js';
+import { promises as fs } from 'node:fs';
+import { join } from 'node:path';
 
 describe('ExecutionMerger', () => {
-  let testRoot: string;
+  let testRepo: string;
   let merger: ExecutionMerger;
   let stagingManager: StagingManager;
 
   before(async () => {
-    // Create a temporary test repository
-    testRoot = join(tmpdir(), `merger-test-${Date.now()}`);
-    await ensureDir(testRoot);
+    testRepo = await createTestRepo();
     merger = new ExecutionMerger();
     stagingManager = new StagingManager();
-
-    // Create test files
-    await fs.writeFile(join(testRoot, 'file1.txt'), 'original content', 'utf-8');
-    await ensureDir(join(testRoot, 'src'));
-    await fs.writeFile(join(testRoot, 'src', 'index.ts'), 'original code', 'utf-8');
   });
 
   after(async () => {
-    // Clean up test directory
-    await removeIfExists(testRoot);
+    await cleanupTestRepo(testRepo);
   });
 
-  it('merges changes from single node without conflicts', async () => {
-    const executionId = 'exec-1';
-    const nodeId = 'node-1';
-
-    // Create staging with changes
-    const stagingPath = await stagingManager.createStaging(testRoot, executionId, nodeId);
-    await fs.writeFile(join(stagingPath, 'file1.txt'), 'modified by node-1', 'utf-8');
-
-    // Create state file with resource claims
-    const stateDir = join(testRoot, '.droidforge', 'exec', executionId);
-    await ensureDir(stateDir);
-    await writeJsonAtomic(join(stateDir, 'state.json'), {
-      nodes: [{
-        nodeId: 'node-1',
-        spec: {
-          nodeId: 'node-1',
-          droidId: 'droid-1',
-          resourceClaims: ['file1.txt']
-        }
-      }]
-    });
-
-    // Merge changes
-    const result = await merger.merge(testRoot, executionId, [nodeId], stagingManager);
-
-    // Verify merge succeeded
-    assert.equal(result.success, true);
-    assert.equal(result.conflicts.length, 0);
-    assert.ok(result.mergedFiles);
-    assert.ok(result.mergedFiles.includes('file1.txt'));
-
-    // Verify file was updated
-    const content = await fs.readFile(join(testRoot, 'file1.txt'), 'utf-8');
-    assert.equal(content, 'modified by node-1');
-
-    // Clean up
-    await stagingManager.cleanStaging(testRoot, executionId, nodeId);
-  });
-
-  it('merges changes from multiple nodes without conflicts', async () => {
-    const executionId = 'exec-2';
-
-    // Create two staging directories with different file changes
-    const staging1 = await stagingManager.createStaging(testRoot, executionId, 'node-a');
-    await fs.writeFile(join(staging1, 'file-a.txt'), 'from node-a', 'utf-8');
-
-    const staging2 = await stagingManager.createStaging(testRoot, executionId, 'node-b');
-    await fs.writeFile(join(staging2, 'file-b.txt'), 'from node-b', 'utf-8');
-
-    // Create state file
-    const stateDir = join(testRoot, '.droidforge', 'exec', executionId);
-    await ensureDir(stateDir);
-    await writeJsonAtomic(join(stateDir, 'state.json'), {
-      nodes: [
-        {
-          nodeId: 'node-a',
-          spec: {
-            nodeId: 'node-a',
-            droidId: 'droid-a',
-            resourceClaims: ['file-a.txt']
-          }
-        },
-        {
-          nodeId: 'node-b',
-          spec: {
-            nodeId: 'node-b',
-            droidId: 'droid-b',
-            resourceClaims: ['file-b.txt']
-          }
-        }
-      ]
-    });
-
-    // Merge changes
-    const result = await merger.merge(testRoot, executionId, ['node-a', 'node-b'], stagingManager);
-
-    // Verify merge succeeded
-    assert.equal(result.success, true);
-    assert.equal(result.conflicts.length, 0);
-
-    // Verify both files were created
-    const contentA = await fs.readFile(join(testRoot, 'file-a.txt'), 'utf-8');
-    assert.equal(contentA, 'from node-a');
-
-    const contentB = await fs.readFile(join(testRoot, 'file-b.txt'), 'utf-8');
-    assert.equal(contentB, 'from node-b');
-
-    // Clean up
-    await stagingManager.cleanStaging(testRoot, executionId, 'node-a');
-    await stagingManager.cleanStaging(testRoot, executionId, 'node-b');
-    await removeIfExists(join(testRoot, 'file-a.txt'));
-    await removeIfExists(join(testRoot, 'file-b.txt'));
-  });
-
-  it('detects conflicts when multiple nodes modify same file differently', async () => {
-    const executionId = 'exec-3';
-
-    // Create two staging directories modifying the same file differently
-    const staging1 = await stagingManager.createStaging(testRoot, executionId, 'node-c');
-    await fs.writeFile(join(staging1, 'conflict.txt'), 'version from node-c', 'utf-8');
-
-    const staging2 = await stagingManager.createStaging(testRoot, executionId, 'node-d');
-    await fs.writeFile(join(staging2, 'conflict.txt'), 'version from node-d', 'utf-8');
-
-    // Create state file
-    const stateDir = join(testRoot, '.droidforge', 'exec', executionId);
-    await ensureDir(stateDir);
-    await writeJsonAtomic(join(stateDir, 'state.json'), {
-      nodes: [
-        {
-          nodeId: 'node-c',
-          spec: {
-            nodeId: 'node-c',
-            droidId: 'droid-c',
-            resourceClaims: ['conflict.txt']
-          }
-        },
-        {
-          nodeId: 'node-d',
-          spec: {
-            nodeId: 'node-d',
-            droidId: 'droid-d',
-            resourceClaims: ['conflict.txt']
-          }
-        }
-      ]
-    });
-
-    // Merge changes
-    const result = await merger.merge(testRoot, executionId, ['node-c', 'node-d'], stagingManager);
-
-    // Verify conflict was detected
-    assert.equal(result.success, false);
-    assert.equal(result.conflicts.length, 1);
-    assert.ok(result.conflicts.includes('conflict.txt'));
-
-    // Clean up
-    await stagingManager.cleanStaging(testRoot, executionId, 'node-c');
-    await stagingManager.cleanStaging(testRoot, executionId, 'node-d');
-  });
-
-  it('allows multiple nodes to modify same file identically', async () => {
-    const executionId = 'exec-4';
-    const sameContent = 'identical content from both nodes';
-
-    // Create two staging directories with identical changes
-    const staging1 = await stagingManager.createStaging(testRoot, executionId, 'node-e');
-    await fs.writeFile(join(staging1, 'same.txt'), sameContent, 'utf-8');
-
-    const staging2 = await stagingManager.createStaging(testRoot, executionId, 'node-f');
-    await fs.writeFile(join(staging2, 'same.txt'), sameContent, 'utf-8');
-
-    // Create state file
-    const stateDir = join(testRoot, '.droidforge', 'exec', executionId);
-    await ensureDir(stateDir);
-    await writeJsonAtomic(join(stateDir, 'state.json'), {
-      nodes: [
-        {
-          nodeId: 'node-e',
-          spec: {
-            nodeId: 'node-e',
-            droidId: 'droid-e',
-            resourceClaims: ['same.txt']
-          }
-        },
-        {
-          nodeId: 'node-f',
-          spec: {
-            nodeId: 'node-f',
-            droidId: 'droid-f',
-            resourceClaims: ['same.txt']
-          }
-        }
-      ]
-    });
-
-    // Merge changes
-    const result = await merger.merge(testRoot, executionId, ['node-e', 'node-f'], stagingManager);
-
-    // Verify merge succeeded (no conflict since content is identical)
-    assert.equal(result.success, true);
-    assert.equal(result.conflicts.length, 0);
-
-    // Verify file was created with correct content
-    const content = await fs.readFile(join(testRoot, 'same.txt'), 'utf-8');
-    assert.equal(content, sameContent);
-
-    // Clean up
-    await stagingManager.cleanStaging(testRoot, executionId, 'node-e');
-    await stagingManager.cleanStaging(testRoot, executionId, 'node-f');
-    await removeIfExists(join(testRoot, 'same.txt'));
-  });
-
-  it('handles merge with empty node list', async () => {
-    const result = await merger.merge(testRoot, 'exec-5', [], stagingManager);
-
-    assert.equal(result.success, true);
-    assert.equal(result.conflicts.length, 0);
-    assert.equal(result.mergedFiles?.length ?? 0, 0);
-  });
-
-  it('handles merge when staging directory does not exist', async () => {
-    const result = await merger.merge(testRoot, 'exec-999', ['node-999'], stagingManager);
-
-    assert.equal(result.success, true);
-    assert.equal(result.conflicts.length, 0);
-  });
-
-  it('detects conflicts directly with conflict detection method', async () => {
+  it('detects no conflicts when files are different', async () => {
     const changes = new Map([
-      ['file1.txt', [
-        { nodeId: 'node-1', content: 'version 1', contentHash: 'hash1' },
-        { nodeId: 'node-2', content: 'version 2', contentHash: 'hash2' }
+      ['file1.ts', [
+        { nodeId: 'node-1', content: 'content1', contentHash: 'hash1' }
       ]],
-      ['file2.txt', [
-        { nodeId: 'node-1', content: 'same', contentHash: 'hash3' },
-        { nodeId: 'node-2', content: 'same', contentHash: 'hash3' }
-      ]],
-      ['file3.txt', [
-        { nodeId: 'node-1', content: 'only one', contentHash: 'hash4' }
+      ['file2.ts', [
+        { nodeId: 'node-2', content: 'content2', contentHash: 'hash2' }
       ]]
     ]);
 
-    const conflicts = await merger.detectConflicts(testRoot, changes);
+    const conflicts = await merger.detectConflicts(testRepo, changes);
+    
+    assert.equal(conflicts.length, 0, 'Should detect no conflicts for different files');
+  });
 
-    // Only file1.txt should have a conflict
+  it('detects no conflicts when multiple nodes produce identical content', async () => {
+    const changes = new Map([
+      ['file1.ts', [
+        { nodeId: 'node-1', content: 'same content', contentHash: 'hash-same' },
+        { nodeId: 'node-2', content: 'same content', contentHash: 'hash-same' }
+      ]]
+    ]);
+
+    const conflicts = await merger.detectConflicts(testRepo, changes);
+    
+    assert.equal(conflicts.length, 0, 'Should detect no conflicts for identical content');
+  });
+
+  it('detects conflicts when nodes produce different content for same file', async () => {
+    const changes = new Map([
+      ['file1.ts', [
+        { nodeId: 'node-1', content: 'content version 1', contentHash: 'hash1' },
+        { nodeId: 'node-2', content: 'content version 2', contentHash: 'hash2' }
+      ]]
+    ]);
+
+    const conflicts = await merger.detectConflicts(testRepo, changes);
+    
     assert.equal(conflicts.length, 1);
-    assert.ok(conflicts.includes('file1.txt'));
+    assert.ok(conflicts.includes('file1.ts'));
+  });
+
+  it('merges changes successfully when no conflicts exist', async () => {
+    const executionId = 'exec-merge-1';
+    
+    // Create staging for two nodes
+    const staging1 = await stagingManager.createStaging(testRepo, executionId, 'node-1');
+    const staging2 = await stagingManager.createStaging(testRepo, executionId, 'node-2');
+    
+    // Modify different files in each staging
+    await fs.writeFile(join(staging1, 'src', 'file1.ts'), 'export const a = 1;');
+    await fs.writeFile(join(staging2, 'src', 'file2.ts'), 'export const b = 2;');
+    
+    // Create mock state file for resource claims
+    await fs.mkdir(join(testRepo, '.droidforge', 'exec', executionId), { recursive: true });
+    await fs.writeFile(
+      join(testRepo, '.droidforge', 'exec', executionId, 'state.json'),
+      JSON.stringify({
+        nodes: [
+          { nodeId: 'node-1', spec: { resourceClaims: ['src/file1.ts'] } },
+          { nodeId: 'node-2', spec: { resourceClaims: ['src/file2.ts'] } }
+        ]
+      })
+    );
+    
+    const result = await merger.merge(testRepo, executionId, ['node-1', 'node-2'], stagingManager);
+    
+    assert.equal(result.success, true);
+    assert.equal(result.conflicts.length, 0);
+    assert.ok(result.mergedFiles);
+    assert.equal(result.mergedFiles.length, 2);
+    
+    // Verify files were merged to repo
+    const file1Content = await fs.readFile(join(testRepo, 'src', 'file1.ts'), 'utf-8');
+    const file2Content = await fs.readFile(join(testRepo, 'src', 'file2.ts'), 'utf-8');
+    
+    assert.equal(file1Content, 'export const a = 1;');
+    assert.equal(file2Content, 'export const b = 2;');
+  });
+
+  it('fails merge when conflicts are detected', async () => {
+    const executionId = 'exec-merge-conflict';
+    
+    // Create staging for two nodes
+    const staging1 = await stagingManager.createStaging(testRepo, executionId, 'node-1');
+    const staging2 = await stagingManager.createStaging(testRepo, executionId, 'node-2');
+    
+    // Both modify the same file differently
+    await fs.writeFile(join(staging1, 'src', 'file1.ts'), 'export const value = "version1";');
+    await fs.writeFile(join(staging2, 'src', 'file1.ts'), 'export const value = "version2";');
+    
+    // Create mock state file
+    await fs.mkdir(join(testRepo, '.droidforge', 'exec', executionId), { recursive: true });
+    await fs.writeFile(
+      join(testRepo, '.droidforge', 'exec', executionId, 'state.json'),
+      JSON.stringify({
+        nodes: [
+          { nodeId: 'node-1', spec: { resourceClaims: ['src/file1.ts'] } },
+          { nodeId: 'node-2', spec: { resourceClaims: ['src/file1.ts'] } }
+        ]
+      })
+    );
+    
+    const result = await merger.merge(testRepo, executionId, ['node-1', 'node-2'], stagingManager);
+    
+    assert.equal(result.success, false);
+    assert.ok(result.conflicts.length > 0);
+    assert.ok(result.conflicts.includes('src/file1.ts'));
+  });
+
+  it('handles merge with no staging directories', async () => {
+    const result = await merger.merge(
+      testRepo,
+      'exec-nonexistent',
+      ['node-1', 'node-2'],
+      stagingManager
+    );
+    
+    // Should succeed with no changes
+    assert.equal(result.success, true);
+    assert.equal(result.conflicts.length, 0);
+  });
+
+  it('handles merge with empty resource claims', async () => {
+    const executionId = 'exec-empty-claims';
+    
+    // Create staging but no changes
+    await stagingManager.createStaging(testRepo, executionId, 'node-1');
+    
+    // Create mock state file with empty claims
+    await fs.mkdir(join(testRepo, '.droidforge', 'exec', executionId), { recursive: true });
+    await fs.writeFile(
+      join(testRepo, '.droidforge', 'exec', executionId, 'state.json'),
+      JSON.stringify({
+        nodes: [
+          { nodeId: 'node-1', spec: { resourceClaims: [] } }
+        ]
+      })
+    );
+    
+    const result = await merger.merge(testRepo, executionId, ['node-1'], stagingManager);
+    
+    assert.equal(result.success, true);
+    assert.equal(result.conflicts.length, 0);
+  });
+
+  it('merges multiple files from single node', async () => {
+    const executionId = 'exec-multi-files';
+    
+    const staging = await stagingManager.createStaging(testRepo, executionId, 'node-1');
+    
+    // Create multiple new files
+    await fs.writeFile(join(staging, 'new1.ts'), 'export const new1 = 1;');
+    await fs.writeFile(join(staging, 'new2.ts'), 'export const new2 = 2;');
+    await fs.writeFile(join(staging, 'new3.ts'), 'export const new3 = 3;');
+    
+    // Create mock state file
+    await fs.mkdir(join(testRepo, '.droidforge', 'exec', executionId), { recursive: true });
+    await fs.writeFile(
+      join(testRepo, '.droidforge', 'exec', executionId, 'state.json'),
+      JSON.stringify({
+        nodes: [
+          { nodeId: 'node-1', spec: { resourceClaims: ['new*.ts'] } }
+        ]
+      })
+    );
+    
+    const result = await merger.merge(testRepo, executionId, ['node-1'], stagingManager);
+    
+    assert.equal(result.success, true);
+    assert.ok(result.mergedFiles);
+    assert.equal(result.mergedFiles.length, 3);
+  });
+
+  it('handles partial merge failure gracefully', async () => {
+    const executionId = 'exec-partial';
+    
+    // Create staging for three nodes
+    const staging1 = await stagingManager.createStaging(testRepo, executionId, 'node-1');
+    const staging2 = await stagingManager.createStaging(testRepo, executionId, 'node-2');
+    const staging3 = await stagingManager.createStaging(testRepo, executionId, 'node-3');
+    
+    // node-1 and node-2 have conflict, node-3 is fine
+    await fs.writeFile(join(staging1, 'conflict.ts'), 'version 1');
+    await fs.writeFile(join(staging2, 'conflict.ts'), 'version 2');
+    await fs.writeFile(join(staging3, 'safe.ts'), 'safe content');
+    
+    // Create mock state file
+    await fs.mkdir(join(testRepo, '.droidforge', 'exec', executionId), { recursive: true });
+    await fs.writeFile(
+      join(testRepo, '.droidforge', 'exec', executionId, 'state.json'),
+      JSON.stringify({
+        nodes: [
+          { nodeId: 'node-1', spec: { resourceClaims: ['conflict.ts'] } },
+          { nodeId: 'node-2', spec: { resourceClaims: ['conflict.ts'] } },
+          { nodeId: 'node-3', spec: { resourceClaims: ['safe.ts'] } }
+        ]
+      })
+    );
+    
+    const result = await merger.merge(
+      testRepo,
+      executionId,
+      ['node-1', 'node-2', 'node-3'],
+      stagingManager
+    );
+    
+    // Should fail due to conflict
+    assert.equal(result.success, false);
+    assert.ok(result.conflicts.includes('conflict.ts'));
+  });
+
+  it('preserves file content exactly', async () => {
+    const executionId = 'exec-preserve';
+    const staging = await stagingManager.createStaging(testRepo, executionId, 'node-1');
+    
+    // Content with special characters, newlines, etc.
+    const specialContent = `
+      export const data = {
+        "special": "chars",
+        "unicode": "Hello 世界",
+        "newlines": "line1\\nline2\\nline3"
+      };
+    `;
+    
+    await fs.writeFile(join(staging, 'special.ts'), specialContent);
+    
+    // Create mock state file
+    await fs.mkdir(join(testRepo, '.droidforge', 'exec', executionId), { recursive: true });
+    await fs.writeFile(
+      join(testRepo, '.droidforge', 'exec', executionId, 'state.json'),
+      JSON.stringify({
+        nodes: [
+          { nodeId: 'node-1', spec: { resourceClaims: ['special.ts'] } }
+        ]
+      })
+    );
+    
+    await merger.merge(testRepo, executionId, ['node-1'], stagingManager);
+    
+    // Verify content is exactly preserved
+    const mergedContent = await fs.readFile(join(testRepo, 'special.ts'), 'utf-8');
+    assert.equal(mergedContent, specialContent);
+  });
+
+  it('handles deeply nested directory structures', async () => {
+    const executionId = 'exec-nested';
+    const staging = await stagingManager.createStaging(testRepo, executionId, 'node-1');
+    
+    // Create deeply nested structure
+    const nestedPath = join(staging, 'src', 'deep', 'nested', 'structure');
+    await fs.mkdir(nestedPath, { recursive: true });
+    await fs.writeFile(join(nestedPath, 'file.ts'), 'export const deep = true;');
+    
+    // Create mock state file
+    await fs.mkdir(join(testRepo, '.droidforge', 'exec', executionId), { recursive: true });
+    await fs.writeFile(
+      join(testRepo, '.droidforge', 'exec', executionId, 'state.json'),
+      JSON.stringify({
+        nodes: [
+          { nodeId: 'node-1', spec: { resourceClaims: ['src/**/*.ts'] } }
+        ]
+      })
+    );
+    
+    const result = await merger.merge(testRepo, executionId, ['node-1'], stagingManager);
+    
+    assert.equal(result.success, true);
+    
+    // Verify nested file was created
+    const nestedFile = join(testRepo, 'src', 'deep', 'nested', 'structure', 'file.ts');
+    const exists = await fs.access(nestedFile).then(() => true).catch(() => false);
+    assert.ok(exists, 'Nested file should be created');
+  });
+
+  it('correctly hashes file content for conflict detection', async () => {
+    const content1 = 'export const value = 1;';
+    const content2 = 'export const value = 1;'; // Identical
+    const content3 = 'export const value = 2;'; // Different
+    
+    const changes = new Map([
+      ['file.ts', [
+        { nodeId: 'node-1', content: content1, contentHash: 'hash1' },
+        { nodeId: 'node-2', content: content2, contentHash: 'hash1' }, // Same hash
+        { nodeId: 'node-3', content: content3, contentHash: 'hash2' }  // Different hash
+      ]]
+    ]);
+    
+    const conflicts = await merger.detectConflicts(testRepo, changes);
+    
+    // Should detect conflict because hash2 differs from hash1
+    assert.equal(conflicts.length, 1);
+    assert.ok(conflicts.includes('file.ts'));
+  });
+
+  it('handles three-way conflicts correctly', async () => {
+    const changes = new Map([
+      ['file.ts', [
+        { nodeId: 'node-1', content: 'version 1', contentHash: 'hash1' },
+        { nodeId: 'node-2', content: 'version 2', contentHash: 'hash2' },
+        { nodeId: 'node-3', content: 'version 3', contentHash: 'hash3' }
+      ]]
+    ]);
+    
+    const conflicts = await merger.detectConflicts(testRepo, changes);
+    
+    assert.equal(conflicts.length, 1);
+    assert.ok(conflicts.includes('file.ts'));
+  });
+
+  it('handles empty changes map', async () => {
+    const changes = new Map();
+    const conflicts = await merger.detectConflicts(testRepo, changes);
+    
+    assert.equal(conflicts.length, 0);
+  });
+
+  it('reports all merged files correctly', async () => {
+    const executionId = 'exec-report';
+    const staging = await stagingManager.createStaging(testRepo, executionId, 'node-1');
+    
+    await fs.writeFile(join(staging, 'file1.ts'), 'content1');
+    await fs.writeFile(join(staging, 'file2.ts'), 'content2');
+    await fs.writeFile(join(staging, 'file3.ts'), 'content3');
+    
+    // Create mock state file
+    await fs.mkdir(join(testRepo, '.droidforge', 'exec', executionId), { recursive: true });
+    await fs.writeFile(
+      join(testRepo, '.droidforge', 'exec', executionId, 'state.json'),
+      JSON.stringify({
+        nodes: [
+          { nodeId: 'node-1', spec: { resourceClaims: ['*.ts'] } }
+        ]
+      })
+    );
+    
+    const result = await merger.merge(testRepo, executionId, ['node-1'], stagingManager);
+    
+    assert.equal(result.success, true);
+    assert.ok(result.mergedFiles);
+    assert.ok(result.mergedFiles.includes('file1.ts'));
+    assert.ok(result.mergedFiles.includes('file2.ts'));
+    assert.ok(result.mergedFiles.includes('file3.ts'));
   });
 });

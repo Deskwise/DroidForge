@@ -38,7 +38,7 @@ export interface ExecutionEvent {
  * Event bus interface for dependency injection
  */
 export interface IExecutionEventBus {
-  emit(event: ExecutionEvent): boolean;
+  emitEvent(event: ExecutionEvent): boolean;
   onAny(listener: (event: ExecutionEvent) => void): this;
   onExecution(executionId: string, listener: (event: ExecutionEvent) => void): this;
   off(event: string, listener: (...args: any[]) => void): this;
@@ -60,7 +60,7 @@ export class ExecutionEventBus extends EventEmitter implements IExecutionEventBu
    * @param event The execution event to emit
    * @returns true if event had listeners, false otherwise
    */
-  emit(event: ExecutionEvent): boolean {
+  emitEvent(event: ExecutionEvent): boolean {
     // Emit to type-specific listeners
     const typeResult = super.emit(event.type, event);
     

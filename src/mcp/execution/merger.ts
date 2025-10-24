@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import { promises as fs } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { writeFileAtomic, ensureDir } from '../fs.js';
+import { writeFileAtomic } from '../fs.js';
 import type { IStagingManager } from './staging.js';
 
 /**
@@ -105,8 +105,10 @@ export class ExecutionMerger implements IExecutionMerger {
     const statePath = join(repoRoot, '.droidforge', 'exec', executionId, 'state.json');
     try {
       const stateData = await fs.readFile(statePath, 'utf-8');
-      const state = JSON.parse(stateData);
-      const node = state.nodes?.find((n: any) => n.nodeId === nodeId);
+      const state = JSON.parse(stateData) as { 
+        nodes?: Array<{ nodeId: string; spec?: { resourceClaims?: string[] } }> 
+      };
+      const node = state.nodes?.find((n) => n.nodeId === nodeId);
       return node?.spec?.resourceClaims ?? [];
     } catch {
       // If we can't read the state, return an empty array
@@ -147,11 +149,14 @@ export class ExecutionMerger implements IExecutionMerger {
         if (!allChanges.has(filePath)) {
           allChanges.set(filePath, []);
         }
-        allChanges.get(filePath)!.push({
-          nodeId,
-          content,
-          contentHash: this.hashContent(content)
-        });
+        const fileChanges = allChanges.get(filePath);
+        if (fileChanges) {
+          fileChanges.push({
+            nodeId,
+            content,
+            contentHash: this.hashContent(content)
+          });
+        }
       }
     }
 

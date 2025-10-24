@@ -44,26 +44,29 @@ describe('ExecutionManager - Concurrency', () => {
 
   it('handles concurrent completeNode calls', async () => {
     const manager = new ExecutionManager();
-    const plan = createSimplePlan(10);
+    const plan: ExecutionPlan = {
+      nodes: Array.from({ length: 10 }, (_, i) => ({
+        nodeId: `node-${i}`,
+        droidId: `droid-${i}`
+      })),
+      edges: [],
+      concurrency: 10 // High concurrency so we can get all tasks at once
+    };
     const record = manager.plan('/repo', plan);
     manager.start(record.id);
     
-    // Get all tasks
+    // Get all tasks at once (high concurrency allows this)
     const tasks = [];
-    for (let i = 0; i < 10; i++) {
-      const task = await manager.requestNext(record.id);
-      if (task) tasks.push(task);
+    let task;
+    while ((task = await manager.requestNext(record.id))) {
+      tasks.push(task);
     }
     
+    assert.equal(tasks.length, 10, 'Should get all 10 tasks');
+    
     // Complete all tasks concurrently
-    await runConcurrently(
-      async () => {
-        const task = tasks.pop();
-        if (task) {
-          await manager.completeNode(record.id, task.nodeId);
-        }
-      },
-      10
+    await Promise.all(
+      tasks.map(t => manager.completeNode(record.id, t.nodeId))
     );
     
     // All tasks should be completed

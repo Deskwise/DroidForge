@@ -127,3 +127,5 @@ docs/droid-guide.md
 
 # Local configuration
 .droidforgerc.local.json
+repodocs/
+.genkit/

@@ -1,5 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { ExecutionLock } from './synchronization.js';
+import { ResourceLockManager } from './resourceLocks.js';
+import { DeadlockDetector } from './deadlockDetector.js';
+import { ExecutionPersistence } from './persistence.js';
 
 export type ExecutionStatus = 'planned' | 'running' | 'paused' | 'completed' | 'aborted' | 'failed';
 export type NodeStatus = 'pending' | 'ready' | 'running' | 'completed' | 'failed';
@@ -96,6 +99,9 @@ export interface NodeSchedule {
 export class ExecutionManager {
   private readonly executions = new Map<string, ExecutionRecord>();
   private readonly locks = new Map<string, ExecutionLock>();
+  private readonly resourceLocks = new Map<string, ResourceLockManager>();
+  private readonly deadlockDetector = new DeadlockDetector();
+  private readonly persistence = new ExecutionPersistence();
 
   /**
    * Get or create an execution lock for the given execution ID.
@@ -107,6 +113,18 @@ export class ExecutionManager {
       this.locks.set(executionId, new ExecutionLock());
     }
     return this.locks.get(executionId)!;
+  }
+
+  /**
+   * Get or create a resource lock manager for the given execution ID.
+   * @param executionId The execution ID
+   * @returns The resource lock manager
+   */
+  private getResourceLockManager(executionId: string): ResourceLockManager {
+    if (!this.resourceLocks.has(executionId)) {
+      this.resourceLocks.set(executionId, new ResourceLockManager());
+    }
+    return this.resourceLocks.get(executionId)!;
   }
 
   enqueue(payload: EnqueuePayload): EnqueueResult {
@@ -161,11 +179,18 @@ export class ExecutionManager {
   async requestNext(executionId: string): Promise<NodeSchedule | null> {
     const lock = this.getExecutionLock(executionId);
     return lock.runExclusive(async () => {
-      return this.requestNextUnsafe(executionId);
+      const task = await this.requestNextUnsafe(executionId);
+      
+      // Check for deadlock if no task could be scheduled
+      if (!task) {
+        this.checkForDeadlock(executionId);
+      }
+      
+      return task;
     });
   }
 
-  private requestNextUnsafe(executionId: string): NodeSchedule | null {
+  private async requestNextUnsafe(executionId: string): Promise<NodeSchedule | null> {
     const record = this.requireExecution(executionId);
     if (record.status !== 'running') {
       return null;
@@ -176,20 +201,83 @@ export class ExecutionManager {
     if (record.runningNodes.size >= record.concurrency) {
       return null;
     }
-    const nodeId = record.readyQueue.shift()!;
-    const nodeState = record.nodes.get(nodeId)!;
-    this.acquireLocks(record, nodeState);
-    nodeState.status = 'running';
-    nodeState.startedAt = new Date().toISOString();
-    record.runningNodes.add(nodeId);
-    this.appendEvent(record, { event: 'task.started', nodeId, detail: { droidId: nodeState.spec.droidId } });
-    return {
-      nodeId,
-      droidId: nodeState.spec.droidId,
-      title: nodeState.spec.title,
-      description: nodeState.spec.description,
-      resourceClaims: nodeState.spec.resourceClaims ?? []
-    };
+
+    const lockManager = this.getResourceLockManager(executionId);
+
+    // Find first node that can acquire its locks
+    for (let i = 0; i < record.readyQueue.length; i++) {
+      const nodeId = record.readyQueue[i];
+      const nodeState = record.nodes.get(nodeId)!;
+      const claims = nodeState.spec.resourceClaims ?? [];
+      const mode = nodeState.spec.mode ?? 'write';
+
+      if (await lockManager.tryAcquire(claims, mode, nodeId)) {
+        // Remove from queue
+        record.readyQueue.splice(i, 1);
+
+        // Mark running
+        nodeState.status = 'running';
+        nodeState.startedAt = new Date().toISOString();
+        record.runningNodes.add(nodeId);
+
+        this.appendEvent(record, {
+          event: 'task.started',
+          nodeId,
+          detail: { droidId: nodeState.spec.droidId, mode, claims }
+        });
+
+        return {
+          nodeId,
+          droidId: nodeState.spec.droidId,
+          title: nodeState.spec.title,
+          description: nodeState.spec.description,
+          resourceClaims: claims
+        };
+      }
+    }
+
+    return null; // No ready node can acquire locks
+  }
+
+  /**
+   * Check for deadlock conditions and pause execution if detected.
+   * 
+   * @param executionId The execution ID
+   */
+  private checkForDeadlock(executionId: string): void {
+    const record = this.requireExecution(executionId);
+    const lockManager = this.getResourceLockManager(executionId);
+
+    const deadlock = this.deadlockDetector.detect(
+      record.readyQueue,
+      record.runningNodes,
+      record.nodes,
+      lockManager.getLockState()
+    );
+
+    if (deadlock) {
+      record.status = 'paused';
+      this.appendEvent(record, {
+        event: 'execution.deadlock',
+        detail: {
+          blockedNodes: deadlock.blockedNodes,
+          cycle: deadlock.cycle,
+          lockDependencies: deadlock.lockDependencies,
+          suggestion: 'Review resource claims or adjust task ordering'
+        }
+      });
+    }
+  }
+
+  /**
+   * Persist execution state to disk.
+   * 
+   * @param executionId The execution ID
+   */
+  private async persistState(executionId: string): Promise<void> {
+    const record = this.requireExecution(executionId);
+    const lockManager = this.getResourceLockManager(executionId);
+    await this.persistence.save(record.repoRoot, record, lockManager.getLockState());
   }
 
   async completeNode(executionId: string, nodeId: string, detail?: Record<string, unknown>): Promise<void> {
@@ -199,7 +287,7 @@ export class ExecutionManager {
     });
   }
 
-  private completeNodeUnsafe(executionId: string, nodeId: string, detail?: Record<string, unknown>): void {
+  private async completeNodeUnsafe(executionId: string, nodeId: string, detail?: Record<string, unknown>): Promise<void> {
     const record = this.requireExecution(executionId);
     const nodeState = this.requireNode(record, nodeId);
     if (nodeState.status !== 'running') {
@@ -208,11 +296,19 @@ export class ExecutionManager {
     nodeState.status = 'completed';
     nodeState.finishedAt = new Date().toISOString();
     record.runningNodes.delete(nodeId);
-    this.releaseLocks(record, nodeState);
+    
+    // Release resource locks
+    const lockManager = this.getResourceLockManager(executionId);
+    const claims = nodeState.spec.resourceClaims ?? [];
+    await lockManager.release(claims, nodeId);
+    
     this.appendEvent(record, { event: 'task.completed', nodeId, detail });
     this.notifyDependents(record, nodeId);
     this.promoteReady(record);
     this.checkCompletion(record);
+    
+    // Persist state after completing node
+    await this.persistState(executionId);
   }
 
   async failNode(executionId: string, nodeId: string, detail?: Record<string, unknown>): Promise<void> {
@@ -222,15 +318,23 @@ export class ExecutionManager {
     });
   }
 
-  private failNodeUnsafe(executionId: string, nodeId: string, detail?: Record<string, unknown>): void {
+  private async failNodeUnsafe(executionId: string, nodeId: string, detail?: Record<string, unknown>): Promise<void> {
     const record = this.requireExecution(executionId);
     const nodeState = this.requireNode(record, nodeId);
     nodeState.status = 'failed';
     nodeState.finishedAt = new Date().toISOString();
     record.runningNodes.delete(nodeId);
-    this.releaseLocks(record, nodeState);
+    
+    // Release resource locks
+    const lockManager = this.getResourceLockManager(executionId);
+    const claims = nodeState.spec.resourceClaims ?? [];
+    await lockManager.release(claims, nodeId);
+    
     record.status = 'failed';
     this.appendEvent(record, { event: 'task.failed', nodeId, detail });
+    
+    // Persist state after failing node
+    await this.persistState(executionId);
   }
 
   poll(executionId: string): PollSnapshot {
@@ -291,6 +395,70 @@ export class ExecutionManager {
       this.appendEvent(record, { event: 'execution.completed' });
     }
     return record;
+  }
+
+  /**
+   * Recover all executions from persisted state.
+   * Called on server startup to restore crashed executions.
+   * 
+   * @param repoRoot Repository root path
+   * @returns Array of recovered execution IDs
+   */
+  async recoverAll(repoRoot: string): Promise<string[]> {
+    const executionIds = await this.persistence.listExecutions(repoRoot);
+    const recovered: string[] = [];
+
+    for (const executionId of executionIds) {
+      const persisted = await this.persistence.load(repoRoot, executionId);
+      if (persisted && persisted.status === 'running') {
+        // Mark as paused for user to resume
+        persisted.status = 'paused';
+        this.restoreFromPersisted(persisted);
+        recovered.push(persisted.id);
+      }
+    }
+
+    return recovered;
+  }
+
+  /**
+   * Restore an execution from persisted state.
+   * 
+   * @param persisted Persisted execution state
+   */
+  private restoreFromPersisted(persisted: any): void {
+    const record = this.createRecord(persisted.id, persisted.repoRoot);
+    record.createdAt = persisted.createdAt;
+    record.status = persisted.status;
+    record.plan = persisted.plan;
+    record.concurrency = persisted.concurrency;
+
+    // Restore nodes
+    record.nodes.clear();
+    for (const nodeData of persisted.nodes) {
+      record.nodes.set(nodeData.nodeId, {
+        spec: nodeData.spec,
+        status: nodeData.status,
+        dependents: [], // Will be rebuilt from plan
+        remainingDependencies: 0,
+        startedAt: nodeData.startedAt,
+        finishedAt: nodeData.finishedAt
+      });
+    }
+
+    // Restore queues
+    record.readyQueue = [...persisted.readyQueue];
+    record.runningNodes = new Set(persisted.runningNodes);
+
+    // Restore resource locks
+    const lockManager = this.getResourceLockManager(persisted.id);
+    for (const lockData of persisted.locks) {
+      for (const owner of lockData.owners) {
+        lockManager.tryAcquire([lockData.resource], lockData.mode, owner);
+      }
+    }
+
+    this.executions.set(persisted.id, record);
   }
 
   private initialiseNodes(record: ExecutionRecord, plan: ExecutionPlan): void {
@@ -356,29 +524,7 @@ export class ExecutionManager {
     }
   }
 
-  private acquireLocks(record: ExecutionRecord, nodeState: NodeState) {
-    const claims = nodeState.spec.resourceClaims ?? [];
-    const mode = nodeState.spec.mode ?? 'write';
-    for (const claim of claims) {
-      const owner = record.locks.get(claim);
-      if (owner && owner !== nodeState.spec.nodeId) {
-        throw new Error(`Resource ${claim} is locked by ${owner}.`);
-      }
-    }
-    for (const claim of claims) {
-      record.locks.set(claim, nodeState.spec.nodeId);
-    }
-  }
 
-  private releaseLocks(record: ExecutionRecord, nodeState: NodeState) {
-    const claims = nodeState.spec.resourceClaims ?? [];
-    for (const claim of claims) {
-      const owner = record.locks.get(claim);
-      if (owner === nodeState.spec.nodeId) {
-        record.locks.delete(claim);
-      }
-    }
-  }
 
   private createRecord(id: string, repoRoot: string): ExecutionRecord {
     const now = new Date().toISOString();
