@@ -281,6 +281,9 @@ async function runLint() {
 async function main() {
   const startTime = Date.now();
   
+  // Ensure log directory exists FIRST
+  ensureLogDir();
+  
   log('='.repeat(80));
   log('DroidForge Parallel Orchestration POC');
   log('='.repeat(80));
@@ -288,9 +291,6 @@ async function main() {
   log(`Repository: ${CONFIG.repoRoot}`);
   log(`Workstreams: ${WORKSTREAMS.length}`);
   log('');
-  
-  // Ensure log directory exists
-  ensureLogDir();
   
   // Check prerequisites
   log('Checking prerequisites...');
@@ -336,7 +336,7 @@ async function main() {
   log('You can monitor progress in real-time:');
   log(`  - Overall: cat PROGRESS.md`);
   log(`  - Logs: tail -f logs/*.log`);
-  log('  - Droids: ps aux | grep "droid exec"`);
+  log('  - Droids: ps aux | grep "droid exec"');
   log('');
   
   // Monitor progress while droids work

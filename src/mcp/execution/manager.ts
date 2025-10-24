@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { ExecutionLock } from './synchronization.js';
 
 export type ExecutionStatus = 'planned' | 'running' | 'paused' | 'completed' | 'aborted' | 'failed';
 export type NodeStatus = 'pending' | 'ready' | 'running' | 'completed' | 'failed';
@@ -94,6 +95,19 @@ export interface NodeSchedule {
 
 export class ExecutionManager {
   private readonly executions = new Map<string, ExecutionRecord>();
+  private readonly locks = new Map<string, ExecutionLock>();
+
+  /**
+   * Get or create an execution lock for the given execution ID.
+   * @param executionId The execution ID
+   * @returns The execution lock
+   */
+  private getExecutionLock(executionId: string): ExecutionLock {
+    if (!this.locks.has(executionId)) {
+      this.locks.set(executionId, new ExecutionLock());
+    }
+    return this.locks.get(executionId)!;
+  }
 
   enqueue(payload: EnqueuePayload): EnqueueResult {
     let record: ExecutionRecord | undefined;
@@ -144,7 +158,14 @@ export class ExecutionManager {
     return record;
   }
 
-  requestNext(executionId: string): NodeSchedule | null {
+  async requestNext(executionId: string): Promise<NodeSchedule | null> {
+    const lock = this.getExecutionLock(executionId);
+    return lock.runExclusive(async () => {
+      return this.requestNextUnsafe(executionId);
+    });
+  }
+
+  private requestNextUnsafe(executionId: string): NodeSchedule | null {
     const record = this.requireExecution(executionId);
     if (record.status !== 'running') {
       return null;
