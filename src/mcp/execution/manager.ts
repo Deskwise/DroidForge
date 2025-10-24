@@ -192,7 +192,14 @@ export class ExecutionManager {
     };
   }
 
-  completeNode(executionId: string, nodeId: string, detail?: Record<string, unknown>): void {
+  async completeNode(executionId: string, nodeId: string, detail?: Record<string, unknown>): Promise<void> {
+    const lock = this.getExecutionLock(executionId);
+    return lock.runExclusive(async () => {
+      this.completeNodeUnsafe(executionId, nodeId, detail);
+    });
+  }
+
+  private completeNodeUnsafe(executionId: string, nodeId: string, detail?: Record<string, unknown>): void {
     const record = this.requireExecution(executionId);
     const nodeState = this.requireNode(record, nodeId);
     if (nodeState.status !== 'running') {
@@ -208,7 +215,14 @@ export class ExecutionManager {
     this.checkCompletion(record);
   }
 
-  failNode(executionId: string, nodeId: string, detail?: Record<string, unknown>): void {
+  async failNode(executionId: string, nodeId: string, detail?: Record<string, unknown>): Promise<void> {
+    const lock = this.getExecutionLock(executionId);
+    return lock.runExclusive(async () => {
+      this.failNodeUnsafe(executionId, nodeId, detail);
+    });
+  }
+
+  private failNodeUnsafe(executionId: string, nodeId: string, detail?: Record<string, unknown>): void {
     const record = this.requireExecution(executionId);
     const nodeState = this.requireNode(record, nodeId);
     nodeState.status = 'failed';

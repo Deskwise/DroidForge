@@ -25,22 +25,22 @@ describe('ExecutionManager', () => {
     assert.equal(snapshot.timeline.at(-1)?.event, 'request.received');
   });
 
-  it('schedules nodes respecting dependencies and concurrency', () => {
+  it('schedules nodes respecting dependencies and concurrency', async () => {
     const manager = new ExecutionManager();
     const record = manager.plan('/repo', samplePlan());
     manager.start(record.id);
 
-    const firstTask = manager.requestNext(record.id);
+    const firstTask = await manager.requestNext(record.id);
     assert.equal(firstTask?.nodeId, 'plan');
 
-    manager.completeNode(record.id, 'plan');
+    await manager.completeNode(record.id, 'plan');
 
-    const second = manager.requestNext(record.id);
+    const second = await manager.requestNext(record.id);
     assert.ok(second !== null);
     assert.ok(['build', 'test'].includes(second?.nodeId ?? ''));
   });
 
-  it('enforces lock exclusivity', () => {
+  it('enforces lock exclusivity', async () => {
     const manager = new ExecutionManager();
     const plan: ExecutionPlan = {
       nodes: [
@@ -52,15 +52,15 @@ describe('ExecutionManager', () => {
     const record = manager.plan('/repo', plan);
     manager.start(record.id);
 
-    const first = manager.requestNext(record.id);
+    const first = await manager.requestNext(record.id);
     assert.ok(first?.nodeId);
 
-    manager.completeNode(record.id, first!.nodeId);
-    const second = manager.requestNext(record.id);
+    await manager.completeNode(record.id, first!.nodeId);
+    const second = await manager.requestNext(record.id);
     assert.notEqual(second?.nodeId, first?.nodeId);
   });
 
-  it('respects concurrency limits', () => {
+  it('respects concurrency limits', async () => {
     const manager = new ExecutionManager();
     const plan: ExecutionPlan = {
       nodes: [
@@ -73,26 +73,26 @@ describe('ExecutionManager', () => {
     const record = manager.plan('/repo', plan);
     manager.start(record.id);
 
-    const first = manager.requestNext(record.id);
+    const first = await manager.requestNext(record.id);
     assert.ok(first);
-    const second = manager.requestNext(record.id);
+    const second = await manager.requestNext(record.id);
     assert.equal(second, null);
 
-    manager.completeNode(record.id, first!.nodeId);
-    const third = manager.requestNext(record.id);
+    await manager.completeNode(record.id, first!.nodeId);
+    const third = await manager.requestNext(record.id);
     assert.ok(third);
   });
 
-  it('marks execution failed when a node fails', () => {
+  it('marks execution failed when a node fails', async () => {
     const manager = new ExecutionManager();
     const record = manager.plan('/repo', samplePlan());
     manager.start(record.id);
-    const task = manager.requestNext(record.id);
+    const task = await manager.requestNext(record.id);
     if (!task) {
       throw new Error('expected task');
     }
 
-    manager.failNode(record.id, task.nodeId, { error: 'boom' });
+    await manager.failNode(record.id, task.nodeId, { error: 'boom' });
     const snapshot = manager.poll(record.id);
     assert.equal(snapshot.status, 'failed');
   });
