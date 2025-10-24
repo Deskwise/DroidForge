@@ -1,8 +1,10 @@
 # DroidForge
 
-**Your codebase analyzes itself, then builds its own perfect AI development team.**
+**Your codebase analyzes itself, builds its own expert development team, then coordinates them to work in parallel—safely.**
 
-DroidForge doesn't give you generic AI assistants. It **understands your codebase** - your languages, frameworks, architecture patterns - and **forges a custom team of specialized AI agents** that speak your project's language. Each droid is an expert in their domain, with deep knowledge of your tech stack.
+DroidForge doesn't give you a generic AI assistant. It **deeply understands YOUR codebase** - your specific frameworks, patterns, and conventions - then **forges a custom team of specialized AI agents** who are experts in YOUR tech stack. The orchestrator identifies work that can happen simultaneously, assigns the right specialist to each task, and coordinates safe parallel execution with intelligent locking, isolated workspaces, and atomic merging.
+
+**Result:** Complex features that used to take hours now complete in minutes, with code that fits your project perfectly.
 
 Built as a Model Context Protocol (MCP) server for Factory.ai's Droid CLI.
 
@@ -14,16 +16,40 @@ Built as a Model Context Protocol (MCP) server for Factory.ai's Droid CLI.
 
 ## 🎯 The DroidForge Difference
 
-**Most AI coding assistants** give you one general-purpose agent that tries to do everything.
+**Generic AI assistants** give you one agent that tries to do everything sequentially.
 
-**DroidForge** analyzes your codebase and creates a **custom team of specialists** - each one an expert in a specific aspect of YOUR project:
+**DroidForge** does something fundamentally different:
 
-- A **React expert** who knows your component patterns and state management
-- A **backend specialist** who understands your API architecture and database schema
-- A **test expert** who writes tests matching your testing framework and patterns
-- A **DevOps specialist** who knows your CI/CD and deployment setup
+### 1. Creates Experts in YOUR Project
+- Analyzes your codebase to understand YOUR specific tech stack
+- Generates custom specialists - each an expert in one aspect of YOUR project
+- A **React expert** who knows YOUR component patterns, YOUR state management, YOUR styling
+- A **backend specialist** who understands YOUR API architecture, YOUR database, YOUR auth
+- Not generic agents - **specialists who speak your project's language**
 
-**Each droid is dynamically generated based on what DroidForge discovers in your repository.**
+### 2. Identifies Parallel Work Opportunities
+- Analyzes each request to understand what needs to be done
+- Intelligently determines which tasks can happen simultaneously
+- Recognizes when work is independent (frontend + backend) vs dependent (tests need APIs first)
+- Creates smart execution plans that maximize efficiency
+
+### 3. Assigns the Right Expert to the Right Work
+- Routes frontend changes to the frontend specialist who knows YOUR React patterns
+- Routes API changes to the backend specialist who knows YOUR Express setup  
+- Routes database changes to the specialist who knows YOUR Prisma schema
+- Each expert works on what they know best
+
+### 4. Coordinates Safe Parallel Execution (The Secret Sauce 🔐)
+- **Prevents file conflicts** - Intelligent resource locking ensures no two droids modify the same file
+- **Eliminates race conditions** - Each droid works in an isolated staging area
+- **Detects conflicts before they happen** - Analyzes what files each task will touch
+- **Resolves dependencies** - Ensures Task B waits if it needs Task A's results
+- **Tracks progress in real-time** - Know exactly what each specialist is doing
+- **Atomic merging** - Changes are merged safely or not at all
+- **Automatic rollback** - If something fails, clean recovery
+
+### The Result
+Work that used to take hours (waiting for each step to finish) now happens in parallel, safely, with code that fits your project perfectly.
 
 ---
 
@@ -61,12 +87,38 @@ The `df-orchestrator` acts as your technical lead:
 - **Define scopes** for each droid's responsibilities
 - **Set guidelines** for code quality and patterns
 
-### ⚡ Efficient Coordination
+### ⚡ Battle-Tested Parallel Coordination
 
-- **Parallel work** when tasks are independent
-- **Safe coordination** prevents file conflicts
-- **Progress tracking** shows what each droid is doing
-- **Rollback support** if something goes wrong
+The technical innovation that makes safe parallel work possible:
+
+**Intelligent Resource Locking**
+- Glob-aware file locking (locks `src/api/**` prevents conflicts across all API files)
+- Detects overlapping claims before work starts
+- Read vs write lock modes for concurrent reading
+
+**Isolated Execution**
+- Each droid works in a private staging area (copy of your repo)
+- No race conditions - impossible for droids to interfere with each other
+- Changes collected and reviewed before merging to main codebase
+
+**Dependency Resolution**
+- Analyzes task dependencies automatically
+- Task A must finish before Task B can start
+- Detects circular dependencies (deadlocks) before they happen
+
+**Atomic Operations**
+- Changes merge completely or not at all
+- Conflict detection via content hashing
+- Automatic rollback if merge fails
+- Snapshot support for major changes
+
+**Real-Time Coordination**
+- Event bus for inter-droid communication
+- Progress tracking shows exactly what each specialist is doing
+- Health monitoring detects stuck or failed tasks
+- Metrics track performance and resource usage
+
+**See [docs/PARALLEL_ORCHESTRATION.md](docs/PARALLEL_ORCHESTRATION.md) for technical deep dive.**
 
 ---
 
@@ -522,21 +574,49 @@ DroidForge is MIT licensed. See [LICENSE](LICENSE) for details.
 
 ### The Problem with Generic AI Assistants
 
-Generic AI coding assistants are like hiring a contractor who claims they can do everything:
-- They don't know YOUR specific frameworks
-- They write generic code you have to adapt
-- They don't understand YOUR project's patterns
-- They can't coordinate complex, multi-area changes
+Most AI coding assistants have fundamental limitations:
+
+**Problem 1: Generic Knowledge**
+- They know "React" but not YOUR React patterns
+- They write code that's technically correct but doesn't match your codebase
+- You spend time adapting their output to fit your project
+
+**Problem 2: Sequential Bottleneck**
+- One agent does everything, one step at a time
+- Frontend waits for backend, tests wait for everything
+- Simple requests that could finish in minutes take hours
+
+**Problem 3: No Coordination**
+- Can't handle multi-area changes without confusion
+- No way to prevent conflicts when changes span multiple files
+- You're the coordinator, managing the chaos
 
 ### The DroidForge Solution
 
-**DroidForge is like building your dream development team:**
-- Each member is an expert in their specific domain
-- They all understand YOUR codebase and tech stack
-- They coordinate naturally to handle complex requests
-- They produce code that fits seamlessly
+**We solved all three problems:**
 
-**The result:** Code that looks like it was written by someone who's been on your project for months, not by a generic AI.
+**1. Deep Project Understanding**
+- SmartScan analyzes your entire codebase
+- Detects your specific frameworks, versions, patterns, conventions
+- Creates specialists who are experts in YOUR project, not generic "React developers"
+
+**2. Intelligent Parallel Execution**
+- Analyzes requests to identify independent work
+- Multiple specialists work simultaneously when safe
+- Hours of sequential work → minutes of parallel execution
+
+**3. Battle-Tested Coordination**
+- Intelligent resource locking prevents file conflicts
+- Isolated staging areas eliminate race conditions
+- Dependency analysis ensures proper ordering
+- Real-time progress tracking
+- Atomic merging with automatic rollback
+
+**The result:** 
+- Code that fits your project naturally (not generic code you adapt)
+- Complex features built in a fraction of the time (parallel execution)
+- Zero conflicts, zero race conditions (bulletproof coordination)
+- It's like having a senior development team that knows your codebase intimately
 
 ---
 
