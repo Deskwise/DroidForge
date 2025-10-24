@@ -4,7 +4,11 @@ Get up and running with DroidForge in 5 minutes.
 
 ## What is DroidForge?
 
-DroidForge is an MCP (Model Context Protocol) server that helps you create and manage teams of specialized AI agents (droids) for your codebase. It analyzes your repository, suggests appropriate specialists, and coordinates their work.
+**DroidForge doesn't give you generic AI assistants. It builds a custom development team specifically for YOUR codebase.**
+
+It analyzes your repository - understanding your languages, frameworks, architecture, and patterns - then creates specialized AI agents (droids) who are experts in YOUR specific tech stack. Each droid knows your project intimately and produces code that fits naturally.
+
+Think of it as automatically assembling your ideal development team, where each member is a specialist in exactly what your project needs.
 
 ## Prerequisites
 
