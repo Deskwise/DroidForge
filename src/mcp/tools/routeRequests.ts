@@ -6,7 +6,7 @@ interface RouteDeps {
   manager: ExecutionManager;
 }
 
-function ensureExecution(deps: RouteDeps, input: RouteRequestInput, routedTo: string): string {
+async function ensureExecution(deps: RouteDeps, input: RouteRequestInput, routedTo: string): Promise<string> {
   if (input.executionId) {
     deps.manager.enqueue({
       executionId: input.executionId,
@@ -32,9 +32,9 @@ function ensureExecution(deps: RouteDeps, input: RouteRequestInput, routedTo: st
   const record = deps.manager.plan(input.repoRoot, plan);
   deps.manager.enqueue({ executionId: record.id, droidId: routedTo, request: input.request, repoRoot: input.repoRoot });
   deps.manager.start(record.id);
-  const schedule = deps.manager.requestNext(record.id);
+  const schedule = await deps.manager.requestNext(record.id);
   if (schedule) {
-    deps.manager.completeNode(record.id, schedule.nodeId, { request: input.request });
+    await deps.manager.completeNode(record.id, schedule.nodeId, { request: input.request });
   }
   return record.id;
 }
@@ -45,7 +45,7 @@ function buildRouteTool(name: string, defaultDroid: string, deps: RouteDeps): To
     description: 'Proxy user instructions to the orchestrator or a specialist.',
     handler: async input => {
       const routedTo = input.droidId ?? defaultDroid;
-      const executionId = ensureExecution(deps, input, routedTo);
+      const executionId = await ensureExecution(deps, input, routedTo);
       await appendLog(input.repoRoot, {
         timestamp: new Date().toISOString(),
         event: name,
