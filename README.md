@@ -34,9 +34,9 @@ Built as a Model Context Protocol (MCP) server for Factory.ai's Droid CLI.
 - Creates smart execution plans that maximize efficiency
 
 ### 3. Assigns the Right Expert to the Right Work
-- Routes frontend changes to the frontend specialist who knows YOUR React patterns
-- Routes API changes to the backend specialist who knows YOUR Express setup  
-- Routes database changes to the specialist who knows YOUR Prisma schema
+- Routes frontend changes to df-frontend who knows YOUR React patterns
+- Routes API changes to df-backend who knows YOUR Express setup  
+- Routes database changes to df-database who knows YOUR Prisma schema
 - Each expert works on what they know best
 
 ### 4. Coordinates Safe Parallel Execution (The Secret Sauce 🔐)
@@ -169,11 +169,13 @@ DroidForge will:
 4. ⚙️ Create specialists and orchestrator
 5. 📚 Generate documentation
 
-Then use the orchestrator:
+Then start working:
 
 ```
 /df Implement user authentication with JWT
 ```
+
+The `/df` command sends your request to DroidForge, which analyzes it and coordinates your specialist team.
 
 See [QUICKSTART.md](QUICKSTART.md) for a detailed walkthrough.
 
@@ -205,22 +207,24 @@ When you run `/forge-start`, DroidForge performs an intelligent scan:
 For a **React + Express + PostgreSQL** project:
 ```
 Your Custom Team:
-- df-orchestrator      → Technical lead, coordinates specialists
-- frontend-specialist  → Expert in: React 18, TypeScript, Tailwind, Vite
-- backend-specialist   → Expert in: Express, Node.js, RESTful APIs, JWT auth
-- database-specialist  → Expert in: PostgreSQL, Prisma ORM, migrations
-- test-specialist      → Expert in: Jest, React Testing Library, Supertest
+- df-orchestrator       → Technical lead, coordinates specialists
+- df-frontend           → Expert in: React 18, TypeScript, Tailwind, Vite
+- df-backend            → Expert in: Express, Node.js, RESTful APIs, JWT auth
+- df-database           → Expert in: PostgreSQL, Prisma ORM, migrations
+- df-test               → Expert in: Jest, React Testing Library, Supertest
 ```
 
 For a **Python Django + ML** project:
 ```
 Your Custom Team:
-- df-orchestrator      → Technical lead, coordinates specialists
-- backend-specialist   → Expert in: Django 4, DRF, PostgreSQL, Celery
-- ml-specialist        → Expert in: TensorFlow, PyTorch, data pipelines
-- api-specialist       → Expert in: REST APIs, serialization, authentication
-- test-specialist      → Expert in: Pytest, unittest, Django test tools
+- df-orchestrator       → Technical lead, coordinates specialists
+- df-backend            → Expert in: Django 4, DRF, PostgreSQL, Celery
+- df-ml                 → Expert in: TensorFlow, PyTorch, data pipelines
+- df-api                → Expert in: REST APIs, serialization, authentication
+- df-test               → Expert in: Pytest, unittest, Django test tools
 ```
+
+**Note:** All DroidForge droids use the `df-` prefix. This makes them easy to identify and ensures clean removal when you run `/forge-removeall`.
 
 **Each droid knows:**
 - Your specific frameworks and their versions
@@ -311,26 +315,26 @@ The magic is in the details. Each droid doesn't just know "React" - they know:
 
 **What happens:**
 
-1. **df-orchestrator** understands this touches multiple areas
-2. **backend-specialist** (who knows you use Express + Prisma):
+1. **DroidForge** analyzes the request and understands this touches multiple areas
+2. **df-backend** (who knows you use Express + Prisma):
    - Creates User model with Prisma schema
    - Builds auth endpoints with bcrypt for passwords
    - Integrates Passport.js for Google OAuth (seeing you use Passport already)
    - Follows your existing API error handling patterns
 
-3. **frontend-specialist** (who knows your React + Zustand setup):
+3. **df-frontend** (who knows your React + Zustand setup):
    - Creates login/signup forms matching your design system
    - Adds auth state to Zustand store (consistent with other stores)
    - Implements protected routes using your existing route guard pattern
    - Uses your custom hooks for form handling
 
-4. **test-specialist** (who knows your test setup):
+4. **df-test** (who knows your test setup):
    - Writes Supertest integration tests for API endpoints
    - Creates React Testing Library tests for auth forms
    - Adds E2E tests with Playwright (seeing you use it)
    - Follows your test file organization conventions
 
-**Result:** Authentication that feels like it was built by someone who knows your codebase intimately, because the droids DO know it.
+**Result:** Authentication that feels like it was built by someone who knows your codebase intimately, because your specialists DO know it.
 
 ### Example 2: Tech Stack Migration
 
@@ -341,25 +345,25 @@ The magic is in the details. Each droid doesn't just know "React" - they know:
 
 **What happens:**
 
-1. **df-orchestrator** recognizes this is a major architectural change
-2. **backend-specialist** (who analyzed your current REST setup):
+1. **DroidForge** recognizes this is a major architectural change
+2. **df-backend** (who analyzed your current REST setup):
    - Implements Apollo Server alongside existing Express routes
    - Creates GraphQL schemas based on your current data models
    - Adds resolvers that use your existing service layer
    - Maintains your authentication middleware pattern
 
-3. **frontend-specialist** (who knows your data fetching patterns):
+3. **df-frontend** (who knows your data fetching patterns):
    - Adds Apollo Client to your React app
    - Migrates components from fetch/axios to useQuery hooks
    - Maintains your current loading/error state patterns
    - Updates types to use GraphQL-generated types
 
-4. **test-specialist** (contextually aware):
+4. **df-test** (contextually aware):
    - Updates API tests for GraphQL endpoints
    - Adds Apollo MockedProvider to component tests
    - Ensures integration tests cover both REST (legacy) and GraphQL
 
-**Result:** A smooth migration because each droid understands both where you are and where you're going.
+**Result:** A smooth migration because each specialist understands both where you are and where you're going.
 
 ### Example 3: New Developer Experience
 
@@ -370,14 +374,14 @@ The magic is in the details. Each droid doesn't just know "React" - they know:
 
 **What happens:**
 
-The orchestrator acts as your onboarding buddy:
+DroidForge acts as your onboarding buddy:
 
 1. **Analyzes your codebase** and briefs each specialist on relevant patterns
-2. **backend-specialist** follows your existing Article model patterns
-3. **frontend-specialist** creates a bookmark button matching your design system
-4. **test-specialist** writes tests like your existing feature tests
+2. **df-backend** follows your existing Article model patterns
+3. **df-frontend** creates a bookmark button matching your design system
+4. **df-test** writes tests like your existing feature tests
 
-**Result:** Even though YOU'RE new to the codebase, the droids know it well and produce code that fits perfectly.
+**Result:** Even though YOU'RE new to the codebase, your specialists know it well and produce code that fits perfectly.
 
 ### Example 4: Multi-Framework Project
 
@@ -387,12 +391,12 @@ Your repository has:
 - A React Native mobile app
 
 **DroidForge creates:**
-- **react-web-specialist** - Knows React 18, Next.js, Tailwind
-- **django-specialist** - Knows Django 4, DRF, PostgreSQL
-- **mobile-specialist** - Knows React Native, Expo, native modules
-- **api-specialist** - Coordinates API contracts between all platforms
+- **df-react-web** - Knows React 18, Next.js, Tailwind
+- **df-django** - Knows Django 4, DRF, PostgreSQL
+- **df-mobile** - Knows React Native, Expo, native modules
+- **df-api** - Coordinates API contracts between all platforms
 
-When you ask for a feature, the orchestrator coordinates across all platforms while each specialist works in their domain expertise.
+When you ask for a feature, DroidForge coordinates across all platforms while each specialist works in their domain expertise.
 
 ---
 
