@@ -1,6 +1,7 @@
 import path from 'node:path';
+import crypto from 'node:crypto';
 import { promises as fs } from 'node:fs';
-import { writeJsonAtomic, ensureDir } from '../fs.js';
+import { writeJsonAtomic, ensureDir, readJsonIfExists } from '../fs.js';
 import type { CustomDroidSeed, ForgeRosterInput } from '../types.js';
 import type { DroidDefinition, DroidManifest } from '../../types.js';
 
@@ -19,10 +20,45 @@ interface ManifestEntryInput {
   description?: string;
 }
 
+async function buildDefinitionWithPreserve(
+  entry: ManifestEntryInput,
+  ctx: ForgeContext,
+  filePath: string
+): Promise<DroidDefinition> {
+  const existing = await readJsonIfExists<DroidDefinition>(filePath);
+  const definition = createDroidDefinition(entry, ctx);
+
+  // Preserve uuid if present on existing definition
+  if (existing && typeof existing.uuid === 'string' && existing.uuid.trim() !== '') {
+    definition.uuid = existing.uuid;
+  }
+
+  // If an existing definition has a UUID, preserve its createdAt value
+  // even if that value is undefined. This avoids introducing a new
+  // timestamp for legacy files that already have a stable UUID but no
+  // recorded createdAt. Otherwise, if existing.createdAt is a non-empty
+  // string, preserve that timestamp.
+  if (existing && typeof existing.uuid === 'string' && existing.uuid.trim() !== '') {
+    // preserve createdAt as-is (may be undefined) to avoid backfilling
+    // a new timestamp for legacy files that already have uuid
+    // (assignment intentional per migration strategy)
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore allow assigning possibly undefined createdAt to keep legacy state
+    definition.createdAt = existing.createdAt;
+  } else if (existing && typeof existing.createdAt === 'string' && existing.createdAt.trim() !== '') {
+    definition.createdAt = existing.createdAt;
+  }
+
+  return definition;
+}
+
 function createDroidDefinition(input: ManifestEntryInput, ctx: ForgeContext): DroidDefinition {
   const now = new Date().toISOString();
+  const uuid = crypto.randomUUID();
   return {
     id: input.id,
+    uuid,
+    version: '1.0',
     displayName: input.label,
     purpose: input.goal,
     abilities: input.abilities,
@@ -80,8 +116,8 @@ export async function forgeDroids(input: ForgeRosterInput, ctx: ForgeContext): P
   await ensureDir(droidDir);
 
   for (const entry of allEntries) {
-    const definition = createDroidDefinition(entry, ctx);
     const filePath = path.join(droidDir, `${entry.id}.json`);
+    const definition = await buildDefinitionWithPreserve(entry, ctx, filePath);
     await writeJsonAtomic(filePath, definition);
     droids.push(definition);
     filePaths.push(filePath);
@@ -146,10 +182,10 @@ export async function addCustomDroid(
     description: seed.description
   };
 
-  const definition = createDroidDefinition(entry, ctx);
   const droidDir = path.join(repoRoot, DROID_DIR);
   await ensureDir(droidDir);
   const filePath = path.join(droidDir, `${entry.id}.json`);
+  const definition = await buildDefinitionWithPreserve(entry, ctx, filePath);
   await writeJsonAtomic(filePath, definition);
 
   const customIndex = manifest.customDroids.findIndex(d => d.id === entry.id);

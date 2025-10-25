@@ -157,11 +157,32 @@ export interface InstallCommandsOutput {
 export interface CleanupRepoInput {
   repoRoot: string;
   confirm?: string | boolean;
+  confirmationString?: string;
   keepGuide?: string | boolean;
+}
+
+export interface CleanupRepoPreview {
+  droids: Array<{
+    id: string;
+    uuid: string;
+    displayName: string;
+    purpose: string;
+  }>;
+  filesToRemove: string[];
+  droidCount: number;
+  fileCount: number;
 }
 
 export interface CleanupRepoOutput {
   removed: string[];
+  preview?: CleanupRepoPreview;
+  error?: {
+    code: 'CONFIRMATION_REQUIRED' | 'CONFIRMATION_MISMATCH';
+    message: string;
+    expected?: string;
+    received?: string;
+  };
+  message?: string;
 }
 
 export interface CreateSnapshotInput {

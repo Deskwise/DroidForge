@@ -487,11 +487,13 @@ detectDeadlock(executionId: string): DeadlockInfo | null {
 repository/
 ├── .droidforge/
 │   ├── droids/
-│   │   ├── df-orchestrator.json
-│   │   ├── frontend-specialist.json
-│   │   ├── backend-specialist.json
-│   │   └── test-specialist.json
-│   ├── manifest.json
+│   │   ├── df-orchestrator.json      # Each droid has unique UUID
+│   │   ├── df-frontend.json          # UUIDs persist across renames
+│   │   ├── df-backend.json           # Enables tracking and audit
+│   │   └── df-test.json
+│   ├── droids-manifest.json          # Team roster
+│   ├── logs/
+│   │   └── events.jsonl              # Audit log
 │   └── exec/
 │       └── <execution-id>/
 │           ├── state.json        # Execution state
@@ -538,6 +540,139 @@ Execution state is persisted to JSON:
   }
 }
 ```
+
+---
+
+## UUID System
+
+DroidForge implements a UUID-based identity system for droids to enable tracking, auditing, and safe operations.
+
+### Droid Identity
+
+Each droid has two identifiers:
+
+1. **`id` (slug):** Human-readable identifier (e.g., `df-frontend`)
+   - Used in file names and user-facing displays
+   - Can be changed (though not recommended)
+   - Follows `df-` prefix convention
+
+2. **`uuid` (UUID v4):** Permanent unique identifier
+   - Generated once at droid creation
+   - Never changes, even if droid is renamed
+   - Enables tracking across lifecycle
+
+### DroidDefinition Schema
+
+```typescript
+interface DroidDefinition {
+  id: string;                 // Slug: "df-frontend"
+  uuid?: string;              // UUID: "550e8400-e29b-41d4-a716-446655440000"
+  version?: string;           // Schema version: "1.0"
+  displayName: string;        // Human-friendly name
+  purpose: string;            // What the droid does
+  abilities: string[];        // Capabilities
+  tools: ToolConfig[];        // Tool access
+  createdAt: string;          // ISO 8601 timestamp
+  methodology: string | null; // Development methodology
+  owner: string;              // "droidforge"
+}
+```
+
+**Note:** `uuid` and `version` are optional for backward compatibility with existing droids.
+
+### UUID Generation
+
+UUIDs are generated using Node.js native `crypto.randomUUID()`:
+
+```typescript
+import crypto from 'node:crypto';
+
+function createDroidDefinition(input, ctx): DroidDefinition {
+  const uuid = crypto.randomUUID(); // e.g., "550e8400-e29b-41d4-a716-446655440000"
+  const version = '1.0';
+  
+  return {
+    id: input.id,
+    uuid,
+    version,
+    // ... other fields
+  };
+}
+```
+
+### UUID Persistence
+
+When updating droids (e.g., re-forging), UUIDs are preserved:
+
+```typescript
+// Check if droid file exists
+const existing = await readJsonIfExists<DroidDefinition>(filePath);
+
+// Preserve UUID if present
+if (existing?.uuid) {
+  newDefinition.uuid = existing.uuid;
+  newDefinition.createdAt = existing.createdAt; // Also preserve creation time
+}
+```
+
+### Use Cases
+
+**1. Safe Rename Detection**
+```typescript
+// User renames df-frontend → df-ui
+// System can track it's the same droid via UUID
+if (existing.uuid === 'abc-123') {
+  console.log('This is the renamed frontend specialist');
+}
+```
+
+**2. Audit Trail**
+```typescript
+// Log cleanup operation with UUIDs
+await appendLog(repoRoot, {
+  event: 'cleanup_repo',
+  payload: {
+    droidCount: 3,
+    droidUUIDs: ['uuid-1', 'uuid-2', 'uuid-3'], // Track which droids removed
+    filesRemoved: [...]
+  }
+});
+```
+
+**3. Preview Before Deletion**
+```typescript
+// Show user what will be removed
+{
+  droids: [
+    {
+      id: 'df-frontend',
+      uuid: 'abc-123',
+      displayName: 'Frontend Specialist',
+      purpose: 'Build React components'
+    }
+  ]
+}
+```
+
+**4. Conflict Prevention**
+```typescript
+// Detect duplicate droid creation
+const existingUUIDs = droids.map(d => d.uuid);
+if (existingUUIDs.includes(newDroid.uuid)) {
+  throw new Error('Droid already exists (may have been renamed)');
+}
+```
+
+### Migration
+
+Existing droids without UUIDs are handled gracefully:
+
+- **New droids:** Always created with UUID + version
+- **Existing droids:** UUID/version optional (backward compatible)
+- **Re-forging:** UUIDs preserved automatically if present
+- **Cleanup preview:** Shows empty string for missing UUIDs
+
+No manual migration required - droids get UUIDs naturally when next updated.
 
 ---
 

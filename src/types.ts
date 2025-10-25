@@ -11,6 +11,8 @@ export interface ScriptInventory {
 
 export interface DroidDefinition {
   id: string;
+  uuid?: string;
+  version?: string;
   displayName: string;
   purpose: string;
   abilities: string[];

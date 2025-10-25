@@ -77,7 +77,7 @@ Each tool uses JSON input/output. All fields marked “required” must be valid
 | `forge_roster` | Persist selected droids. | ```json { "sessionId": "string", "selected": [ { "id": "string", "label": "string", "abilities": ["string"], "goals": "string" } ], "custom": [ … ] } ``` | ```json { "bootLog": ["string"], "outputPaths": ["string"], "manifestPath": "string" } ``` | Writes `.droidforge/…` files, ensures directories exist, generates manifest. |
 | `generate_user_guide` | Produce Markdown guide text. | ```json { "sessionId": "string", "roster": [ "df-builder", … ] } ``` | ```json { "markdown": "string", "savePath": "docs/DroidForge_user_guide_en.md" } ``` | Writes guide file; returns path. |
 | `install_commands` | Create/update slash commands. | ```json { "sessionId": "string", "commands": [ { "slug": "forge-start", "type": "markdown", "body": "string" }, ... ] } ``` | ```json { "installed": ["forge-start", …] } ``` | Writes to `.factory/commands/`. |
-| `cleanup_repo` | Remove DroidForge artifacts. | ```json { "repoRoot": "string", "keepGuide": "boolean" } ``` | ```json { "removed": ["path", …] } ``` | Deletes directories/files per spec, ignoring missing paths. |
+| `cleanup_repo` | Remove DroidForge artifacts with preview and confirmation. | ```json { "repoRoot": "string", "confirmationString": "string?", "keepGuide": "boolean?" } ``` | ```json { "removed": ["path", …], "preview": { "droids": […], "filesToRemove": […], "droidCount": number, "fileCount": number }, "error": { "code": "string", "message": "string" }, "message": "string" } ``` | Without confirmation: returns preview. With correct confirmation "remove all droids": deletes files. With wrong confirmation: returns error. |
 | `create_snapshot` | Backup current droids & manifest. | ```json { "repoRoot": "string", "label": "string?" } ``` | ```json { "snapshotId": "string", "paths": ["string"] } ``` | Copies to `.droidforge/backups/<timestamp>/`. |
 | `restore_snapshot` | Replace current droids with snapshot. | ```json { "repoRoot": "string", "snapshotId": "string" } ``` | ```json { "restored": ["string"] } ``` | Overwrites droid + manifest files. |
 | `fetch_logs` | Summaries for `/forge-logs`. | ```json { "repoRoot": "string", "limit": 25 } ``` | ```json { "entries": [ { "timestamp": "ISO8601", "event": "string", "details": "string" } ] } ``` | None. |
@@ -180,11 +180,25 @@ Prompts must emit numbered options wherever a decision is required (1-based indi
 
 ### 6.5 `/forge-removeall`
 
-1. First prompt: show list of paths that will be deleted.
-2. Ask `Are you sure? (yes/no)`.
-3. If yes, ask `Type DELETE to confirm` + optional `[keep guide? y/N]`.
-4. Call `cleanup_repo`.
-5. Print confirmation and remind how to re-run `/forge-start`.
+**Safe deletion with preview and string confirmation:**
+
+1. Call `cleanup_repo` without confirmation → returns preview with:
+   - List of droids (id, uuid, displayName, purpose)
+   - List of files/directories to be removed
+   - Counts (X droids, Y files)
+
+2. Display preview to user with clear instructions:
+   - "Type exactly: `remove all droids` to confirm"
+   - Note that confirmation is case-insensitive
+
+3. Prompt for text input
+
+4. Call `cleanup_repo` with `confirmationString` parameter:
+   - If correct: deletes files and returns success message
+   - If wrong: returns error with cancellation message
+   - If empty: returns error requiring confirmation
+
+5. Display the result message from the tool (success or cancellation)
 
 ### 6.6 `/forge-guide`
 

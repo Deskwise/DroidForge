@@ -255,13 +255,19 @@ DroidForge uses resource locking to prevent conflicts. If one occurs:
 
 ### Clean Start
 
-To reset everything:
+To reset everything and remove all DroidForge data:
 
 ```
 /forge-removeall
 ```
 
-Then run `/forge-start` to reinitialize.
+**Safety confirmation required:**
+1. You'll see a preview of what will be removed (droids, files, counts)
+2. Type exactly: `remove all droids` to confirm
+3. Confirmation is case-insensitive ("REMOVE ALL DROIDS" works)
+4. Wrong confirmation cancels with no changes
+
+After removal, run `/forge-start` to reinitialize.
 
 ## Next Steps
 

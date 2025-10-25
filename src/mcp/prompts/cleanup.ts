@@ -8,39 +8,32 @@ export function createCleanupScript(repoRoot: string): PromptScript {
       {
         kind: 'say',
         speaker: 'assistant',
-        text: '⚠️  This will remove all DroidForge configuration from your repo. Nothing else will be touched.'
+        text: '⚠️  This will remove all DroidForge data from your repository.'
       },
       {
-        kind: 'choice',
-        id: 'cleanup-confirm',
-        label: 'Are you sure?',
-        options: [
-          { value: 'yes', title: '1. Yes — remove everything.' },
-          { value: 'no', title: '2. No — keep the team.' }
-        ]
+        kind: 'tool',
+        name: 'cleanup_repo',
+        input: { repoRoot }
       },
       {
-        kind: 'choice',
-        id: 'cleanup-keep-guide',
-        label: 'Keep the user guide?',
-        options: [
-          { value: 'keep', title: '1. Keep the guide for reference.' },
-          { value: 'discard', title: '2. Remove the guide as well.' }
-        ]
+        kind: 'say',
+        speaker: 'assistant',
+        text: '📋 Preview above shows what will be removed.\n\n🔐 To proceed with deletion, type exactly: remove all droids\n\n(Or press Ctrl+C to cancel)'
+      },
+      {
+        kind: 'input',
+        id: 'confirmation-string',
+        label: 'Type confirmation to proceed',
+        placeholder: 'remove all droids',
+        helper: 'Type exactly "remove all droids" to confirm deletion'
       },
       {
         kind: 'tool',
         name: 'cleanup_repo',
         input: {
           repoRoot,
-          confirm: { fromChoice: 'cleanup-confirm' },
-          keepGuide: { fromChoice: 'cleanup-keep-guide' }
+          confirmationString: { fromInput: 'confirmation-string' }
         }
-      },
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: '✅ All DroidForge traces have been removed. Run `/forge-start` if you decide to forge again later.'
       }
     ]
   };
