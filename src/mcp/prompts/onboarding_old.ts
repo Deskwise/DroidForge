@@ -19,13 +19,10 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
     sessionId,
     repoRoot,
     segments: [
-      // PHASE 1: Welcome & Context (30 seconds)
       {
         kind: 'say',
         speaker: 'assistant',
-        text: `👋 Hi! I'm your DroidForge architect. I help you build custom AI specialist droid teams.
-
-🔍 Let me quickly scan your repository to understand what we're working with...`
+        text: '🤖 Smart-scanning your folder…'
       },
       {
         kind: 'tool',
@@ -35,43 +32,28 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'say',
         speaker: 'assistant',
-        text: `✅ Repository Analysis Complete!
-
-Based on my scan, I can see this repository and understand its current state. Now let's talk about your vision and build you the perfect specialist droid team!`
-      },
-      
-      // PHASE 2: Project Discovery (1-2 minutes)
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `🎯 **What are you building here?**
-
-Describe your project vision - what kind of application, website, or system do you want to create? The more specific you are, the better I can tailor your specialist droid team.`
+        text: '✅ Scan complete! Based on what I saw, I have a good feel for your repo. Now let me learn what you want from your droids.'
       },
       {
         kind: 'input',
         id: 'project-goal',
-        label: 'Project Description',
-        placeholder: 'Example: Landing page for a dentist office with appointment booking'
+        label: 'In one sentence, what project is this and how should your new droid team help?',
+        placeholder: 'Example: React web app; need droids to refactor and write tests.'
       },
       {
         kind: 'tool',
         name: 'record_project_goal',
         input: { sessionId, repoRoot, description: { fromInput: 'project-goal' } }
       },
-      
-      // PHASE 3: Methodology Consultation (1 minute) - Show All 10, Then Recommend
       {
         kind: 'say',
         speaker: 'assistant',
-        text: `🏗️ **Development Methodology Selection**
-
-Here are all the development approaches I support. Each one shapes how your specialist droids will work together:`
+        text: 'Great. Let’s tune how your droids like to work. Pick the approach that matches you best:'
       },
       {
         kind: 'choice',
         id: 'methodology-choice',
-        label: 'Choose your development approach:',
+        label: 'Methodology options',
         options: ALL_METHODOLOGIES
       },
       {
@@ -79,14 +61,10 @@ Here are all the development approaches I support. Each one shapes how your spec
         name: 'select_methodology',
         input: { sessionId, repoRoot, choice: { fromChoice: 'methodology-choice' } }
       },
-      
-      // PHASE 4: Team Assembly (1 minute) - Call them "specialist droids"
       {
         kind: 'say',
         speaker: 'assistant',
-        text: `🤖 **Assembling Your Specialist Droid Team**
-
-Based on your project and chosen methodology, I'm recommending a team of specialist droids. Each one is an expert in their domain and understands your specific requirements:`
+        text: 'Here’s the starting roster I recommend. Toggle anything you do not need, rename if you prefer, and add custom specialists if you like.'
       },
       {
         kind: 'tool',
@@ -96,22 +74,18 @@ Based on your project and chosen methodology, I'm recommending a team of special
       {
         kind: 'input',
         id: 'custom-droids',
-        label: 'Optional: Add Custom Specialist Droids',
-        helper: 'Example: SEO Specialist - optimizes for local dental practice search results'
-      },
-      
-      // PHASE 5: Team Creation (30 seconds)
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `🔨 **Creating Your Specialist Droid Team...**
-
-Forging your custom AI specialists now. Each droid will understand your project context and work according to your chosen methodology.`
+        label: 'Optional: describe any custom droids you want at launch',
+        helper: 'Example: PrimeFinder — locates next prime number for crypto.'
       },
       {
         kind: 'tool',
         name: 'forge_roster',
         input: { sessionId, repoRoot, customInput: { fromInput: 'custom-droids' } }
+      },
+      {
+        kind: 'say',
+        speaker: 'assistant',
+        text: 'Forging your droids now…'
       },
       {
         kind: 'tool',
@@ -126,18 +100,16 @@ Forging your custom AI specialists now. Each droid will understand your project 
       {
         kind: 'say',
         speaker: 'assistant',
-        text: `✅ **Your Specialist Droid Team is Ready!**
-
-Your custom AI development team has been created and is standing by. Each specialist droid knows your project context and methodology.`
+        text: '📘 Guide printed below. Press Enter when you are ready to continue.'
       },
       {
         kind: 'summary',
-        title: 'Get Started with Your Specialist Droids',
+        title: 'Next Steps',
         lines: [
-          '🎯 Try: `/df Create a hero section for the homepage` - your orchestrator will route this to the right specialists',
-          '📚 Use `/forge-guide` to see your complete team handbook anytime',
-          '🔧 Need changes? Run `/forge-add-droid` to expand your team',
-          '🧹 All done? Use `/forge-removeall` to clean up when finished'
+          'Type `/df <goal>` to talk to your orchestrator.',
+          'Use `/forge-guide` to reopen the handbook anytime.',
+          'Need cleanup? Run `/forge-removeall`.',
+          'Ready for more? Try `/forge-add-droid` to expand the team.'
         ]
       }
     ]
