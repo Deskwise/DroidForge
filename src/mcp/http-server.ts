@@ -11,9 +11,10 @@ import { ExecutionManager } from './execution/manager.js';
 import { ExecutionEventBus } from './execution/eventBus.js';
 import { MetricsCollector } from './execution/metrics.js';
 import { HealthChecker, type ExecutionSnapshot } from './execution/healthCheck.js';
+import { appendLog } from './logging.js';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3897;
 const API_KEY = process.env.DROIDFORGE_API_KEY;
 
 // Initialize execution infrastructure
@@ -342,11 +343,41 @@ app.get('/api/executions/:id/debug', authMiddleware, (req: Request, res: Respons
 });
 
 // Utility functions
+/**
+ * Log HTTP audit event for security and monitoring.
+ * Fire-and-forget: Does not block request handling.
+ * Writes to both console (development) and persistent log file.
+ */
 function logAuditEvent(event: any) {
-  // TODO: Implement proper audit logging
+  // Log to console in development for immediate visibility
   if (process.env.NODE_ENV === 'development') {
     console.log('[AUDIT]', JSON.stringify(event));
   }
+
+  // Always write to audit log file for persistent record (non-blocking)
+  (async () => {
+    try {
+      // Use the effective repoRoot if available, otherwise use cwd
+      const repoRoot = event.path || process.cwd();
+      
+      await appendLog(repoRoot, {
+        timestamp: event.timestamp || new Date().toISOString(),
+        event: 'http_audit',
+        status: event.success !== false ? 'ok' : 'error',
+        payload: {
+          ip: event.ip,
+          tool: event.tool,
+          action: event.action,
+          duration: event.duration,
+          error: event.error,
+          ...event
+        }
+      });
+    } catch (error) {
+      // Fallback to console if logging fails - don't throw
+      console.error('[AUDIT] Failed to write audit log:', error);
+    }
+  })();
 }
 
 function validateRepoRoot(path: string): { valid: boolean; error?: string } {

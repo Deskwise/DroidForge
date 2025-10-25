@@ -129,3 +129,4 @@ docs/droid-guide.md
 .droidforgerc.local.json
 repodocs/
 .genkit/
+docker-data/

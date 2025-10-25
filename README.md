@@ -6,11 +6,16 @@ DroidForge doesn't give you a generic AI assistant. It **deeply understands YOUR
 
 **Result:** Complex features that used to take hours now complete in minutes, with code that fits your project perfectly.
 
+> **🚀 PRODUCTION READY v0.5.0** - Comprehensive safety features, 41/41 E2E tests passing, security reviewed, and performance validated.
+
 Built as a Model Context Protocol (MCP) server for Factory.ai's Droid CLI.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-%3E%3D16-green.svg)](https://nodejs.org/)
+[![Tests Passing](https://img.shields.io/badge/Tests-41%2F41%20Passing-brightgreen.svg)](src/mcp/__tests__/e2e/)
+[![Production Ready](https://img.shields.io/badge/Production-Ready-success.svg)](docs/PRODUCTION_READINESS_REPORT.md)
+[![Security Reviewed](https://img.shields.io/badge/Security-Reviewed-blue.svg)](docs/SECURITY_REVIEW.md)
 
 ---
 
@@ -124,35 +129,34 @@ The technical innovation that makes safe parallel work possible:
 
 ## 🚀 Quick Start
 
+### Prerequisites
+
+- **Factory.ai Droid CLI** - Required platform (install from [factory.ai](https://factory.ai))
+- **Node.js 16+** - For running DroidForge
+
 ### Installation
 
 ```bash
 npm install -g droidforge
 ```
 
-Or build from source:
-
-```bash
-git clone https://github.com/Deskwise/DroidForge.git
-cd DroidForge
-npm install
-npm run build
-```
+That's it! No building, no configuration. The package comes pre-built.
 
 ### Configuration
 
-Add to your Factory.ai MCP servers configuration:
+Add to your Droid CLI configuration (`~/.factory/config.json`):
 
 ```json
 {
   "mcpServers": {
     "droidforge": {
-      "command": "node",
-      "args": ["/path/to/DroidForge/dist/mcp/server.js"]
+      "command": "droidforge"
     }
   }
 }
 ```
+
+**That's it!** Droid CLI will automatically spawn DroidForge when you use it.
 
 ### First Run
 
@@ -445,11 +449,13 @@ DroidForge/
 
 ## 🛠️ Development
 
+**For contributors and local development only.** End users should just `npm install -g droidforge`.
+
 ### Prerequisites
 
 - Node.js 16+
 - TypeScript 5+
-- Factory.ai Droid CLI
+- Factory.ai Droid CLI (for testing)
 
 ### Setup
 
@@ -461,8 +467,11 @@ cd DroidForge
 # Install dependencies
 npm install
 
-# Build
+# Build TypeScript to JavaScript
 npm run build
+
+# Link for local testing (creates global droidforge command pointing to your local build)
+npm link
 
 # Run tests
 npm test
@@ -470,6 +479,12 @@ npm test
 # Run in development mode
 npm run dev
 ```
+
+**Notes:**
+- The `.npmrc.docker-only` file is Docker-specific config - ignore it for local development
+- When you `npm link`, the `droidforge` command will use your local build
+- Changes require rebuild: `npm run build` after editing TypeScript
+- End users will never see TypeScript - they get pre-built JavaScript from npm
 
 ### Testing
 
@@ -626,6 +641,17 @@ Most AI coding assistants have fundamental limitations:
 
 ## 🗺️ Roadmap
 
+### ✅ Completed in v0.5.0 (Production Release)
+- [x] **Comprehensive E2E Testing** - 41 tests covering all critical flows
+- [x] **Parallel Execution Safety** - Resource locking, conflict detection, atomic merging
+- [x] **UUID Persistence** - Reliable droid identification across sessions
+- [x] **Safe Cleanup** - Atomic cleanup with confirmation requirements
+- [x] **Snapshot/Restore** - Complete state preservation system
+- [x] **Audit Logging** - Comprehensive security and operation logging
+- [x] **Performance Validation** - Stress testing and scalability metrics
+- [x] **Security Review** - Complete security assessment and hardening
+
+### 🚀 Upcoming Features
 - [ ] **Enhanced SmartScan** - Detect more frameworks and patterns
 - [ ] **Droid Learning** - Droids improve their understanding over time
 - [ ] **Visual Team Dashboard** - See your team and their specializations

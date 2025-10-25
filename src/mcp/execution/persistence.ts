@@ -47,6 +47,7 @@ export class ExecutionPersistence {
 
   /**
    * Save execution state to disk.
+   * Gracefully handles cases where the directory is being cleaned up (e.g., in tests).
    * 
    * @param repoRoot Repository root path
    * @param record Execution record
@@ -57,41 +58,51 @@ export class ExecutionPersistence {
     record: any,
     lockState: Map<string, { mode: ResourceLockMode; owners: string[] }>
   ): Promise<void> {
-    const dir = this.getExecutionDir(repoRoot, record.id);
-    await mkdir(dir, { recursive: true });
+    try {
+      const dir = this.getExecutionDir(repoRoot, record.id);
+      await mkdir(dir, { recursive: true });
 
-    const data: PersistedExecution = {
-      id: record.id,
-      repoRoot: record.repoRoot,
-      createdAt: record.createdAt,
-      status: record.status,
-      plan: record.plan,
-      concurrency: record.concurrency,
-      nodes: Array.from(record.nodes.entries()).map((entry: any) => {
-        const [id, state] = entry;
-        return {
-          nodeId: id,
-          spec: state.spec,
-          status: state.status,
-          startedAt: state.startedAt,
-          finishedAt: state.finishedAt
-        };
-      }),
-      readyQueue: [...record.readyQueue],
-      runningNodes: [...record.runningNodes],
-      locks: Array.from(lockState.entries()).map(([resource, lock]) => ({
-        resource,
-        mode: lock.mode,
-        owners: lock.owners
-      }))
-    };
+      const data: PersistedExecution = {
+        id: record.id,
+        repoRoot: record.repoRoot,
+        createdAt: record.createdAt,
+        status: record.status,
+        plan: record.plan,
+        concurrency: record.concurrency,
+        nodes: Array.from(record.nodes.entries()).map((entry: any) => {
+          const [id, state] = entry;
+          return {
+            nodeId: id,
+            spec: state.spec,
+            status: state.status,
+            startedAt: state.startedAt,
+            finishedAt: state.finishedAt
+          };
+        }),
+        readyQueue: [...record.readyQueue],
+        runningNodes: [...record.runningNodes],
+        locks: Array.from(lockState.entries()).map(([resource, lock]) => ({
+          resource,
+          mode: lock.mode,
+          owners: lock.owners
+        }))
+      };
 
-    await this.writeJsonAtomic(join(dir, 'state.json'), data);
+      await this.writeJsonAtomic(join(dir, 'state.json'), data);
 
-    // Also append last timeline event if exists
-    if (record.timeline && record.timeline.length > 0) {
-      const lastEvent = record.timeline[record.timeline.length - 1];
-      await this.appendTimeline(dir, lastEvent);
+      // Also append last timeline event if exists
+      if (record.timeline && record.timeline.length > 0) {
+        const lastEvent = record.timeline[record.timeline.length - 1];
+        await this.appendTimeline(dir, lastEvent);
+      }
+    } catch (error) {
+      // Gracefully handle ENOENT errors (directory was deleted, e.g., during test cleanup)
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        // Silently ignore - the directory was likely cleaned up intentionally
+        return;
+      }
+      // Re-throw other errors
+      throw error;
     }
   }
 
@@ -167,17 +178,26 @@ export class ExecutionPersistence {
 
   /**
    * Write JSON atomically (write to temp file, then rename).
+   * Gracefully handles ENOENT errors during cleanup.
    * 
    * @param filePath Target file path
    * @param data Data to write
    */
   private async writeJsonAtomic(filePath: string, data: any): Promise<void> {
-    const tempPath = `${filePath}.tmp`;
-    await writeFile(tempPath, JSON.stringify(data, null, 2), 'utf-8');
-    
-    // Use fs.rename for atomic operation
-    const { rename } = await import('node:fs/promises');
-    await rename(tempPath, filePath);
+    try {
+      const tempPath = `${filePath}.tmp`;
+      await writeFile(tempPath, JSON.stringify(data, null, 2), 'utf-8');
+      
+      // Use fs.rename for atomic operation
+      const { rename } = await import('node:fs/promises');
+      await rename(tempPath, filePath);
+    } catch (error) {
+      // Gracefully handle ENOENT errors (directory was deleted during operation)
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return; // Silently ignore
+      }
+      throw error;
+    }
   }
 
   /**

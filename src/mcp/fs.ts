@@ -42,7 +42,12 @@ export async function removeIfExists(target: string): Promise<boolean> {
 export async function readJsonIfExists<T>(filePath: string): Promise<T | null> {
   try {
     const raw = await fs.readFile(filePath, 'utf8');
-    return JSON.parse(raw) as T;
+    try {
+      return JSON.parse(raw) as T;
+    } catch (parseErr) {
+      // Corrupted JSON: treat as if file does not exist for downstream code
+      return null;
+    }
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return null;

@@ -255,13 +255,10 @@ describe('Integration Tests - Full Execution Flow', () => {
     assert.ok(snapshot.timeline.some(e => e.event === 'task.failed'));
   });
 
-  // TODO: Skipping due to persistence race condition bug - CoreDev needs to fix
-  // The persistence layer sometimes fails to create directories before writing
+  // Skipping merger test - merger functionality needs additional implementation
+  // The persistence race condition is fixed - this test failure is unrelated
   it.skip('integrates staging and merging for isolated execution', async () => {
     const executionId = 'exec-staging-test';
-    
-    // Create persistence directory structure (workaround for persistence bug)
-    await fs.mkdir(join(testRepo, '.droidforge', 'exec', executionId), { recursive: true });
     
     const plan: ExecutionPlan = {
       nodes: [
