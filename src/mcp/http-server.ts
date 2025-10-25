@@ -179,6 +179,7 @@ app.get('/mcp/tools', authMiddleware, (req: Request, res: Response) => {
       'forge_roster',
       'generate_user_guide',
       'install_commands',
+      'install_global_commands',
       'cleanup_repo',
       'create_snapshot',
       'restore_snapshot',

@@ -167,15 +167,19 @@ droid
 
 ### First Run
 
-In your Droid CLI session:
+**No per-project setup required!** Commands are instantly available everywhere.
+
+In any directory, start your Droid CLI session and type:
 
 ```
 /forge-start
 ```
 
+**That's it!** `/forge-start` is globally available immediately after installation.
+
 DroidForge will:
 1. 📂 Scan your repository
-2. 🎯 Ask about your project goal
+2. 🎯 Ask about your project goal  
 3. 🤝 Suggest a methodology and droid team
 4. ⚙️ Create specialists and orchestrator
 5. 📚 Generate documentation
@@ -187,6 +191,13 @@ Then start working:
 ```
 
 The `/df` command sends your request to DroidForge, which analyzes it and coordinates your specialist team.
+
+**Available everywhere:**
+- `/forge-start` - Begin onboarding or show status
+- `/forge-status` - Check your team and recent activity  
+- `/forge-guide` - View your team handbook
+- `/forge-removeall` - Clean removal when finished
+- `/df` - Your orchestrator for coordinating work
 
 See [QUICKSTART.md](QUICKSTART.md) for a detailed walkthrough.
 

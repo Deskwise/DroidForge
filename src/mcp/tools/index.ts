@@ -7,6 +7,7 @@ import { createRecommendDroidsTool } from './recommendDroids.js';
 import { createForgeRosterTool } from './forgeRoster.js';
 import { createGenerateUserGuideTool } from './generateUserGuide.js';
 import { createInstallCommandsTool } from './installCommands.js';
+import { createInstallGlobalCommandsTool } from './installGlobalCommands.js';
 import { createCleanupRepoTool } from './cleanupRepo.js';
 import { createSnapshotTool } from './createSnapshot.js';
 import { createRestoreSnapshotTool } from './restoreSnapshot.js';
@@ -48,6 +49,7 @@ export function createToolRegistry(deps: ToolFactoryDeps): Map<string, ToolDefin
     createGenerateUserGuideTool(deps),
     createAddCustomDroidTool(),
     createInstallCommandsTool(),
+    createInstallGlobalCommandsTool(),
     createCleanupRepoTool(),
     createSnapshotTool(),
     createListSnapshotsTool(),

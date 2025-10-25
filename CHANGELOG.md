@@ -5,6 +5,49 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-10-25
+
+### 🎯 **GLOBAL COMMANDS - Complete Chicken-and-Egg Solution**
+
+#### ✨ Revolutionary Change
+**DroidForge commands are now globally available immediately after installation!**
+
+No more chicken-and-egg problem. No per-project setup required. Install once, use everywhere.
+
+#### 🌍 **Global Installation**
+- **Global scope**: Commands installed to `~/.factory/commands/` (personal scope)
+- **Universal access**: `/forge-start`, `/forge-status`, `/forge-guide`, `/forge-removeall`, `/df` work in any directory
+- **Instant availability**: Available immediately after `npm install -g droidforge` + MCP configuration
+- **Zero setup**: No per-project initialization required
+
+#### 🚀 **New User Experience**
+**Before (Broken)**:
+1. Install DroidForge → 2. Try `/forge-start` → 3. ❌ Command not found
+
+**After (Perfect)**:  
+1. Install DroidForge → 2. `/forge-start` → 3. ✅ Onboarding starts immediately
+
+#### 🔧 **Technical Implementation**
+- **Auto-installation**: Global commands installed when DroidForge MCP tools are first accessed
+- **New MCP tool**: `install_global_commands` for explicit global installation  
+- **Factory CLI compatible**: Uses standard `~/.factory/commands/` directory structure
+- **Smart detection**: Only installs if commands don't already exist
+
+#### 🎁 **What This Means**
+- **For new users**: Seamless onboarding experience, no setup frustration
+- **For existing users**: Commands upgrade automatically to global scope
+- **For teams**: Share DroidForge across projects with zero per-project overhead  
+- **For developers**: Clean architecture following Factory CLI conventions
+
+#### 📍 **File Locations**
+- **Global commands**: `~/.factory/commands/` (forge management commands)
+- **Project droids**: `<repo>/.factory/droids/` (specialist AI droids)
+- **Project manifest**: `<repo>/.factory/droids-manifest.json`
+
+**The chicken-and-egg problem is completely solved!** 🎉
+
+---
+
 ## [1.0.2] - 2025-10-25
 
 ### 🔧 **AUTO-INSTALLATION FIX - Chicken-and-Egg Solution**

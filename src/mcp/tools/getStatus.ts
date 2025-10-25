@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { promises as fs } from 'node:fs';
+import { homedir } from 'node:os';
 import { readJsonIfExists } from '../fs.js';
 import { appendLog } from '../logging.js';
 import { buildDefaultCommands } from '../templates/commands.js';
@@ -16,30 +17,30 @@ export function createGetStatusTool(): ToolDefinition<GetStatusInput, GetStatusO
       const manifestPath = path.join(input.repoRoot, '.factory', 'droids-manifest.json');
       const manifest = await readJsonIfExists<DroidManifest>(manifestPath);
       
-      // Auto-install forge commands if they don't exist yet
-      // This ensures users can always access /forge-start, even before onboarding
-      const commandsDir = path.join(input.repoRoot, '.factory', 'commands');
-      const forgeStartPath = path.join(commandsDir, 'forge-start.md');
+      // Auto-install forge commands globally if they don't exist yet
+      // This ensures users can always access /forge-start everywhere, solving the chicken-and-egg problem
+      const globalCommandsDir = path.join(homedir(), '.factory', 'commands');
+      const globalForgeStartPath = path.join(globalCommandsDir, 'forge-start.md');
       
-      let needsInstallation = false;
+      let needsGlobalInstallation = false;
       try {
-        // Check if commands directory and forge-start command exist
-        await fs.access(commandsDir);
-        await fs.access(forgeStartPath);
+        // Check if global forge commands exist
+        await fs.access(globalCommandsDir);
+        await fs.access(globalForgeStartPath);
       } catch (error) {
-        needsInstallation = true;
+        needsGlobalInstallation = true;
       }
       
-      if (needsInstallation) {
-        // Forge commands don't exist - install them automatically
+      if (needsGlobalInstallation) {
+        // Global forge commands don't exist - install them automatically
         try {
-          await ensureDir(commandsDir);
+          await ensureDir(globalCommandsDir);
           const commands = await buildDefaultCommands(input.repoRoot);
           
           for (const command of commands) {
             const filename = command.slug.replace(/^\/+/, '');
             const ext = command.type === 'markdown' ? '.md' : '';
-            const fullPath = path.join(commandsDir, `${filename}${ext}`);
+            const fullPath = path.join(globalCommandsDir, `${filename}${ext}`);
             await writeFileAtomic(fullPath, command.body, 'utf8');
             
             if (command.type === 'executable') {
@@ -50,17 +51,17 @@ export function createGetStatusTool(): ToolDefinition<GetStatusInput, GetStatusO
           
           await appendLog(input.repoRoot, {
             timestamp: new Date().toISOString(),
-            event: 'auto_install_commands',
+            event: 'auto_install_global_commands',
             status: 'ok',
-            payload: { reason: 'forge-commands-missing', count: commands.length }
+            payload: { reason: 'global-forge-commands-missing', count: commands.length, location: globalCommandsDir }
           });
         } catch (error) {
           // Log the error but don't fail - commands might be installed later
           await appendLog(input.repoRoot, {
             timestamp: new Date().toISOString(),
-            event: 'auto_install_commands',
+            event: 'auto_install_global_commands',
             status: 'error',
-            payload: { message: (error as Error).message }
+            payload: { message: (error as Error).message, location: globalCommandsDir }
           });
         }
       }
