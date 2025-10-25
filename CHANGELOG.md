@@ -5,7 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-10-25
+## [1.0.1] - 2025-10-25
+
+### 🐛 **CRITICAL FIX**
+- **Fixed bin paths** - Removed leading `./` that caused npm to reject binary commands
+- v1.0.0 published but commands were broken - **use v1.0.1 instead**
+
+---
+
+## [1.0.0] - 2025-10-25 [BROKEN - USE 1.0.1]
 
 ### 🎯 **BREAKING CHANGE - Professional Naming Convention**
 
