@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2025-10-25
+
+### 🔧 **AUTO-INSTALLATION FIX - Chicken-and-Egg Solution**
+
+#### ✅ Problem Solved
+**Issue**: Users needed `/forge-start` command to begin onboarding, but forge commands were only installed AFTER onboarding completed. This created an impossible situation for first-time users.
+
+**Solution**: DroidForge now automatically installs all forge commands the first time it's accessed in any repository.
+
+#### 🚀 **New Auto-Installation Behavior**
+- **Instant Availability**: `/forge-start`, `/forge-status`, `/forge-guide`, `/forge-removeall` commands are now automatically created
+- **First Access**: Commands are installed the moment DroidForge's `get_status` tool is called
+- **Proper Format**: Commands created in `.factory/commands/` with correct Markdown and YAML frontmatter  
+- **Droid CLI Compatible**: Works seamlessly with Droid CLI's slash command system
+- **Zero Configuration**: No user action required - commands just appear
+
+#### 🔄 Updated File Paths  
+- **Fixed manifest location**: Now correctly uses `.factory/droids-manifest.json` (was using outdated `.droidforge/` path)
+- **Consistent structure**: All DroidForge files now properly use `.factory/` directory
+
+#### 🛡️ **Enhanced Reliability**
+- **Comprehensive error handling**: Graceful failure with detailed logging
+- **Smart detection**: Only installs commands if they don't already exist  
+- **Atomic operations**: Commands installed safely with proper file locking
+- **Audit logging**: All auto-installation events logged for troubleshooting
+
+#### 🎯 **User Experience**
+**Before**: Users confused by missing `/forge-start` command
+**After**: Commands immediately available, onboarding flow works seamlessly
+
+#### Technical Details
+- Modified `get_status` tool to check for forge commands existence
+- Auto-installs complete command suite if missing
+- Uses same `buildDefaultCommands()` logic as normal onboarding
+- Maintains full compatibility with existing installations
+
 ## [1.0.1] - 2025-10-25
 
 ### 🐛 **CRITICAL FIX**

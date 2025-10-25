@@ -26,19 +26,15 @@ export function createGetStatusTool(): ToolDefinition<GetStatusInput, GetStatusO
         // Check if commands directory and forge-start command exist
         await fs.access(commandsDir);
         await fs.access(forgeStartPath);
-        console.error(`[DroidForge] Commands already exist at: ${commandsDir}`);
       } catch (error) {
         needsInstallation = true;
-        console.error(`[DroidForge] Commands not found, will install: ${(error as Error).message}`);
       }
       
       if (needsInstallation) {
         // Forge commands don't exist - install them automatically
         try {
-          console.error(`[DroidForge] Auto-installing forge commands to: ${commandsDir}`);
           await ensureDir(commandsDir);
           const commands = await buildDefaultCommands(input.repoRoot);
-          console.error(`[DroidForge] Generated ${commands.length} commands`);
           
           for (const command of commands) {
             const filename = command.slug.replace(/^\/+/, '');
