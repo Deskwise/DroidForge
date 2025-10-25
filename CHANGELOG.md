@@ -5,6 +5,57 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] - 2025-10-25
+
+### 🎯 **BREAKING CHANGE - Professional Naming Convention**
+
+#### Command Names Updated
+To align with professional MCP server conventions (GitHub, Slack, etc.), the binary command names have been updated for clarity:
+
+**BEFORE:**
+- `droidforge` → stdio mode
+- `droidforge-http` → HTTP mode
+- Configuration: `/mcp add droidforge droidforge` ← Confusing!
+
+**AFTER:**
+- `droidforge-mcp-server` → stdio mode
+- `droidforge-mcp-server-http` → HTTP mode
+- Configuration: `/mcp add droidforge droidforge-mcp-server` ← Clear distinction!
+
+#### 📦 Installation (UNCHANGED)
+**Package name remains simple:** `npm install -g droidforge`
+
+The package name stays as `droidforge` for easy installation. Only the executable command names changed to match professional MCP naming patterns used by other servers.
+
+#### 🔄 Migration Guide
+
+**If you already configured DroidForge:**
+1. Remove old configuration: `/mcp remove droidforge`
+2. Add with new command: `/mcp add droidforge droidforge-mcp-server`
+
+**Or manually update your `mcp.json`:**
+```json
+{
+  "mcpServers": {
+    "droidforge": {
+      "command": "droidforge-mcp-server"  // ← Changed from "droidforge"
+    }
+  }
+}
+```
+
+#### Why This Change?
+- **Clarity:** Command name now distinct from identifier in `/mcp add` command
+- **Professional:** Matches naming conventions used by other MCP servers
+- **Consistency:** Aligns with industry-standard patterns
+
+#### Impact
+- **Breaking:** Existing installations must update configuration
+- **One-time:** Simple migration, takes 30 seconds
+- **Future-proof:** Professional naming convention for long-term clarity
+
+---
+
 ## [0.6.0] - 2025-10-25
 
 ### ✨ **NEW FEATURES - DUAL TRANSPORT SUPPORT**

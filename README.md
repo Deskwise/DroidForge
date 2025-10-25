@@ -144,13 +144,20 @@ That's it! No building, no configuration. The package comes pre-built.
 
 ### Configuration
 
-Add to your Droid CLI configuration (`~/.factory/config.json`):
+Add to your Droid CLI configuration:
 
+**Option 1: Using Droid CLI command**
+```
+droid
+/mcp add droidforge droidforge-mcp-server
+```
+
+**Option 2: Manual configuration** (`~/.factory/config.json` or `~/Library/Application Support/Factory Bridge/mcp.json`):
 ```json
 {
   "mcpServers": {
     "droidforge": {
-      "command": "droidforge"
+      "command": "droidforge-mcp-server"
     }
   }
 }
@@ -470,7 +477,7 @@ npm install
 # Build TypeScript to JavaScript
 npm run build
 
-# Link for local testing (creates global droidforge command pointing to your local build)
+# Link for local testing (creates global droidforge-mcp-server command pointing to your local build)
 npm link
 
 # Run tests
@@ -482,7 +489,7 @@ npm run dev
 
 **Notes:**
 - The `.npmrc.docker-only` file is Docker-specific config - ignore it for local development
-- When you `npm link`, the `droidforge` command will use your local build
+- When you `npm link`, the `droidforge-mcp-server` command will use your local build
 - Changes require rebuild: `npm run build` after editing TypeScript
 - End users will never see TypeScript - they get pre-built JavaScript from npm
 
