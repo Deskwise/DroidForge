@@ -1,11 +1,11 @@
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { promises as fs } from 'node:fs';
-import { writeJsonAtomic, ensureDir, readJsonIfExists } from '../fs.js';
+import { writeJsonAtomic, ensureDir, readJsonIfExists, writeFileAtomic } from '../fs.js';
 import type { CustomDroidSeed, ForgeRosterInput } from '../types.js';
 import type { DroidDefinition, DroidManifest } from '../../types.js';
 
-const DROID_DIR = '.droidforge/droids';
+const DROID_DIR = '.factory/droids';
 
 interface ForgeContext {
   repoRoot: string;
@@ -71,6 +71,41 @@ function createDroidDefinition(input: ManifestEntryInput, ctx: ForgeContext): Dr
   };
 }
 
+function createDroidMarkdown(definition: DroidDefinition): string {
+  const frontmatter = `---
+name: ${definition.id}
+description: ${definition.purpose}
+model: inherit
+tools: all
+version: ${definition.version}
+---
+
+You are a specialized AI assistant: ${definition.displayName}.
+
+## Purpose
+${definition.purpose}
+
+## Expertise Areas
+${definition.abilities.map(ability => `- ${ability}`).join('\n')}
+
+## Methodology
+Following ${definition.methodology || 'best practices'} development approach.
+
+## Response Guidelines
+When helping users:
+1. Focus on your area of specialization
+2. Provide practical, actionable solutions
+3. Follow established patterns in the codebase
+4. Ask clarifying questions when requirements are unclear
+5. Suggest best practices and optimizations
+6. Maintain consistency with the project's methodology
+
+Always structure your responses with clear sections and detailed explanations.
+`;
+
+  return frontmatter;
+}
+
 interface ForgeResult {
   droids: DroidDefinition[];
   manifest: DroidManifest;
@@ -116,11 +151,18 @@ export async function forgeDroids(input: ForgeRosterInput, ctx: ForgeContext): P
   await ensureDir(droidDir);
 
   for (const entry of allEntries) {
-    const filePath = path.join(droidDir, `${entry.id}.json`);
-    const definition = await buildDefinitionWithPreserve(entry, ctx, filePath);
-    await writeJsonAtomic(filePath, definition);
+    // Create DroidForge internal JSON definition
+    const jsonPath = path.join(droidDir, `${entry.id}.json`);
+    const definition = await buildDefinitionWithPreserve(entry, ctx, jsonPath);
+    await writeJsonAtomic(jsonPath, definition);
+    
+    // Create Droid CLI compatible markdown file
+    const mdPath = path.join(droidDir, `${entry.id}.md`);
+    const markdown = createDroidMarkdown(definition);
+    await writeFileAtomic(mdPath, markdown);
+    
     droids.push(definition);
-    filePaths.push(filePath);
+    filePaths.push(jsonPath, mdPath);
   }
 
   const manifest: DroidManifest = {
@@ -143,7 +185,7 @@ export async function forgeDroids(input: ForgeRosterInput, ctx: ForgeContext): P
     snapshots: []
   };
 
-  const manifestPath = path.join(ctx.repoRoot, '.droidforge', 'droids-manifest.json');
+  const manifestPath = path.join(ctx.repoRoot, '.factory', 'droids-manifest.json');
   await writeJsonAtomic(manifestPath, manifest);
   filePaths.push(manifestPath);
 
@@ -151,7 +193,7 @@ export async function forgeDroids(input: ForgeRosterInput, ctx: ForgeContext): P
 }
 
 export async function loadManifest(repoRoot: string): Promise<DroidManifest | null> {
-  const manifestPath = path.join(repoRoot, '.droidforge', 'droids-manifest.json');
+  const manifestPath = path.join(repoRoot, '.factory', 'droids-manifest.json');
   try {
     const raw = await fs.readFile(manifestPath, 'utf8');
     return JSON.parse(raw) as DroidManifest;
@@ -204,7 +246,7 @@ export async function addCustomDroid(
 
   manifest.updatedAt = new Date().toISOString();
 
-  const manifestPath = path.join(repoRoot, '.droidforge', 'droids-manifest.json');
+  const manifestPath = path.join(repoRoot, '.factory', 'droids-manifest.json');
   await writeJsonAtomic(manifestPath, manifest);
 
   return { definition, manifest, manifestPath };

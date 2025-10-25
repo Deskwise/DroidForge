@@ -23,8 +23,8 @@ async function ensureExecution(deps: RouteDeps, input: RouteRequestInput, routed
       {
         nodeId,
         droidId: routedTo,
-        title: input.request.slice(0, 60),
-        description: input.request
+        title: (input.request || 'untitled request').slice(0, 60),
+        description: input.request || 'No request description provided'
       }
     ],
     edges: []
@@ -50,7 +50,7 @@ function buildRouteTool(name: string, defaultDroid: string, deps: RouteDeps): To
         timestamp: new Date().toISOString(),
         event: name,
         status: 'ok',
-        payload: { routedTo, executionId, snippet: input.request.slice(0, 120) }
+        payload: { routedTo, executionId, snippet: (input.request || '').slice(0, 120) }
       });
       return {
         acknowledged: true,
