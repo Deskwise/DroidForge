@@ -140,7 +140,9 @@ The technical innovation that makes safe parallel work possible:
 npm install -g droidforge
 ```
 
-**That's it!** Commands are immediately available. No building, no configuration, no setup.
+**That's it!** Commands are immediately available on all platforms. No building, no configuration, no setup.
+
+**✅ Cross-Platform Support**: Windows, macOS, Linux, FreeBSD, OpenBSD
 
 ### First Run
 
