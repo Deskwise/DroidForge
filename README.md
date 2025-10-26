@@ -140,34 +140,11 @@ The technical innovation that makes safe parallel work possible:
 npm install -g droidforge
 ```
 
-That's it! No building, no configuration. The package comes pre-built.
-
-### Configuration
-
-Add to your Droid CLI configuration:
-
-**Option 1: Using Droid CLI command**
-```
-droid
-/mcp add droidforge droidforge-mcp-server
-```
-
-**Option 2: Manual configuration** (`~/.factory/config.json` or `~/Library/Application Support/Factory Bridge/mcp.json`):
-```json
-{
-  "mcpServers": {
-    "droidforge": {
-      "command": "droidforge-mcp-server"
-    }
-  }
-}
-```
-
-**That's it!** Droid CLI will automatically spawn DroidForge when you use it.
+**That's it!** Commands are immediately available. No building, no configuration, no setup.
 
 ### First Run
 
-**No per-project setup required!** Commands are instantly available everywhere.
+**Zero setup required!** Commands work instantly after installation.
 
 In any directory, start your Droid CLI session and type:
 
@@ -175,7 +152,9 @@ In any directory, start your Droid CLI session and type:
 /forge-start
 ```
 
-**That's it!** `/forge-start` is globally available immediately after installation.
+**It just works!** `/forge-start` is available immediately after `npm install`.
+
+DroidForge will guide you through MCP configuration if needed during the onboarding process.
 
 DroidForge will:
 1. 📂 Scan your repository

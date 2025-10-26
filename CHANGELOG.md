@@ -5,6 +5,45 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-10-25
+
+### 🚀 **INSTANT COMMAND AVAILABILITY - Perfect User Experience**
+
+#### ✨ Zero-Friction Installation
+**DroidForge commands are now available immediately after `npm install`!**
+
+No MCP configuration required first. No waiting for first access. Commands work instantly.
+
+#### 🎯 **New Installation Flow**
+**Perfect User Experience**:
+1. `npm install -g droidforge` → ✅ Commands instantly available
+2. `/forge-start` → ✅ Works immediately in any directory
+3. MCP configuration happens during onboarding (guided)
+
+#### 🔧 **Technical Implementation**
+- **postinstall script**: Automatically runs after `npm install -g droidforge`
+- **Immediate installation**: Creates `~/.factory/commands/` during package installation
+- **Smart detection**: Only installs if commands don't already exist
+- **Graceful fallback**: Falls back to auto-installation on first MCP access if postinstall fails
+
+#### 🎁 **What This Means**
+- **Zero friction**: Install and immediately start using
+- **No prerequisites**: No MCP configuration needed before first use
+- **Universal access**: Commands work in any directory instantly
+- **Guided setup**: MCP configuration happens when needed, with guidance
+
+#### 📍 **File Installation**
+Commands installed immediately to `~/.factory/commands/`:
+- `/forge-start` - Begin onboarding or show status  
+- `/forge-status` - Check your team and activity
+- `/forge-guide` - View team handbook
+- `/forge-removeall` - Clean removal when finished
+- `/df` - Your orchestrator for work coordination
+
+**Now truly zero-setup! Install and use immediately.** 🎉
+
+---
+
 ## [1.1.0] - 2025-10-25
 
 ### 🎯 **GLOBAL COMMANDS - Complete Chicken-and-Egg Solution**

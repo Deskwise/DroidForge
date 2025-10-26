@@ -1,6 +1,6 @@
 {
   "name": "droidforge",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Transform any repository into a specialized AI droid army with intelligent conversational analysis",
   "type": "module",
   "main": "./dist/mcp/server.js",
@@ -26,7 +26,7 @@
     "postversion": "git push && git push --tags",
     "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\"",
     "test": "tsx --test src/mcp/**/*.test.ts",
-    "postinstall": "node -e \"console.log('🤖 DroidForge installed!\\nstdio mode: droidforge-mcp-server\\nHTTP mode: droidforge-mcp-server-http or npm start')\""
+    "postinstall": "node scripts/install-global-commands.js"
   },
   "keywords": [
     "ai",
