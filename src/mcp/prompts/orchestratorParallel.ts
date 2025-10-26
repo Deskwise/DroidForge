@@ -32,7 +32,7 @@ export function createOrchestratorParallelScript(ctx: ParallelContext): PromptSc
         kind: 'tool',
         name: 'start_execution',
         input: {
-          repoRoot: ctx.repoRoot,
+          repoRoot: { literal: ctx.repoRoot },
           executionId: { fromTool: 'plan_execution.executionId' }
         }
       },
@@ -40,7 +40,7 @@ export function createOrchestratorParallelScript(ctx: ParallelContext): PromptSc
         kind: 'tool',
         name: 'poll_execution',
         input: {
-          repoRoot: ctx.repoRoot,
+          repoRoot: { literal: ctx.repoRoot },
           executionId: { fromTool: 'plan_execution.executionId' }
         }
       },

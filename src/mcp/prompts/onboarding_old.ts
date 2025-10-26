@@ -27,7 +27,7 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'tool',
         name: 'smart_scan',
-        input: { sessionId, repoRoot }
+        input: { sessionId: { literal: sessionId }, repoRoot: { literal: repoRoot } }
       },
       {
         kind: 'say',
@@ -43,7 +43,7 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'tool',
         name: 'record_project_goal',
-        input: { sessionId, repoRoot, description: { fromInput: 'project-goal' } }
+        input: { sessionId: { literal: sessionId }, repoRoot: { literal: repoRoot }, description: { fromInput: 'project-goal' } }
       },
       {
         kind: 'say',
@@ -59,7 +59,7 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'tool',
         name: 'select_methodology',
-        input: { sessionId, repoRoot, choice: { fromChoice: 'methodology-choice' } }
+        input: { sessionId: { literal: sessionId }, repoRoot: { literal: repoRoot }, choice: { fromChoice: 'methodology-choice' } }
       },
       {
         kind: 'say',
@@ -69,7 +69,7 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'tool',
         name: 'recommend_droids',
-        input: { sessionId, repoRoot }
+        input: { sessionId: { literal: sessionId }, repoRoot: { literal: repoRoot } }
       },
       {
         kind: 'input',
@@ -80,7 +80,7 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'tool',
         name: 'forge_roster',
-        input: { sessionId, repoRoot, customInput: { fromInput: 'custom-droids' } }
+        input: { sessionId: { literal: sessionId }, repoRoot: { literal: repoRoot }, customInput: { fromInput: 'custom-droids' } }
       },
       {
         kind: 'say',
@@ -90,12 +90,12 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'tool',
         name: 'generate_user_guide',
-        input: { sessionId, repoRoot, rosterFrom: 'forge_roster' }
+        input: { sessionId: { literal: sessionId }, repoRoot: { literal: repoRoot }, rosterFrom: 'forge_roster' }
       },
       {
         kind: 'tool',
         name: 'install_commands',
-        input: { sessionId, repoRoot, rosterFrom: 'forge_roster' }
+        input: { sessionId: { literal: sessionId }, repoRoot: { literal: repoRoot }, rosterFrom: 'forge_roster' }
       },
       {
         kind: 'say',
