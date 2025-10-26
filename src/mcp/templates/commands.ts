@@ -71,17 +71,21 @@ Check the repository status and either:
 
 ## Actions
 1. **Call DROIDFORGE:GET_STATUS** to check current state
-2. **If status is "needs-onboarding"**: Start the enhanced onboarding conversation
+2. **If status is "needs-onboarding"**: 
+   - Generate a unique sessionId (use timestamp + random: e.g., "session-1234567890-abc123")
+   - Start the enhanced onboarding with that sessionId
 3. **If status is "ready"**: Show active droids and next steps
-4. **If status is "incomplete"**: Resume where they left off
+4. **If status is "incomplete"**: Resume where they left off with existing sessionId
 
 ## Enhanced Onboarding Flow
 When onboarding is needed, guide users through:
-- Welcome & repository analysis
-- Project vision discovery  
-- Methodology selection (show all 10 options)
-- Specialist droid team assembly
-- Team creation and setup
+- Welcome & repository analysis (call SMART_SCAN with sessionId)
+- Project vision discovery (call RECORD_PROJECT_GOAL with sessionId)
+- Methodology selection (call SELECT_METHODOLOGY with sessionId)
+- Specialist droid team assembly (call RECOMMEND_DROIDS with sessionId)
+- Team creation and setup (call FORGE_ROSTER with sessionId)
+
+**IMPORTANT**: All onboarding tools require a sessionId parameter. Generate one at the start and use it consistently throughout the onboarding flow.
 
 Always use the DroidForge MCP tools, never assume state from conversation context.
 `
