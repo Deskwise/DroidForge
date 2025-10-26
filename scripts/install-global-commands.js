@@ -67,12 +67,17 @@ async function setExecutablePermissions(filePath) {
 }
 
 /**
- * Prompt user for yes/no input
+ * Prompt user for yes/no input with timeout for non-interactive environments
  */
-async function promptUser(question) {
-  // Check if we're in an interactive terminal
+async function promptUser(question, timeoutMs = 10000) {
+  // Check for skip flag
+  if (process.env.DROIDFORGE_SKIP_MCP_PROMPT === 'true') {
+    return false; // Skip registration
+  }
+
+  // If not in a TTY, don't prompt
   if (!process.stdin.isTTY || !process.stdout.isTTY) {
-    return null; // Non-interactive, return null to indicate no response
+    return null; // Non-interactive, return null
   }
 
   const readline = await import('readline');
@@ -82,10 +87,26 @@ async function promptUser(question) {
   });
 
   return new Promise((resolve) => {
+    let answered = false;
+    
+    // Set timeout for automated installs
+    const timeout = setTimeout(() => {
+      if (!answered) {
+        answered = true;
+        rl.close();
+        console.log('\nNo response received, skipping MCP registration');
+        resolve(false);
+      }
+    }, timeoutMs);
+
     rl.question(question, (answer) => {
-      rl.close();
-      const normalized = answer.trim().toLowerCase();
-      resolve(normalized === 'y' || normalized === 'yes');
+      if (!answered) {
+        answered = true;
+        clearTimeout(timeout);
+        rl.close();
+        const normalized = answer.trim().toLowerCase();
+        resolve(normalized === 'y' || normalized === 'yes');
+      }
     });
   });
 }
@@ -117,14 +138,16 @@ async function registerMCPServer() {
       return;
     }
     
-    // Ask user for permission (if interactive)
+    // Ask user for permission
     const userResponse = await promptUser('\nAdd DroidForge MCP server to ~/.factory/mcp.json? (y/n): ');
     
     if (userResponse === null) {
-      // Non-interactive mode - auto-register with info message
-      console.log('Auto-registering MCP server (non-interactive install)');
+      // Non-interactive mode - skip registration
+      console.log('Non-interactive install detected - skipping MCP registration');
+      console.log('Run this to register later: DROIDFORGE_SKIP_MCP_PROMPT=false node <path-to-scripts>/install-global-commands.js');
+      return;
     } else if (!userResponse) {
-      // User said no
+      // User said no or timeout
       console.log('Skipping MCP server registration');
       console.log('   You can manually add it to ~/.factory/mcp.json later');
       return;
@@ -258,7 +281,12 @@ async function installGlobalCommands() {
 
 // Run if called directly  
 if (import.meta.url === `file://${process.argv[1]}`) {
-  installGlobalCommands();
+  // Check for --mcp-only flag
+  if (process.argv.includes('--mcp-only')) {
+    registerMCPServer();
+  } else {
+    installGlobalCommands();
+  }
 }
 
-export { installGlobalCommands };
+export { installGlobalCommands, registerMCPServer };
