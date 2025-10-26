@@ -42,13 +42,6 @@ function getFactoryCommandsDir() {
 }
 
 /**
- * Get the Factory config directory
- */
-function getFactoryDir() {
-  return path.join(homedir(), '.factory');
-}
-
-/**
  * Cross-platform file permissions handling
  */
 async function setExecutablePermissions(filePath) {
@@ -67,128 +60,24 @@ async function setExecutablePermissions(filePath) {
 }
 
 /**
- * Prompt user for yes/no input with timeout for non-interactive environments
+ * Get the path to the MCP server binary
  */
-async function promptUser(question, timeoutMs = 10000) {
-  // Check for skip flag
-  if (process.env.DROIDFORGE_SKIP_MCP_PROMPT === 'true') {
-    return false; // Skip registration
-  }
-
-  // If not in a TTY, don't prompt
-  if (!process.stdin.isTTY || !process.stdout.isTTY) {
-    return null; // Non-interactive, return null
-  }
-
-  const readline = await import('readline');
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
-  return new Promise((resolve) => {
-    let answered = false;
-    
-    // Set timeout for automated installs
-    const timeout = setTimeout(() => {
-      if (!answered) {
-        answered = true;
-        rl.close();
-        console.log('\nNo response received, skipping MCP registration');
-        resolve(false);
-      }
-    }, timeoutMs);
-
-    rl.question(question, (answer) => {
-      if (!answered) {
-        answered = true;
-        clearTimeout(timeout);
-        rl.close();
-        const normalized = answer.trim().toLowerCase();
-        resolve(normalized === 'y' || normalized === 'yes');
-      }
-    });
-  });
-}
-
-/**
- * Register DroidForge MCP server in ~/.factory/mcp.json
- */
-async function registerMCPServer() {
+async function getMCPServerPath() {
+  const { execSync } = await import('child_process');
+  
   try {
-    const factoryDir = getFactoryDir();
-    const mcpJsonPath = path.join(factoryDir, 'mcp.json');
-    
-    // Ensure .factory directory exists
-    await fs.mkdir(factoryDir, { recursive: true });
-    
-    // Read existing mcp.json or create new structure
-    let mcpConfig;
+    // Try to find the globally installed binary
+    return execSync.default ? execSync.default('which droidforge-mcp-server', { encoding: 'utf8' }).trim() 
+                            : execSync('which droidforge-mcp-server', { encoding: 'utf8' }).trim();
+  } catch {
+    // Fallback: construct path based on npm global root
     try {
-      const content = await fs.readFile(mcpJsonPath, 'utf8');
-      mcpConfig = JSON.parse(content);
+      const exec = execSync.default || execSync;
+      const npmRoot = exec('npm root -g', { encoding: 'utf8' }).trim();
+      return path.join(npmRoot, 'droidforge', 'dist', 'mcp', 'stdio-server.js');
     } catch {
-      // File doesn't exist or is invalid, create new structure
-      mcpConfig = { mcpServers: {} };
+      return null;
     }
-    
-    // Check if DroidForge is already registered
-    if (mcpConfig.mcpServers && mcpConfig.mcpServers.droidforge) {
-      console.log('DroidForge: MCP server already registered');
-      return;
-    }
-    
-    // Ask user for permission
-    const userResponse = await promptUser('\nAdd DroidForge MCP server to ~/.factory/mcp.json? (y/n): ');
-    
-    if (userResponse === null) {
-      // Non-interactive mode - skip registration
-      console.log('Non-interactive install detected - skipping MCP registration');
-      console.log('Run this to register later: DROIDFORGE_SKIP_MCP_PROMPT=false node <path-to-scripts>/install-global-commands.js');
-      return;
-    } else if (!userResponse) {
-      // User said no or timeout
-      console.log('Skipping MCP server registration');
-      console.log('   You can manually add it to ~/.factory/mcp.json later');
-      return;
-    }
-    
-    // Find the droidforge-mcp-server command path
-    const { execSync } = await import('child_process');
-    let serverCommand;
-    
-    try {
-      // Try to find the globally installed binary
-      serverCommand = execSync('which droidforge-mcp-server', { encoding: 'utf8' }).trim();
-    } catch {
-      // Fallback: construct path based on npm global root
-      try {
-        const npmRoot = execSync('npm root -g', { encoding: 'utf8' }).trim();
-        serverCommand = path.join(npmRoot, 'droidforge', 'dist', 'mcp', 'stdio-server.js');
-      } catch {
-        console.warn('WARNING: Could not locate droidforge-mcp-server binary');
-        return;
-      }
-    }
-    
-    // Add DroidForge MCP server configuration
-    if (!mcpConfig.mcpServers) {
-      mcpConfig.mcpServers = {};
-    }
-    
-    mcpConfig.mcpServers.droidforge = {
-      command: 'node',
-      args: [serverCommand],
-      env: {}
-    };
-    
-    // Write updated configuration
-    await fs.writeFile(mcpJsonPath, JSON.stringify(mcpConfig, null, 2), 'utf8');
-    console.log('DroidForge: MCP server registered in ~/.factory/mcp.json');
-    
-  } catch (error) {
-    console.warn('WARNING: Could not register MCP server:', error.message);
-    console.warn('   You can manually add it to ~/.factory/mcp.json later');
   }
 }
 
@@ -263,11 +152,19 @@ async function installGlobalCommands() {
       }
       
       console.log(`DroidForge: Installed ${installedCount} global commands to ~/.factory/commands/`);
-      console.log('Ready! You can now use /forge-start in any directory');
+      console.log('');
+      console.log('Next step: Register the MCP server in Factory Droid');
+      
+      const serverPath = await getMCPServerPath();
+      if (serverPath) {
+        console.log('Run this command in any droid session:');
+        console.log(`  /mcp add droidforge node ${serverPath}`);
+      } else {
+        console.log('Run this command in any droid session:');
+        console.log('  /mcp add droidforge node $(which droidforge-mcp-server)');
+      }
+      console.log('');
     }
-    
-    // Register MCP server in mcp.json
-    await registerMCPServer();
     
   } catch (error) {
     const platformName = platform();
@@ -281,12 +178,7 @@ async function installGlobalCommands() {
 
 // Run if called directly  
 if (import.meta.url === `file://${process.argv[1]}`) {
-  // Check for --mcp-only flag
-  if (process.argv.includes('--mcp-only')) {
-    registerMCPServer();
-  } else {
-    installGlobalCommands();
-  }
+  installGlobalCommands();
 }
 
-export { installGlobalCommands, registerMCPServer };
+export { installGlobalCommands };
