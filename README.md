@@ -6,7 +6,7 @@ DroidForge doesn't give you a generic AI assistant. It **deeply understands YOUR
 
 **Result:** Complex features that used to take hours now complete in minutes, with code that fits your project perfectly.
 
-> **🚀 PRODUCTION READY v0.5.0** - Comprehensive safety features, 41/41 E2E tests passing, security reviewed, and performance validated.
+> **PRODUCTION READY v0.5.0** - Comprehensive safety features, 41/41 E2E tests passing, security reviewed, and performance validated.
 
 Built as a Model Context Protocol (MCP) server for Factory.ai's Droid CLI.
 
@@ -19,7 +19,7 @@ Built as a Model Context Protocol (MCP) server for Factory.ai's Droid CLI.
 
 ---
 
-## 🎯 The DroidForge Difference
+## The DroidForge Difference
 
 **Generic AI assistants** give you one agent that tries to do everything sequentially.
 
@@ -44,7 +44,7 @@ Built as a Model Context Protocol (MCP) server for Factory.ai's Droid CLI.
 - Routes database changes to df-database who knows YOUR Prisma schema
 - Each expert works on what they know best
 
-### 4. Coordinates Safe Parallel Execution (The Secret Sauce 🔐)
+### 4. Coordinates Safe Parallel Execution (The Secret Sauce)
 - **Prevents file conflicts** - Intelligent resource locking ensures no two droids modify the same file
 - **Eliminates race conditions** - Each droid works in an isolated staging area
 - **Detects conflicts before they happen** - Analyzes what files each task will touch
@@ -58,9 +58,9 @@ Work that used to take hours (waiting for each step to finish) now happens in pa
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 🧠 Intelligent Repository Analysis
+### Intelligent Repository Analysis
 
 DroidForge scans your codebase to understand:
 - **Languages & Frameworks** (React, Vue, Express, Django, etc.)
@@ -69,7 +69,7 @@ DroidForge scans your codebase to understand:
 - **Project Type** (web app, API, CLI, library)
 - **Testing Strategy** (Jest, Pytest, Cypress)
 
-### 🤖 Dynamic Team Formation
+### Dynamic Team Formation
 
 Based on the analysis, DroidForge **creates custom specialists**:
 - **Tech-stack aware** - Droids know your specific frameworks and libraries
@@ -77,7 +77,7 @@ Based on the analysis, DroidForge **creates custom specialists**:
 - **Context-rich** - Understands your project's patterns and conventions
 - **Right-sized** - Creates only the specialists you need
 
-### 🎯 Smart Orchestration
+### Smart Orchestration
 
 The `df-orchestrator` acts as your technical lead:
 - **Routes requests** to the most appropriate specialist
@@ -85,7 +85,7 @@ The `df-orchestrator` acts as your technical lead:
 - **Manages dependencies** between different parts of work
 - **Ensures consistency** across the codebase
 
-### 🔧 Fully Customizable
+### Fully Customizable
 
 - **Add specialists** for unique aspects of your project
 - **Adjust expertise** as your tech stack evolves
