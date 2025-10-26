@@ -92,7 +92,7 @@ The `df-orchestrator` acts as your technical lead:
 - **Define scopes** for each droid's responsibilities
 - **Set guidelines** for code quality and patterns
 
-### ⚡ Battle-Tested Parallel Coordination
+### Battle-Tested Parallel Coordination
 
 The technical innovation that makes safe parallel work possible:
 
@@ -127,7 +127,7 @@ The technical innovation that makes safe parallel work possible:
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -142,7 +142,7 @@ npm install -g droidforge
 
 **That's it!** Commands are immediately available on all platforms. No building, no configuration, no setup.
 
-**✅ Cross-Platform Support**: Windows, macOS, Linux, FreeBSD, OpenBSD
+**Cross-Platform Support**: Windows, macOS, Linux, FreeBSD, OpenBSD
 
 ### First Run
 
