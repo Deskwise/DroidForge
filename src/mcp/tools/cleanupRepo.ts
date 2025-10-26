@@ -10,13 +10,8 @@ const TARGETS = [
   'docs/DroidForge_user_guide_en.md',
   'docs/DROIDS.md',
   '.factory/commands/forge-start.md',
-  '.factory/commands/forge-resume.md',
-
-  '.factory/commands/forge-add-droid.md',
+  '.factory/commands/forge-task.md',
   '.factory/commands/forge-removeall.md',
-  '.factory/commands/forge-restore.md',
-  '.factory/commands/forge-logs.md',
-  '.factory/commands/forge-help.md',
   '.factory/commands/df'
 ];
 

@@ -136,7 +136,7 @@ Your custom AI development team has been created and is standing by. Each specia
         lines: [
           'Try: /forge-task Create a hero section for the homepage - get routing advice',
           'Read the team handbook: docs/DroidForge_user_guide_en.md',
-          'Need changes? Run /forge-add-droid to expand your team',
+          'Invoke specialists directly: /df-frontend, /df-backend, /df-auth, etc.',
           'All done? Use /forge-removeall to clean up when finished'
         ]
       }

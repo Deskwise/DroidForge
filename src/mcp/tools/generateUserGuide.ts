@@ -92,9 +92,9 @@ export function createGenerateUserGuideTool(deps: Deps): ToolDefinition<Generate
           '/df-database Design schema for multi-tenant app'
         ],
         maintenanceTips: [
-          'Run `/forge-add-droid` to introduce new specialists.',
-          'Use `/forge-restore` to rollback to earlier snapshots.',
-          'Check `/forge-logs` for recent activity.'
+          'Use `/forge-task` to get routing advice when unsure which specialist to use.',
+          'All specialist commands follow the pattern: `/df-<domain>`',
+          'Run `/forge-removeall` if you want to start over from scratch.'
         ]
       });
 

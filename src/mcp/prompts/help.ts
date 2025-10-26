@@ -8,20 +8,17 @@ export function createHelpScript(): PromptScript {
         kind: 'summary',
         title: 'DroidForge Cheatsheet',
         lines: [
-          '`/forge-start` — onboard or show quick dashboard.',
-          '`/forge-resume` — continue an unfinished forge.',
-          '`/df <goal>` — talk to the orchestrator (primary command).',
-          '`/forge-add-droid` — craft a custom specialist.',
+          '`/forge-start` — Set up DroidForge and create your specialist team',
+          '`/forge-task <task>` — Get routing advice for which specialist to use',
+          '`/forge-removeall` — Remove all DroidForge data from repository',
           'Read the handbook: docs/DroidForge_user_guide_en.md',
-          '`/forge-logs` — see recent activity.',
-          '`/forge-removeall` — remove DroidForge artifacts.',
-          '`/forge-restore` — restore a snapshot.'
+          'Invoke specialists: `/df-frontend`, `/df-backend`, `/df-auth`, etc.'
         ]
       },
       {
         kind: 'say',
         speaker: 'assistant',
-        text: 'Need something else? Just describe it with `/df` and I’ll route it.'
+        text: 'Need routing advice? Use `/forge-task` to find the right specialist.'
       }
     ]
   };

@@ -15,11 +15,10 @@ export function createReturningUserScript(repoRoot: string): PromptScript {
         kind: 'summary',
         title: 'Quick Commands',
         lines: [
-          '1. `/df <goal>` — talk to your orchestrator (default).',
-          '2. `/forge-add-droid` — expand the roster.',
-          '3. `/forge-logs` — review recent actions.',
-          '4. Read handbook: docs/DroidForge_user_guide_en.md',
-          '5. `/forge-removeall` — clean out DroidForge data.'
+          '1. `/forge-task <task>` — Get routing advice for your task',
+          '2. Invoke specialists: `/df-frontend`, `/df-backend`, `/df-auth`, etc.',
+          '3. Read handbook: docs/DroidForge_user_guide_en.md',
+          '4. `/forge-removeall` — Remove all DroidForge data'
         ]
       }
     ]
