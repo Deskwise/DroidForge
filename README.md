@@ -159,11 +159,11 @@ In any directory, start your Droid CLI session and type:
 DroidForge will guide you through MCP configuration if needed during the onboarding process.
 
 DroidForge will:
-1. 📂 Scan your repository
-2. 🎯 Ask about your project goal  
-3. 🤝 Suggest a methodology and droid team
-4. ⚙️ Create specialists and orchestrator
-5. 📚 Generate documentation
+1. Scan your repository
+2. Ask about your project goal
+3. Suggest a methodology and droid team
+4. Create specialists and orchestrator
+5. Generate documentation
 
 Then start working:
 
@@ -184,7 +184,7 @@ See [QUICKSTART.md](QUICKSTART.md) for a detailed walkthrough.
 
 ---
 
-## 📖 How It Works
+## How It Works
 
 ### 1. SmartScan: Understanding Your Project
 
@@ -307,7 +307,7 @@ The magic is in the details. Each droid doesn't just know "React" - they know:
 
 ---
 
-## 🎯 Real-World Examples
+## Real-World Examples
 
 ### Example 1: Adding Authentication
 
@@ -403,7 +403,7 @@ When you ask for a feature, DroidForge coordinates across all platforms while ea
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 DroidForge/
