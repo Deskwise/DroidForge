@@ -59,28 +59,6 @@ async function setExecutablePermissions(filePath) {
   // Windows doesn't need explicit executable permissions for these files
 }
 
-/**
- * Get the path to the MCP server binary
- */
-async function getMCPServerPath() {
-  const { execSync } = await import('child_process');
-  
-  try {
-    // Try to find the globally installed binary
-    return execSync.default ? execSync.default('which droidforge-mcp-server', { encoding: 'utf8' }).trim() 
-                            : execSync('which droidforge-mcp-server', { encoding: 'utf8' }).trim();
-  } catch {
-    // Fallback: construct path based on npm global root
-    try {
-      const exec = execSync.default || execSync;
-      const npmRoot = exec('npm root -g', { encoding: 'utf8' }).trim();
-      return path.join(npmRoot, 'droidforge', 'dist', 'mcp', 'stdio-server.js');
-    } catch {
-      return null;
-    }
-  }
-}
-
 async function installGlobalCommands() {
   try {
     const platformName = platform();
@@ -154,15 +132,8 @@ async function installGlobalCommands() {
       console.log(`DroidForge: Installed ${installedCount} global commands to ~/.factory/commands/`);
       console.log('');
       console.log('Next step: Register the MCP server in Factory Droid');
-      
-      const serverPath = await getMCPServerPath();
-      if (serverPath) {
-        console.log('Run this command in any droid session:');
-        console.log(`  /mcp add droidforge node ${serverPath}`);
-      } else {
-        console.log('Run this command in any droid session:');
-        console.log('  /mcp add droidforge node $(which droidforge-mcp-server)');
-      }
+      console.log('Run this command in any droid session:');
+      console.log('  /mcp add droidforge droidforge-mcp-server');
       console.log('');
     }
     
