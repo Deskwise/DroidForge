@@ -8,7 +8,7 @@ export function createRestoreSnapshotScript(repoRoot: string): PromptScript {
       {
         kind: 'tool',
         name: 'list_snapshots',
-        input: { repoRoot }
+        input: { repoRoot: { literal: repoRoot } }
       },
       {
         kind: 'choice',
@@ -24,12 +24,12 @@ export function createRestoreSnapshotScript(repoRoot: string): PromptScript {
       {
         kind: 'tool',
         name: 'generate_user_guide',
-        input: { repoRoot }
+        input: { repoRoot: { literal: repoRoot } }
       },
       {
         kind: 'tool',
         name: 'install_commands',
-        input: { repoRoot }
+        input: { repoRoot: { literal: repoRoot } }
       },
       {
         kind: 'say',

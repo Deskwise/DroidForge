@@ -8,17 +8,17 @@ export function createCleanupScript(repoRoot: string): PromptScript {
       {
         kind: 'say',
         speaker: 'assistant',
-        text: '⚠️  This will remove all DroidForge data from your repository.'
+        text: 'WARNING: This will remove all DroidForge data from your repository.'
       },
       {
         kind: 'tool',
         name: 'cleanup_repo',
-        input: { repoRoot }
+        input: { repoRoot: { literal: repoRoot } }
       },
       {
         kind: 'say',
         speaker: 'assistant',
-        text: '📋 Preview above shows what will be removed.\n\n🔐 To proceed with deletion, type exactly: remove all droids\n\n(Or press Ctrl+C to cancel)'
+        text: 'Preview above shows what will be removed.\n\nTo proceed with deletion, type exactly: remove all droids\n\n(Or press Ctrl+C to cancel)'
       },
       {
         kind: 'input',
@@ -31,7 +31,7 @@ export function createCleanupScript(repoRoot: string): PromptScript {
         kind: 'tool',
         name: 'cleanup_repo',
         input: {
-          repoRoot,
+          repoRoot: { literal: repoRoot },
           confirmationString: { fromInput: 'confirmation-string' }
         }
       }

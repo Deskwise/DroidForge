@@ -16,7 +16,7 @@ export function createResumeOnboardingScript(sessionId: string, repoRoot: string
     repoRoot,
     segments: [
       { kind: 'say', speaker: 'assistant', text: message },
-      { kind: 'tool', name: 'get_status', input: { repoRoot } },
+      { kind: 'tool', name: 'get_status', input: { repoRoot: { literal: repoRoot } } },
       { kind: 'say', speaker: 'assistant', text: 'When you are ready, rerun `/forge-start` to continue the guided flow.' }
     ]
   };

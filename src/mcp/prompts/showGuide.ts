@@ -8,7 +8,7 @@ export function createShowGuideScript(repoRoot: string): PromptScript {
       {
         kind: 'tool',
         name: 'generate_user_guide',
-        input: { repoRoot }
+        input: { repoRoot: { literal: repoRoot } }
       },
       {
         kind: 'say',

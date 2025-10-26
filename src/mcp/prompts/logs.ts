@@ -8,7 +8,7 @@ export function createLogsScript(repoRoot: string, limit = 10): PromptScript {
       {
         kind: 'tool',
         name: 'fetch_logs',
-        input: { repoRoot, limit }
+        input: { repoRoot: { literal: repoRoot }, limit: { literal: limit } }
       },
       {
         kind: 'say',

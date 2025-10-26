@@ -5,11 +5,11 @@ export function createReturningUserScript(repoRoot: string): PromptScript {
     name: 'returning_user',
     repoRoot,
     segments: [
-      { kind: 'tool', name: 'get_status', input: { repoRoot } },
+      { kind: 'tool', name: 'get_status', input: { repoRoot: { literal: repoRoot } } },
       {
         kind: 'say',
         speaker: 'assistant',
-        text: '🔥 DroidForge ready. Your team is warmed up and waiting.'
+        text: 'DroidForge ready. Your team is warmed up and waiting.'
       },
       {
         kind: 'summary',
