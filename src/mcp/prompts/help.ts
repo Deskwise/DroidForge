@@ -12,7 +12,7 @@ export function createHelpScript(): PromptScript {
           '`/forge-resume` — continue an unfinished forge.',
           '`/df <goal>` — talk to the orchestrator (primary command).',
           '`/forge-add-droid` — craft a custom specialist.',
-          '`/forge-guide` — reopen the handbook.',
+          'Read the handbook: docs/DroidForge_user_guide_en.md',
           '`/forge-logs` — see recent activity.',
           '`/forge-removeall` — remove DroidForge artifacts.',
           '`/forge-restore` — restore a snapshot.'

@@ -48,9 +48,8 @@ export function createOrchestratorParallelScript(ctx: ParallelContext): PromptSc
         kind: 'summary',
         title: 'Execution started',
         lines: [
-          '• Use `/forge-status` to monitor live progress.',
           '• Use `/forge-logs --execution <id>` for detailed timeline events.',
-          '• Use `/forge-guide` anytime for handbook updates.',
+          '• Read handbook: docs/DroidForge_user_guide_en.md',
           '• Pause with `pause_execution` tool or resume with `resume_execution` if needed.'
         ]
       }

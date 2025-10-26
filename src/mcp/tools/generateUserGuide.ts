@@ -82,7 +82,7 @@ export function createGenerateUserGuideTool(deps: Deps): ToolDefinition<Generate
         quickActions: [
           'Type `/forge-task <task>` to get routing advice on which specialist to use.',
           'Invoke specialists directly: `/df-frontend`, `/df-backend`, `/df-auth`, etc.',
-          'Use `/forge-guide` to revisit this guide anytime.',
+          'Read this guide anytime: docs/DroidForge_user_guide_en.md',
           'Use `/forge-removeall` to clean up if you no longer need the team.'
         ],
         examples: [

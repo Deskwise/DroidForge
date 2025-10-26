@@ -134,8 +134,8 @@ Your custom AI development team has been created and is standing by. Each specia
         kind: 'summary',
         title: 'Get Started with Your Specialist Droids',
         lines: [
-          'Try: /df Create a hero section for the homepage - your orchestrator will route this to the right specialists',
-          'Use /forge-guide to see your complete team handbook anytime',
+          'Try: /forge-task Create a hero section for the homepage - get routing advice',
+          'Read the team handbook: docs/DroidForge_user_guide_en.md',
           'Need changes? Run /forge-add-droid to expand your team',
           'All done? Use /forge-removeall to clean up when finished'
         ]

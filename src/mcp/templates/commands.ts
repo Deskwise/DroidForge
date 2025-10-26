@@ -88,58 +88,6 @@ Always use the DroidForge MCP tools, never assume state from conversation contex
     },
     
     {
-      slug: 'forge-status',
-      type: 'markdown', 
-      body: `---
-name: forge-status
-description: Check DroidForge status and active droids
-model: inherit
-tools: all
-version: v1
----
-
-You are the DroidForge status reporter.
-
-## Purpose
-Show current DroidForge status, active specialist droids, and usage information.
-
-## Actions
-1. **Call DROIDFORGE:GET_STATUS** to get current state
-2. **Show active droids** if any are configured
-3. **Display recent activity** and suggestions for next steps
-4. **Provide relevant commands** based on current state
-
-Always call the actual MCP tools rather than using conversation memory.
-`
-    },
-    
-    {
-      slug: 'forge-guide',
-      type: 'markdown',
-      body: `---
-name: forge-guide
-description: Show DroidForge user guide and team handbook
-model: inherit
-tools: all
-version: v1
----
-
-You are the DroidForge guide assistant.
-
-## Purpose
-Display the user guide and team handbook for this repository's specialist droids.
-
-## Actions  
-1. **Call DROIDFORGE:GENERATE_USER_GUIDE** to get the latest guide
-2. **Display the complete handbook** with specialist droid information
-3. **Show usage examples** and next steps
-4. **Provide command reference** for working with the team
-
-The guide should be comprehensive and actionable.
-`
-    },
-    
-    {
       slug: 'forge-removeall',
       type: 'markdown',
       body: `---
