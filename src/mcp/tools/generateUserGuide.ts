@@ -35,7 +35,7 @@ function buildGuide(markdownContext: {
   const { projectSummary, rosterTable, primaryCommand, quickActions, examples, maintenanceTips } = markdownContext;
   return [
     '──────────────────────────────────────────────',
-    '📘 DROIDFORGE USER GUIDE',
+    'DROIDFORGE USER GUIDE',
     '──────────────────────────────────────────────',
     '',
     projectSummary,
@@ -44,7 +44,7 @@ function buildGuide(markdownContext: {
     ...quickActions.map(action => `• ${action}`),
     '',
     '## Talk to your team',
-    `Use \`${primaryCommand} <request>\` to ask the orchestrator for anything.`,
+    'Use `/forge-task <description>` for routing advice, then invoke the specialist directly.',
     '',
     '## Roster',
     rosterTable,
@@ -80,14 +80,16 @@ export function createGenerateUserGuideTool(deps: Deps): ToolDefinition<Generate
         rosterTable,
         primaryCommand: manifest.primaryCommand,
         quickActions: [
-          'Type `/df <goal>` to let the orchestrator coordinate specialists.',
+          'Type `/forge-task <task>` to get routing advice on which specialist to use.',
+          'Invoke specialists directly: `/df-frontend`, `/df-backend`, `/df-auth`, etc.',
           'Use `/forge-guide` to revisit this guide anytime.',
           'Use `/forge-removeall` to clean up if you no longer need the team.'
         ],
         examples: [
-          '/df Make this repository Windows 11 compatible',
-          '/df Draft release notes for the latest sprint',
-          '/df Audit dependencies and surface risky upgrades'
+          '/forge-task Add user authentication → routes you to /df-auth',
+          '/df-frontend Create a responsive navigation menu',
+          '/df-backend Implement REST API for user management',
+          '/df-database Design schema for multi-tenant app'
         ],
         maintenanceTips: [
           'Run `/forge-add-droid` to introduce new specialists.',
