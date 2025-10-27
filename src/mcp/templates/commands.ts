@@ -120,18 +120,38 @@ Check the repository status and either:
 3. **If status is "ready"**: Show active droids and next steps
 4. **If status is "incomplete"**: Resume where they left off with existing sessionId
 
-## Enhanced Onboarding Flow
-When onboarding is needed, guide users through:
-1. Call SMART_SCAN (repoRoot only) - captures sessionId from response
-2. Call RECORD_PROJECT_GOAL (repoRoot + sessionId from step 1)
-3. Call SELECT_METHODOLOGY (repoRoot + sessionId from step 1)
-4. Call RECOMMEND_DROIDS (repoRoot + sessionId from step 1)
-5. Call FORGE_ROSTER (repoRoot + sessionId from step 1)
+## Enhanced Onboarding Flow - CONVERSATIONAL, NOT BATCH
+When onboarding is needed, follow this INTERACTIVE flow:
 
-**CRITICAL**:
-- SMART_SCAN returns a sessionId in its output - you MUST capture and use it
-- ALL subsequent onboarding tools require the sessionId from SMART_SCAN
-- Do NOT make up or generate sessionIds yourself
+1. **Call SMART_SCAN** (repoRoot only)
+   - Capture the sessionId from the response
+   - Tell user what you found in their repo
+
+2. **ASK user about their project vision**
+   - "What are you building? Describe your project goals."
+   - WAIT FOR USER RESPONSE
+   - After user responds, call RECORD_PROJECT_GOAL (repoRoot + sessionId + their description)
+
+3. **ASK user about methodology**
+   - Present methodology options (Agile, TDD, Waterfall, etc.)
+   - "Which development approach fits your project?"
+   - WAIT FOR USER RESPONSE
+   - After user responds, call SELECT_METHODOLOGY (repoRoot + sessionId + their choice)
+
+4. **Call RECOMMEND_DROIDS** (repoRoot + sessionId)
+   - Show user the recommended specialist team
+   - ASK if they want to customize the team
+   - WAIT FOR USER RESPONSE if they want changes
+
+5. **Call FORGE_ROSTER** (repoRoot + sessionId + any customizations)
+   - Create the droid team
+   - Show user the results
+
+**CRITICAL RULES**:
+- NEVER call a tool that requires user input before getting that input
+- ASK questions, WAIT for answers, THEN call tools
+- SMART_SCAN returns sessionId - capture it and use it for ALL subsequent calls
+- Do NOT batch tool calls - this is a conversation, not a script
 - Keep sessionId internal - don't mention it to users
 
 Always use the DroidForge MCP tools, never assume state from conversation context.
