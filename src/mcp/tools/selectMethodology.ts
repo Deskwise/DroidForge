@@ -1,6 +1,6 @@
 import { appendLog } from '../logging.js';
 import type { SessionStore } from '../sessionStore.js';
-import type { SelectMethodologyInput, SelectMethodologyOutput, ToolDefinition } from '../types.js';
+import type { SelectMethodologyInput, SelectMethodologyOutput, ToolDefinition, OnboardingSession } from '../types.js';
 
 const ALLOWED = new Set([
   'agile',
@@ -24,15 +24,21 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
     description: 'Record the methodology selection from onboarding.',
     handler: async input => {
       const { repoRoot, sessionId, choice, otherText } = input;
-      if (!sessionId) {
-        throw new Error('select_methodology requires a sessionId from smart_scan');
-      }
+      
       if (!ALLOWED.has(choice)) {
         throw new Error(`Unsupported methodology choice: ${choice}`);
       }
-      const session = await deps.sessionStore.load(repoRoot, sessionId);
+      
+      // Try to load by sessionId first (if provided), otherwise load the active session
+      let session: OnboardingSession | null = null;
+      if (sessionId) {
+        session = await deps.sessionStore.load(repoRoot, sessionId);
+      } else {
+        session = await deps.sessionStore.loadActive(repoRoot);
+      }
+      
       if (!session) {
-        throw new Error(`No active onboarding session for ${sessionId}`);
+        throw new Error('No active onboarding session found. Please run /forge-start first.');
       }
       const resolved = choice === 'other'
         ? (otherText?.trim() || 'custom')
@@ -44,7 +50,7 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
         timestamp: new Date().toISOString(),
         event: 'select_methodology',
         status: 'ok',
-        payload: { sessionId, methodology: resolved }
+        payload: { sessionId: session.sessionId, methodology: resolved }
       });
       return { methodology: resolved };
     }

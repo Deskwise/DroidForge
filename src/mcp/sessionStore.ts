@@ -49,4 +49,47 @@ export class SessionStore {
       throw error;
     }
   }
+
+  /**
+   * Find the most recent session for a repo (by creation timestamp).
+   * This allows tools to work without explicitly passing sessionId.
+   */
+  async loadActive(repoRoot: string): Promise<OnboardingSession | null> {
+    const dir = path.join(repoRoot, SESSION_DIRNAME);
+    try {
+      const files = await fs.readdir(dir);
+      const sessionFiles = files.filter(f => f.endsWith('.json'));
+      
+      if (sessionFiles.length === 0) {
+        return null;
+      }
+
+      // Load all sessions and find the most recent one
+      const sessions = await Promise.all(
+        sessionFiles.map(async file => {
+          try {
+            const raw = await fs.readFile(path.join(dir, file), 'utf8');
+            return JSON.parse(raw) as OnboardingSession;
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      const validSessions = sessions.filter((s): s is OnboardingSession => s !== null);
+      if (validSessions.length === 0) {
+        return null;
+      }
+
+      // Return the most recently created session
+      return validSessions.reduce((latest, current) => {
+        return new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest;
+      });
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return null;
+      }
+      throw error;
+    }
+  }
 }
