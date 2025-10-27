@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import { appendLog } from '../logging.js';
 import type { SessionStore } from '../sessionStore.js';
 import type { RecordProjectGoalInput, RecordProjectGoalOutput, ToolDefinition } from '../types.js';
@@ -13,11 +12,12 @@ export function createRecordProjectGoalTool(deps: Deps): ToolDefinition<RecordPr
     description: 'Persist the user\'s goal description gathered during onboarding.',
     handler: async input => {
       const { repoRoot, sessionId, description } = input;
-      // Generate a sessionId if not provided
-      const finalSessionId = sessionId || randomUUID();
-      const session = await deps.sessionStore.load(repoRoot, finalSessionId);
+      if (!sessionId) {
+        throw new Error('record_project_goal requires a sessionId from smart_scan');
+      }
+      const session = await deps.sessionStore.load(repoRoot, sessionId);
       if (!session) {
-        throw new Error(`No active onboarding session for ${finalSessionId}`);
+        throw new Error(`No active onboarding session for ${sessionId}`);
       }
       session.description = description?.trim() || '';
       session.state = 'methodology';
@@ -26,7 +26,7 @@ export function createRecordProjectGoalTool(deps: Deps): ToolDefinition<RecordPr
         timestamp: new Date().toISOString(),
         event: 'record_project_goal',
         status: 'ok',
-        payload: { sessionId: finalSessionId }
+        payload: { sessionId }
       });
       return { ack: true } as const;
     }

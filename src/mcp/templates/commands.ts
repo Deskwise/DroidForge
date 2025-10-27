@@ -114,24 +114,24 @@ Check the repository status and either:
 ## Actions
 1. GET_STATUS already called in verification step above
 2. **If status is "needs-onboarding"**:
-   - Call SMART_SCAN with repoRoot parameter (sessionId is optional - tool will generate it)
-   - Continue with project vision discovery
-   - Continue with methodology selection
-   - Continue with specialist droid team assembly
+   - Call SMART_SCAN with repoRoot parameter only
+   - CAPTURE the sessionId from SMART_SCAN's output
+   - Use that sessionId for ALL subsequent onboarding calls
 3. **If status is "ready"**: Show active droids and next steps
 4. **If status is "incomplete"**: Resume where they left off with existing sessionId
 
 ## Enhanced Onboarding Flow
 When onboarding is needed, guide users through:
-- Welcome & repository analysis (call SMART_SCAN with sessionId)
-- Project vision discovery (call RECORD_PROJECT_GOAL with sessionId)
-- Methodology selection (call SELECT_METHODOLOGY with sessionId)
-- Specialist droid team assembly (call RECOMMEND_DROIDS with sessionId)
-- Team creation and setup (call FORGE_ROSTER with sessionId)
+1. Call SMART_SCAN (repoRoot only) - captures sessionId from response
+2. Call RECORD_PROJECT_GOAL (repoRoot + sessionId from step 1)
+3. Call SELECT_METHODOLOGY (repoRoot + sessionId from step 1)
+4. Call RECOMMEND_DROIDS (repoRoot + sessionId from step 1)
+5. Call FORGE_ROSTER (repoRoot + sessionId from step 1)
 
-**IMPORTANT**:
-- SMART_SCAN will auto-generate a sessionId if not provided
-- Other onboarding tools will be called with the sessionId from the previous step
+**CRITICAL**:
+- SMART_SCAN returns a sessionId in its output - you MUST capture and use it
+- ALL subsequent onboarding tools require the sessionId from SMART_SCAN
+- Do NOT make up or generate sessionIds yourself
 - Keep sessionId internal - don't mention it to users
 
 Always use the DroidForge MCP tools, never assume state from conversation context.

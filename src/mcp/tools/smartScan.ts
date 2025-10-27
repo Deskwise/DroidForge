@@ -107,6 +107,7 @@ export function createSmartScanTool(deps: SmartScanDeps): ToolDefinition<SmartSc
       await deps.sessionStore.save(repoRoot, session);
 
       return {
+        sessionId: finalSessionId,
         summary,
         signals,
         primaryLanguage: null,

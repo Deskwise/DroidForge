@@ -40,6 +40,7 @@ export interface ToolContext {
 export interface SmartScanInput extends ToolContext {}
 
 export interface SmartScanOutput {
+  sessionId: string;
   summary: string;
   signals: string[];
   primaryLanguage: string | null;

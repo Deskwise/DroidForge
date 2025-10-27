@@ -1,4 +1,3 @@
-import { randomUUID } from 'node:crypto';
 import { appendLog } from '../logging.js';
 import type { SessionStore } from '../sessionStore.js';
 import type { SelectMethodologyInput, SelectMethodologyOutput, ToolDefinition } from '../types.js';
@@ -25,14 +24,15 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
     description: 'Record the methodology selection from onboarding.',
     handler: async input => {
       const { repoRoot, sessionId, choice, otherText } = input;
-      // Generate a sessionId if not provided
-      const finalSessionId = sessionId || randomUUID();
+      if (!sessionId) {
+        throw new Error('select_methodology requires a sessionId from smart_scan');
+      }
       if (!ALLOWED.has(choice)) {
         throw new Error(`Unsupported methodology choice: ${choice}`);
       }
-      const session = await deps.sessionStore.load(repoRoot, finalSessionId);
+      const session = await deps.sessionStore.load(repoRoot, sessionId);
       if (!session) {
-        throw new Error(`No active onboarding session for ${finalSessionId}`);
+        throw new Error(`No active onboarding session for ${sessionId}`);
       }
       const resolved = choice === 'other'
         ? (otherText?.trim() || 'custom')
@@ -44,7 +44,7 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
         timestamp: new Date().toISOString(),
         event: 'select_methodology',
         status: 'ok',
-        payload: { sessionId: finalSessionId, methodology: resolved }
+        payload: { sessionId, methodology: resolved }
       });
       return { methodology: resolved };
     }
