@@ -1,6 +1,6 @@
 {
   "name": "droidforge",
-  "version": "1.6.4",
+  "version": "1.6.5",
   "description": "Transform any repository into a specialized AI droid army with intelligent conversational analysis",
   "type": "module",
   "main": "./dist/mcp/server.js",
