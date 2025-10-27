@@ -36,11 +36,11 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
         speaker: 'assistant',
         text: `Got it. What are you building?
 
+Please describe your project goals and vision. What kind of application or system do you want to create? This will help me recommend the right development methodology and specialist droid team for your needs.
+
 Examples:
   "iOS artillery game with physics"
-  "Landing page for a dentist office"
-  "Workout tracking app"
-  "Converting my Python tool to Rust"`
+  "Landing page for a dentist office"`
       },
       {
         kind: 'input',
