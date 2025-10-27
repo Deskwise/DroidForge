@@ -84,7 +84,7 @@ You are the DroidForge setup assistant.
    
       /mcp add droidforge droidforge-mcp-server
    
-   Step 2: Exit this droid session completely (Ctrl+C or type 'exit')
+   Step 2: Exit this droid session completely (Ctrl+C twice or type /quit)
    
    Step 3: Relaunch droid in your project directory
    
@@ -107,10 +107,11 @@ Check the repository status and either:
 
 ## Actions
 1. GET_STATUS already called in verification step above
-2. **If status is "needs-onboarding"**: 
-   - Generate a unique sessionId silently (use timestamp + random: e.g., "session-1234567890-abc123")
-   - DO NOT announce the sessionId to the user - they don't need to know internal IDs
-   - Start the enhanced onboarding with that sessionId
+2. **If status is "needs-onboarding"**:
+   - Call SMART_SCAN with repoRoot parameter (sessionId is optional - tool will generate it)
+   - Continue with project vision discovery
+   - Continue with methodology selection
+   - Continue with specialist droid team assembly
 3. **If status is "ready"**: Show active droids and next steps
 4. **If status is "incomplete"**: Resume where they left off with existing sessionId
 
@@ -122,9 +123,9 @@ When onboarding is needed, guide users through:
 - Specialist droid team assembly (call RECOMMEND_DROIDS with sessionId)
 - Team creation and setup (call FORGE_ROSTER with sessionId)
 
-**IMPORTANT**: 
-- All onboarding tools require a sessionId parameter
-- Generate sessionId once at the start and use it consistently
+**IMPORTANT**:
+- SMART_SCAN will auto-generate a sessionId if not provided
+- Other onboarding tools will be called with the sessionId from the previous step
 - Keep sessionId internal - don't mention it to users
 
 Always use the DroidForge MCP tools, never assume state from conversation context.

@@ -22,7 +22,7 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'say',
         speaker: 'assistant',
-        text: '🤖 Smart-scanning your folder…'
+        text: 'Smart-scanning your folder...'
       },
       {
         kind: 'tool',
@@ -32,7 +32,7 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'say',
         speaker: 'assistant',
-        text: '✅ Scan complete! Based on what I saw, I have a good feel for your repo. Now let me learn what you want from your droids.'
+        text: 'Scan complete! Based on what I saw, I have a good feel for your repo. Now let me learn what you want from your droids.'
       },
       {
         kind: 'input',

@@ -1,4 +1,5 @@
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { scanRepo } from '../../detectors/repoSignals.js';
 import { scanScripts } from '../../detectors/scripts.js';
 import type { SessionStore } from '../sessionStore.js';
@@ -58,12 +59,11 @@ function buildSignals(frameworks: string[], prdPaths: string[], testConfigs: str
 export function createSmartScanTool(deps: SmartScanDeps): ToolDefinition<SmartScanInput, SmartScanOutput> {
   return {
     name: 'smart_scan',
-    description: 'Analyze repository footprints to seed onboarding context.',
+    description: 'Analyze repository footprints to seed onboarding context. Generates sessionId if not provided.',
     handler: async input => {
       const { repoRoot, sessionId } = input;
-      if (!sessionId) {
-        throw new Error('smart_scan requires a sessionId');
-      }
+      // Generate a sessionId if not provided
+      const finalSessionId = sessionId || randomUUID();
       const [repoSignals, scripts] = await Promise.all([
         scanRepo(repoRoot),
         scanScripts(repoRoot)
@@ -90,7 +90,7 @@ export function createSmartScanTool(deps: SmartScanDeps): ToolDefinition<SmartSc
       }
 
       const session: OnboardingSession = {
-        sessionId,
+        sessionId: finalSessionId,
         repoRoot,
         createdAt: new Date().toISOString(),
         state: 'collecting-goal',
