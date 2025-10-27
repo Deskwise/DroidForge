@@ -3,10 +3,16 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 export async function scanScripts(root: string) {
-  const files = await globby([
-    'scripts/**/*.{sh,py,ps1}',
-    'Makefile'
-  ], { cwd: root, gitignore: true });
+  let files: string[] = [];
+  try {
+    files = await globby([
+      'scripts/**/*.{sh,py,ps1}',
+      'Makefile'
+    ], { cwd: root, gitignore: true });
+  } catch (error) {
+    // Handle directory access errors
+    files = [];
+  }
   
   const npmScripts: Array<{name: string; command: string; path: string}> = [];
   
