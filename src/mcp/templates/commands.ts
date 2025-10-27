@@ -133,10 +133,37 @@ When onboarding is needed, follow this INTERACTIVE flow:
    - After user responds, call RECORD_PROJECT_GOAL (repoRoot + sessionId + their description)
 
 3. **ASK user about methodology**
-   - Present methodology options (Agile, TDD, Waterfall, etc.)
-   - "Which development approach fits your project?"
+   - Present ALL 10 methodology options with NUMBERS (1-10):
+     1. agile - Iterative sprints, flexible requirements
+     2. tdd - Test-Driven Development, write tests first
+     3. bdd - Behavior-Driven Development, user story focused
+     4. waterfall - Plan upfront, sequential phases
+     5. kanban - Continuous flow, visual boards
+     6. lean - Build-Measure-Learn, MVP focused
+     7. ddd - Domain-Driven Design, business logic modeling
+     8. devops - Infrastructure as code, CI/CD
+     9. rapid - Rapid prototyping, speed over polish
+     10. enterprise - Documentation, governance, compliance
+   - Then suggest TOP 3 that best match their project
+   - "Enter the number (1-10) or type the name"
    - WAIT FOR USER RESPONSE
-   - After user responds, call SELECT_METHODOLOGY (repoRoot + sessionId + their choice)
+   - Map user input to methodology code:
+     * "1" or "agile" → "agile"
+     * "2" or "tdd" → "tdd"  
+     * "3" or "bdd" → "bdd"
+     * "4" or "waterfall" → "waterfall"
+     * "5" or "kanban" → "kanban"
+     * "6" or "lean" → "lean"
+     * "7" or "ddd" → "ddd"
+     * "8" or "devops" → "devops"
+     * "9" or "rapid" → "rapid"
+     * "10" or "enterprise" → "enterprise"
+   - Then call SELECT_METHODOLOGY tool with JSON parameters:
+     {
+       "repoRoot": "<the repo path>",
+       "choice": "<the mapped methodology code from above>"
+     }
+   - CRITICAL: The "choice" parameter MUST be one of the exact strings above (lowercase)
 
 4. **Call RECOMMEND_DROIDS** (repoRoot + sessionId)
    - Show user the recommended specialist team

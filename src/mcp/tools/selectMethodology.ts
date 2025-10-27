@@ -4,11 +4,14 @@ import type { SelectMethodologyInput, SelectMethodologyOutput, ToolDefinition, O
 
 const ALLOWED = new Set([
   'agile',
+  'tdd',
+  'bdd',
   'waterfall',
   'kanban',
-  'tdd',
-  'sdd',
-  'startup',
+  'lean',
+  'ddd',
+  'devops',
+  'rapid',
   'enterprise',
   'none',
   'other'

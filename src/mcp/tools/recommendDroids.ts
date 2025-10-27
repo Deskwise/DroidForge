@@ -16,12 +16,16 @@ export function createRecommendDroidsTool(deps: Deps): ToolDefinition<RecommendD
     name: 'recommend_droids',
     description: 'Propose an initial roster based on scan + methodology.',
     handler: async input => {
-      if (!input.sessionId) {
-        throw new Error('recommend_droids requires a sessionId');
+      // Try to load by sessionId first (if provided), otherwise load the active session
+      let session = null;
+      if (input.sessionId) {
+        session = await deps.sessionStore.load(input.repoRoot, input.sessionId);
+      } else {
+        session = await deps.sessionStore.loadActive(input.repoRoot);
       }
-      const session = await deps.sessionStore.load(input.repoRoot, input.sessionId);
+      
       if (!session) {
-        throw new Error(`No active onboarding session for ${input.sessionId}`);
+        throw new Error('No active onboarding session found. Please run /forge-start first.');
       }
       const suggestions = buildSuggestions(session);
       session.state = 'roster';

@@ -58,11 +58,14 @@ export interface RecordProjectGoalOutput {
 
 export type MethodologyChoice =
   | 'agile'
+  | 'tdd'
+  | 'bdd'
   | 'waterfall'
   | 'kanban'
-  | 'tdd'
-  | 'sdd'
-  | 'startup'
+  | 'lean'
+  | 'ddd'
+  | 'devops'
+  | 'rapid'
   | 'enterprise'
   | 'none'
   | 'other';
