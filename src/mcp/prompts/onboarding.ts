@@ -23,9 +23,9 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       {
         kind: 'say',
         speaker: 'assistant',
-        text: `Hi! I'm your DroidForge architect. I help you build custom AI specialist droid teams.
+        text: `Hi! I'm your DroidForge architect. I help you build custom AI specialist droid teams. Let me quickly scan your repository to understand what we're working with...
 
-Let me quickly scan your repository to understand what we're working with...`
+IMPORTANT: I will not use emojis in my responses. All communication will be clean text only.`
       },
       {
         kind: 'tool',
