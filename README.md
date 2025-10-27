@@ -146,17 +146,30 @@ npm install -g droidforge
 
 ### First Run
 
-**Zero setup required!** Commands work instantly after installation.
+#### Step 1: Register the MCP Server
 
-In any directory, start your Droid CLI session and type:
+After installation, you need to register DroidForge with Factory Droid **once**:
+
+```bash
+# In any droid session, run:
+/mcp add droidforge droidforge-mcp-server
+
+# Then exit and relaunch your droid session
+```
+
+**Verify**: Look for a green MCP indicator with ✓ checkmark in your droid status bar.
+
+#### Step 2: Start Onboarding
+
+Navigate to your project directory and run:
 
 ```
 /forge-start
 ```
 
-**It just works!** `/forge-start` is available immediately after `npm install`.
+**If you see "MCP Server Not Registered"**: You skipped Step 1. Follow the displayed instructions to register the MCP server first.
 
-DroidForge will guide you through MCP configuration if needed during the onboarding process.
+**Once registered**: DroidForge will analyze your codebase and guide you through creating your custom specialist team!
 
 DroidForge will:
 1. Scan your repository
