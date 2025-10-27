@@ -163,22 +163,30 @@ After installation, you need to register DroidForge with Factory Droid **once**:
 
 Navigate to your project directory and run:
 
+```bash
+droid /forge-start
 ```
-/forge-start
+
+You'll have a natural conversation:
+- Tell DroidForge what you're building
+- Pick a methodology (or let it recommend the top three)
+- Confirm the specialist team it assembles for you
+
+Example:
+```
+> What are you building?
+"iOS artillery game with physics"
+
+> For physics accuracy, I recommend: 1. TDD  2. Rapid Prototyping  3. Agile
+"2"
+
+> Your team:
+  • Test-First Lead - Keeps the physics engine covered in tests
+  • iOS Specialist - Ships SwiftUI features fast
+  • Performance Analyst - Watches frame times and memory
 ```
 
-**If you see "MCP Server Not Registered"**: You skipped Step 1. Follow the displayed instructions to register the MCP server first.
-
-**Once registered**: DroidForge will analyze your codebase and guide you through creating your custom specialist team!
-
-DroidForge will:
-1. Scan your repository
-2. Ask about your project goal
-3. Suggest a methodology and droid team
-4. Create specialists and orchestrator
-5. Generate documentation
-
-Then start working:
+When you're ready to work:
 
 ```
 /df Implement user authentication with JWT
@@ -682,4 +690,3 @@ Most AI coding assistants have fundamental limitations:
 ```
 
 Let DroidForge assemble your perfect development team. 🚀
-

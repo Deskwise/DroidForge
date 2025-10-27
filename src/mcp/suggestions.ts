@@ -1,4 +1,5 @@
 import type { DroidSuggestion, OnboardingSession } from './types.js';
+import { METHODOLOGY_ROLES } from './generation/methodologyRoles.js';
 
 const BASE_SUGGESTIONS: DroidSuggestion[] = [
   {
@@ -33,6 +34,16 @@ const BASE_SUGGESTIONS: DroidSuggestion[] = [
   }
 ];
 
-export function buildSuggestions(_session: OnboardingSession | null): DroidSuggestion[] {
-  return BASE_SUGGESTIONS;
+export function buildSuggestions(session: OnboardingSession | null): DroidSuggestion[] {
+  const methodology = session?.methodology ?? 'agile';
+  const methodologyRole = METHODOLOGY_ROLES[methodology] || METHODOLOGY_ROLES.agile;
+
+  const methodologyLead: DroidSuggestion = {
+    id: `df-${methodology}-lead`,
+    label: methodologyRole.name,
+    summary: methodologyRole.purpose,
+    default: true
+  };
+
+  return [methodologyLead, ...BASE_SUGGESTIONS];
 }

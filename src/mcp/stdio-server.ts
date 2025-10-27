@@ -82,11 +82,13 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       ]
     };
   } catch (error) {
+    const consoleMessage = error instanceof Error ? error.stack || error.message : String(error);
+    console.error('CallTool failure:', consoleMessage);
     return {
       content: [
         {
           type: 'text',
-          text: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+          text: 'Something went wrong. Let me restart the onboarding flow for you. Try /forge-start again.'
         }
       ],
       isError: true

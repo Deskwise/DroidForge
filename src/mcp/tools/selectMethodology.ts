@@ -26,11 +26,30 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
     name: 'select_methodology',
     description: 'Record the methodology selection from onboarding.',
     handler: async input => {
-      const { repoRoot, sessionId, choice, otherText } = input;
+      let { repoRoot, sessionId, choice, otherText } = input;
       
-      if (!ALLOWED.has(choice)) {
-        throw new Error(`Unsupported methodology choice: ${choice}`);
+      // Map numbers to methodology names (user picks 1-10 to save typing)
+      const numberMap: Record<string, string> = {
+        '1': 'agile',
+        '2': 'tdd',
+        '3': 'bdd',
+        '4': 'waterfall',
+        '5': 'kanban',
+        '6': 'lean',
+        '7': 'ddd',
+        '8': 'devops',
+        '9': 'rapid',
+        '10': 'enterprise'
+      };
+      
+      // Map number to methodology, or accept lowercase methodology name directly
+      const mappedChoice = numberMap[choice] || choice.toLowerCase().trim();
+      
+      if (!ALLOWED.has(mappedChoice)) {
+        throw new Error(`Please enter a number between 1 and 10. For example: "2" for TDD, "9" for Rapid Prototyping.`);
       }
+      
+      choice = mappedChoice as typeof choice;
       
       // Try to load by sessionId first (if provided), otherwise load the active session
       let session: OnboardingSession | null = null;

@@ -5,7 +5,8 @@ import { writeJsonAtomic, ensureDir, readJsonIfExists, writeFileAtomic } from '.
 import type { CustomDroidSeed, ForgeRosterInput } from '../types.js';
 import type { DroidDefinition, DroidManifest } from '../../types.js';
 
-const DROID_DIR = '.factory/droids';
+const PRIMARY_DROID_DIR = '.factory/droids';
+const LEGACY_DROID_DIR = '.droidforge/droids';
 
 interface ForgeContext {
   repoRoot: string;
@@ -20,12 +21,16 @@ interface ManifestEntryInput {
   description?: string;
 }
 
+// Removed normalizeIdWithMethodology - methodology-specific droid already has correct ID from suggestions
+
 async function buildDefinitionWithPreserve(
   entry: ManifestEntryInput,
   ctx: ForgeContext,
-  filePath: string
+  primaryPath: string,
+  legacyPath: string
 ): Promise<DroidDefinition> {
-  const existing = await readJsonIfExists<DroidDefinition>(filePath);
+  const existing = await readJsonIfExists<DroidDefinition>(primaryPath)
+    ?? await readJsonIfExists<DroidDefinition>(legacyPath);
   const definition = createDroidDefinition(entry, ctx);
 
   // Preserve uuid if present on existing definition
@@ -147,22 +152,28 @@ export async function forgeDroids(input: ForgeRosterInput, ctx: ForgeContext): P
   const droids: DroidDefinition[] = [];
   const filePaths: string[] = [];
   const now = new Date().toISOString();
-  const droidDir = path.join(ctx.repoRoot, DROID_DIR);
-  await ensureDir(droidDir);
+  const primaryDir = path.join(ctx.repoRoot, PRIMARY_DROID_DIR);
+  const legacyDir = path.join(ctx.repoRoot, LEGACY_DROID_DIR);
+  await ensureDir(primaryDir);
+  await ensureDir(legacyDir);
 
   for (const entry of allEntries) {
     // Create DroidForge internal JSON definition
-    const jsonPath = path.join(droidDir, `${entry.id}.json`);
-    const definition = await buildDefinitionWithPreserve(entry, ctx, jsonPath);
-    await writeJsonAtomic(jsonPath, definition);
+    const primaryJsonPath = path.join(primaryDir, `${entry.id}.json`);
+    const legacyJsonPath = path.join(legacyDir, `${entry.id}.json`);
+    const legacyMdPath = path.join(legacyDir, `${entry.id}.md`);
+    const definition = await buildDefinitionWithPreserve(entry, ctx, primaryJsonPath, legacyJsonPath);
+    await writeJsonAtomic(primaryJsonPath, definition);
     
     // Create Droid CLI compatible markdown file
-    const mdPath = path.join(droidDir, `${entry.id}.md`);
+    const primaryMdPath = path.join(primaryDir, `${entry.id}.md`);
     const markdown = createDroidMarkdown(definition);
-    await writeFileAtomic(mdPath, markdown);
+    await writeFileAtomic(primaryMdPath, markdown);
+    await writeJsonAtomic(legacyJsonPath, definition);
+    await writeFileAtomic(legacyMdPath, markdown);
     
     droids.push(definition);
-    filePaths.push(jsonPath, mdPath);
+    filePaths.push(primaryJsonPath, primaryMdPath, legacyJsonPath, legacyMdPath);
   }
 
   const manifest: DroidManifest = {
@@ -185,9 +196,12 @@ export async function forgeDroids(input: ForgeRosterInput, ctx: ForgeContext): P
     snapshots: []
   };
 
-  const manifestPath = path.join(ctx.repoRoot, '.factory', 'droids-manifest.json');
-  await writeJsonAtomic(manifestPath, manifest);
-  filePaths.push(manifestPath);
+  const manifestPathPrimary = path.join(ctx.repoRoot, '.factory', 'droids-manifest.json');
+  const manifestPathLegacy = path.join(ctx.repoRoot, '.droidforge', 'droids-manifest.json');
+  await ensureDir(path.dirname(manifestPathLegacy));
+  await writeJsonAtomic(manifestPathPrimary, manifest);
+  await writeJsonAtomic(manifestPathLegacy, manifest);
+  filePaths.push(manifestPathPrimary, manifestPathLegacy);
 
   return { droids, manifest, filePaths };
 }
@@ -224,10 +238,11 @@ export async function addCustomDroid(
     description: seed.description
   };
 
-  const droidDir = path.join(repoRoot, DROID_DIR);
+  const droidDir = path.join(repoRoot, PRIMARY_DROID_DIR);
   await ensureDir(droidDir);
   const filePath = path.join(droidDir, `${entry.id}.json`);
-  const definition = await buildDefinitionWithPreserve(entry, ctx, filePath);
+  const legacyFilePath = path.join(repoRoot, LEGACY_DROID_DIR, `${entry.id}.json`);
+  const definition = await buildDefinitionWithPreserve(entry, ctx, filePath, legacyFilePath);
   await writeJsonAtomic(filePath, definition);
 
   const customIndex = manifest.customDroids.findIndex(d => d.id === entry.id);

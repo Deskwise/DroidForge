@@ -21,7 +21,7 @@ async function runOnboarding(server: ReturnType<typeof createServer>, repoRoot: 
       }
     } else if (event.type === 'choice') {
       if (event.segment.id === 'methodology-choice') {
-        runner.submitChoice('methodology-choice', 'startup');
+        runner.submitChoice('methodology-choice', 'lean');
       }
     }
   }

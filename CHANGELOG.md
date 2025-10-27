@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0] - 2025-10-27
+
+### Changed
+- Conversational onboarding replaces form-style prompts for `/forge-start`
+- Methodology selection now recommends the top three fits based on project context
+- First specialist in the roster reflects the chosen methodology role
+- Command templates explain each methodology in plain, outcome-focused language
+
+### Fixed
+- Removed sessionId handling from end-user commands; onboarding relies on the active session
+- Error messages during tool failures now guide users to restart with `/forge-start`
+- Methodology selection accepts numbers, names, or natural language without confusion
+
 ## [1.1.1] - 2025-10-25
 
 ### 🚀 **INSTANT COMMAND AVAILABILITY - Perfect User Experience**

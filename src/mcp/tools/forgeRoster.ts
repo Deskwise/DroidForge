@@ -50,13 +50,10 @@ export function createForgeRosterTool(deps: Deps): ToolDefinition<ForgeRosterInp
     name: 'forge_roster',
     description: 'Create droid definition files and manifest for the selected roster.',
     handler: async input => {
-      const { repoRoot, sessionId } = input;
-      if (!sessionId) {
-        throw new Error('forge_roster requires a sessionId');
-      }
-      const session = await deps.sessionStore.load(repoRoot, sessionId);
+      const { repoRoot } = input;
+      const session = await deps.sessionStore.loadActive(repoRoot);
       if (!session) {
-        throw new Error(`No active onboarding session for ${sessionId}`);
+        throw new Error('No active onboarding session found. Please run /forge-start first.');
       }
       session.state = 'forging';
 
@@ -83,7 +80,7 @@ export function createForgeRosterTool(deps: Deps): ToolDefinition<ForgeRosterInp
         timestamp: new Date().toISOString(),
         event: 'forge_roster',
         status: 'ok',
-        payload: { sessionId, count: result.droids.length }
+        payload: { sessionId: session.sessionId, count: result.droids.length }
       });
 
       return {

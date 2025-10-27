@@ -1,11 +1,52 @@
 import type { InstallCommandPayload } from '../types.js';
+import { METHODOLOGY_ROLES } from '../generation/methodologyRoles.js';
 
 /**
  * Build default command definitions for a repository.
  * These are fallback commands installed when none are explicitly provided.
  */
 export async function buildDefaultCommands(repoRoot: string): Promise<InstallCommandPayload[]> {
+  const methodologyEntries = Object.entries(METHODOLOGY_ROLES);
+  const methodologyList = methodologyEntries.map(([id, role], i) =>
+    `     ${i + 1}. ${role.name} (${id}) - ${role.purpose}`
+  ).join('\n');
+
   return [
+    // Primary orchestrator
+    {
+      slug: 'df',
+      type: 'markdown',
+      body: `---
+name: df
+description: Talk to your DroidForge orchestrator
+argument-hint: <request>
+model: inherit
+tools: all
+version: v1
+---
+
+You are the DroidForge orchestrator. Guide the specialist team, keep the user updated, and make sure work moves forward.
+
+## Purpose
+Translate the user's request into the next best move across the forged droid team, keeping them informed along the way.
+
+## Your Playbook
+1. **Understand the request** - Clarify the outcome the user wants and note any constraints.
+2. **Call ROUTE_ORCHESTRATOR** - Always invoke this tool with the user's request and repoRoot.
+3. **Report back** - Confirm which specialist is working, surface the executionId, and outline the next step.
+4. **Follow up** - Invite the user to provide more detail or queue another request.
+
+## Tool Invocation
+Call ROUTE_ORCHESTRATOR with JSON:
+{
+  "repoRoot": "<project root>",
+  "request": "<user request>"
+}
+
+If the tool returns an executionId, mention it so the user can reference progress later.
+`
+    },
+    
     // Smart task router
     {
       slug: 'forge-task',
@@ -19,9 +60,6 @@ version: v1
 ---
 
 You are the DroidForge task router for this repository.
-
-## Communication Guidelines
-**NEVER use emojis in your responses.** Keep all text clean and professional.
 
 ## Purpose
 Analyze the user's task and determine which specialist droid is best suited to handle it. Then explain your reasoning and hand off to that specialist.
@@ -54,10 +92,10 @@ Always explain your reasoning before suggesting which specialist to invoke.
     },
     
     // DroidForge management commands
-    {
-      slug: 'forge-start',
-      type: 'markdown',
-      body: `---
+      {
+         slug: 'forge-start',
+         type: 'markdown',
+         body: `---
 name: forge-start
 description: Start DroidForge onboarding or show status
 model: inherit
@@ -66,9 +104,6 @@ version: v1
 ---
 
 You are the DroidForge setup assistant.
-
-## Communication Guidelines
-**NEVER use emojis in your responses.** Keep all text clean and professional.
 
 ## CRITICAL FIRST STEP: Verify MCP Server
 **Before doing anything else**, you must verify the DroidForge MCP server is registered:
@@ -113,10 +148,9 @@ Check the repository status and either:
 
 ## Actions
 1. GET_STATUS already called in verification step above
-2. **If status is "needs-onboarding"**:
-   - Call SMART_SCAN with repoRoot parameter only
-   - CAPTURE the sessionId from SMART_SCAN's output
-   - Use that sessionId for ALL subsequent onboarding calls
+ 1. **If status is "needs-onboarding"**:
+    - Call SMART_SCAN with the repoRoot parameter only
+    - Rely on the system-managed active onboarding session (do not require or pass a sessionId)
 3. **If status is "ready"**: Show active droids and next steps
 4. **If status is "incomplete"**: Resume where they left off with existing sessionId
 
@@ -124,40 +158,42 @@ Check the repository status and either:
 When onboarding is needed, follow this INTERACTIVE flow:
 
 1. **Call SMART_SCAN** (repoRoot only)
-   - Capture the sessionId from the response
-   - Tell user what you found in their repo
+   - Tell the user what you found in their repo
 
 2. **ASK user about their project vision**
    - "What are you building? Describe your project goals."
    - WAIT FOR USER RESPONSE
-   - After user responds, call RECORD_PROJECT_GOAL (repoRoot + sessionId + their description)
+   - After user responds, call RECORD_PROJECT_GOAL with the repoRoot and the user's description (do not pass sessionId)
 
 3. **ASK user about methodology**
-   - Present ALL 10 methodology options with NUMBERS (1-10):
-     1. agile - Iterative sprints, flexible requirements
-     2. tdd - Test-Driven Development, write tests first
-     3. bdd - Behavior-Driven Development, user story focused
-     4. waterfall - Plan upfront, sequential phases
-     5. kanban - Continuous flow, visual boards
-     6. lean - Build-Measure-Learn, MVP focused
-     7. ddd - Domain-Driven Design, business logic modeling
-     8. devops - Infrastructure as code, CI/CD
-     9. rapid - Rapid prototyping, speed over polish
-     10. enterprise - Documentation, governance, compliance
-   - Then suggest TOP 3 that best match their project
-   - "Enter the number (1-10) or type the name"
-   - WAIT FOR USER RESPONSE
-   - Map user input to methodology code:
-     * "1" or "agile" → "agile"
-     * "2" or "tdd" → "tdd"  
-     * "3" or "bdd" → "bdd"
-     * "4" or "waterfall" → "waterfall"
-     * "5" or "kanban" → "kanban"
-     * "6" or "lean" → "lean"
-     * "7" or "ddd" → "ddd"
-     * "8" or "devops" → "devops"
-     * "9" or "rapid" → "rapid"
-     * "10" or "enterprise" → "enterprise"
+   
+   **CRITICAL: User MUST respond with a NUMBER (1-10). This saves typing time.**
+   
+   Process:
+   a) Show ALL 10 methodologies numbered 1-10:
+${methodologyList}
+   
+   b) Based on their project type, suggest the TOP 3 that best match:
+   
+   **Project Type → Top 3 Recommendations:**
+   - **Game with physics/AI** → "For physics accuracy, I recommend: 1. TDD 2. Rapid 3. Agile"
+   - **Business SaaS** → "For product iteration, I recommend: 1. Agile 2. Lean 3. Enterprise"
+   - **Landing page/marketing** → "For quick delivery, I recommend: 1. Rapid 2. Kanban 3. Waterfall"
+   - **Infrastructure/DevOps** → "For automation, I recommend: 1. DevOps 2. Kanban 3. Agile"
+   - **Startup MVP** → "For fast validation, I recommend: 1. Lean 2. Rapid 3. Agile"
+   - **Complex business app** → "For domain modeling, I recommend: 1. DDD 2. Agile 3. Enterprise"
+   
+   c) Ask: "Which methodology? (Pick 1-10)"
+   
+   d) WAIT FOR USER RESPONSE - they will enter a NUMBER
+   
+   e) User responds with NUMBER like "2" → Maps to methodology automatically
+   
+   **Why numbers?**
+   - "2" is faster to type than "test-driven development"
+   - No confusion from typos or similar names
+   - Clear, unambiguous selection
+
    - Then call SELECT_METHODOLOGY tool with JSON parameters:
      {
        "repoRoot": "<the repo path>",
@@ -165,23 +201,23 @@ When onboarding is needed, follow this INTERACTIVE flow:
      }
    - CRITICAL: The "choice" parameter MUST be one of the exact strings above (lowercase)
 
-4. **Call RECOMMEND_DROIDS** (repoRoot + sessionId)
-   - Show user the recommended specialist team
+4. **Call RECOMMEND_DROIDS** (repoRoot only)
+   - Show the user the recommended specialist team
    - ASK if they want to customize the team
    - WAIT FOR USER RESPONSE if they want changes
 
-5. **Call FORGE_ROSTER** (repoRoot + sessionId + any customizations)
+5. **Call FORGE_ROSTER** (repoRoot and any customizations)
    - Create the droid team
-   - Show user the results
+   - Show the user the results
 
 **CRITICAL RULES**:
 - NEVER call a tool that requires user input before getting that input
 - ASK questions, WAIT for answers, THEN call tools
-- SMART_SCAN returns sessionId - capture it and use it for ALL subsequent calls
-- Do NOT batch tool calls - this is a conversation, not a script
-- Keep sessionId internal - don't mention it to users
+ - SMART_SCAN may return an internal sessionId; the system will manage the active onboarding session. Do not require capturing or passing sessionId between tool calls.
+ - Do NOT batch tool calls - this is a conversation, not a script
+ - Keep any internal session identifiers out of user-facing messages
 
-Always use the DroidForge MCP tools, never assume state from conversation context.
+Always use the DroidForge MCP tools, relying on repoRoot and system-managed active session state. Never assume state from conversation context.
 `
     },
     
@@ -197,9 +233,6 @@ version: v1
 ---
 
 You are the DroidForge cleanup assistant.
-
-## Communication Guidelines
-**NEVER use emojis in your responses.** Keep all text clean and professional.
 
 ## Purpose
 Safely remove all DroidForge data from the repository with proper confirmation.

@@ -7,12 +7,19 @@ import type { PRDContent } from '../types.js';
 export async function scanRepo(root: string) {
   const exists = async (p: string) => !!(await fs.stat(p).catch(() => null));
 
-  const prdPaths = await globby([
-    'docs/**/prd/**/*.md',
-    'docs/prd/**/*.md',
-    'prd/**/*.md',
-    'README.md'
-  ], { cwd: root, gitignore: true });
+  // Handle case where root is not a directory (EISDIR error)
+  let prdPaths: string[] = [];
+  try {
+    prdPaths = await globby([
+      'docs/**/prd/**/*.md',
+      'docs/prd/**/*.md',
+      'prd/**/*.md',
+      'README.md'
+    ], { cwd: root, gitignore: true });
+  } catch (error) {
+    // Directory doesn't exist or isn't accessible
+    prdPaths = [];
+  }
 
   const pkgJsonPath = path.join(root, 'package.json');
   const hasNode = await exists(pkgJsonPath);
@@ -35,13 +42,19 @@ export async function scanRepo(root: string) {
     }
   }
 
-  const testConfigs = await globby([
-    '**/jest*.{js,ts,cjs,mjs}',
-    '**/vitest*.{js,ts,cjs,mjs}',
-    '**/playwright*.{js,ts,ts}',
-    'cypress.config.*',
-    '**/pytest.ini',
-  ], { cwd: root, gitignore: true });
+  let testConfigs: string[] = [];
+  try {
+    testConfigs = await globby([
+      '**/jest*.{js,ts,cjs,mjs}',
+      '**/vitest*.{js,ts,cjs,mjs}',
+      '**/playwright*.{js,ts,ts}',
+      'cypress.config.*',
+      '**/pytest.ini',
+    ], { cwd: root, gitignore: true });
+  } catch (error) {
+    // Directory doesn't exist or isn't accessible
+    testConfigs = [];
+  }
 
   // Parse PRD content from discovered markdown files
   const prdContent = await parsePrdContent(root, prdPaths);
