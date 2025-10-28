@@ -555,11 +555,11 @@ User: "We're a bakery struggling with manual orders" → AI: "Tell me about the 
 
 ## Support
 
-- **Documentation**: [User Guide](./docs/USER_GUIDE.md)
+- **Documentation**: [User Guide](./docs/guides/user/working-with-droids.md)
 - **Issues**: [GitHub Issues](https://github.com/factory/droidforge/issues)
 - **Community**: [Discord](https://discord.gg/factory)
 - **Support**: [Email](mailto:support@factory.ai)
 
 ---
 
-*For detailed migration guides and breaking changes, see the [Migration Guide](./docs/MIGRATION.md).*
+*For detailed migration guides and breaking changes, see the [Migration Guide](./docs/guides/user/migration.md).*

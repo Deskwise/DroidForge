@@ -53,8 +53,8 @@ State is primarily persisted in repo files; transient progress lives in the MCP 
 | `.droidforge/droids-manifest.json` | Forge completion | Summary of team, methodology, timestamps. |
 | `.droidforge/session/<session-id>.json` | During onboarding | Temporary context, removed after success/fail. |
 | `.droidforge/backups/<ISO8601>/…` | Snapshot tool | Optional backup copy of manifests and droids. |
-| `docs/DroidForge_user_guide_en.md` | Forge completion & updates | Custom guide; overwritten atomically. |
-| `docs/DROIDS.md` *(optional)* | Forge completion | Tabular summary for humans. |
+| `docs/guides/user/DroidForge_user_guide_en.md` | Forge completion & updates | Custom guide; overwritten atomically. |
+| `docs/guides/user/DROIDS.md` *(optional)* | Forge completion | Tabular summary for humans. |
 | `.factory/commands/*.md` | Forge completion or refresh | Slash commands described in §8. |
 | `.factory/commands/df` | Primary orchestrator shortcut (alias) | Markdown file with `/df` command. |
 
@@ -75,7 +75,7 @@ Each tool uses JSON input/output. All fields marked “required” must be valid
 | `select_methodology` | Persist methodology choice (supports “other”). | ```json { "sessionId": "string", "choice": "string", "otherText": "string?" } ``` | ```json { "methodology": "string" } ``` | Session context update. |
 | `recommend_droids` | Propose roster based on scan + methodology. | ```json { "sessionId": "string" } ``` | ```json { "suggestions": [ { "id": "df-builder", "label": "string", "summary": "string", "default": true } ], "mandatory": { "id": "df-orchestrator", "summary": "string" } } ``` | None. |
 | `forge_roster` | Persist selected droids. | ```json { "sessionId": "string", "selected": [ { "id": "string", "label": "string", "abilities": ["string"], "goals": "string" } ], "custom": [ … ] } ``` | ```json { "bootLog": ["string"], "outputPaths": ["string"], "manifestPath": "string" } ``` | Writes `.droidforge/…` files, ensures directories exist, generates manifest. |
-| `generate_user_guide` | Produce Markdown guide text. | ```json { "sessionId": "string", "roster": [ "df-builder", … ] } ``` | ```json { "markdown": "string", "savePath": "docs/DroidForge_user_guide_en.md" } ``` | Writes guide file; returns path. |
+| `generate_user_guide` | Produce Markdown guide text. | ```json { "sessionId": "string", "roster": [ "df-builder", … ] } ``` | ```json { "markdown": "string", "savePath": "docs/guides/user/DroidForge_user_guide_en.md" } ``` | Writes guide file; returns path. |
 | `install_commands` | Create/update slash commands. | ```json { "sessionId": "string", "commands": [ { "slug": "forge-start", "type": "markdown", "body": "string" }, ... ] } ``` | ```json { "installed": ["forge-start", …] } ``` | Writes to `.factory/commands/`. |
 | `cleanup_repo` | Remove DroidForge artifacts with preview and confirmation. | ```json { "repoRoot": "string", "confirmationString": "string?", "keepGuide": "boolean?" } ``` | ```json { "removed": ["path", …], "preview": { "droids": […], "filesToRemove": […], "droidCount": number, "fileCount": number }, "error": { "code": "string", "message": "string" }, "message": "string" } ``` | Without confirmation: returns preview. With correct confirmation "remove all droids": deletes files. With wrong confirmation: returns error. |
 | `create_snapshot` | Backup current droids & manifest. | ```json { "repoRoot": "string", "label": "string?" } ``` | ```json { "snapshotId": "string", "paths": ["string"] } ``` | Copies to `.droidforge/backups/<timestamp>/`. |

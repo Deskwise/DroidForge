@@ -5,6 +5,7 @@ import { createCleanupScript } from './cleanup.js';
 import { createHelpScript } from './help.js';
 import { createLogsScript } from './logs.js';
 import { createOnboardingScript } from './onboarding.js';
+import { createIntelligentOnboardingScript } from './onboarding-intelligent.js';
 import { createRestoreSnapshotScript } from './restoreSnapshot.js';
 import { createResumeOnboardingScript } from './resumeOnboarding.js';
 import { createReturningUserScript } from './returningUser.js';
@@ -26,6 +27,13 @@ export function createPromptRegistry(deps: { sessionStore: SessionStore; executi
   registry.set('droidforge.onboarding', async ctx => {
     if (!ctx.sessionId) {
       throw new Error('onboarding prompt requires a sessionId');
+    }
+    return createIntelligentOnboardingScript(ctx.sessionId, ctx.repoRoot);
+  });
+
+  registry.set('droidforge.onboarding_basic', async ctx => {
+    if (!ctx.sessionId) {
+      throw new Error('onboarding_basic prompt requires a sessionId');
     }
     return createOnboardingScript(ctx.sessionId, ctx.repoRoot);
   });

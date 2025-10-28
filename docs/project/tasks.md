@@ -20,7 +20,7 @@
 ## 🔴 CRITICAL - Must Complete Before Release
 
 ### 1. Update Implementation Checklists
-**Location:** `docs/IMPLEMENTATION_NOTES.md` lines 213-238
+**Location:** Technical implementation notes in `docs/project/` directory
 
 - [ ] Mark Safety Features Checklist items as complete:
   - [x] `/forge-removeall` shows detailed preview

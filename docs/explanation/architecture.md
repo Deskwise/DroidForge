@@ -9,7 +9,6 @@ This document describes the technical architecture of DroidForge, including syst
 - [Overview](#overview)
 - [System Components](#system-components)
 - [Execution Model](#execution-model)
-- [Parallel Orchestration](#parallel-orchestration)
 - [Data Flow](#data-flow)
 - [File Structure](#file-structure)
 - [Key Abstractions](#key-abstractions)
@@ -109,7 +108,7 @@ Central coordination component that:
 - Manages execution lifecycle (planned → running → completed)
 - Tracks node (task) dependencies
 - Delegates work to specialist droids
-- Coordinates parallel execution
+- Coordinates team work
 
 **Core Data Structures:**
 
@@ -247,7 +246,7 @@ Node 2: backend-specialist - "Create authentication endpoints"
   claims: ["src/routes/auth.ts", "src/controllers/auth.ts"]
 
 Node 3: frontend-specialist - "Create login form"
-  dependencies: []  // Can run in parallel with Node 1 & 2
+  dependencies: []  // Can run concurrently with Node 1 & 2
   claims: ["src/components/Login.tsx"]
 
 Node 4: test-specialist - "Write integration tests"
@@ -297,7 +296,7 @@ async requestNext(executionId: string): Promise<NodeSchedule | null> {
 
 ---
 
-## Parallel Orchestration
+## Team Coordination
 
 ### Resource Locking
 
@@ -807,7 +806,7 @@ class CustomMerger extends ExecutionMerger {
 2. **Lazy Staging Creation:** Staging directories created only when needed
 3. **Incremental Merging:** Only modified files are written
 4. **Event Batching:** Events are batched to reduce overhead
-5. **Parallel Scanning:** Repository analysis runs checks in parallel
+5. **Optimized Scanning:** Repository analysis runs efficiently
 
 ### Scalability Limits
 
@@ -841,7 +840,7 @@ src/mcp/execution/__tests__/
 ├── resourceMatcher.test.ts  # Glob matching tests
 ├── deadlock.test.ts         # Deadlock detection tests
 ├── eventBus.test.ts         # Event bus tests
-├── concurrency.test.ts      # Parallel execution tests
+├── concurrency.test.ts      # Team coordination tests
 ├── integration.test.ts      # End-to-end tests
 └── helpers/
     └── testUtils.ts         # Test utilities
@@ -851,7 +850,7 @@ src/mcp/execution/__tests__/
 
 - **Unit Tests:** Individual component behavior
 - **Integration Tests:** Component interaction
-- **Concurrency Tests:** Parallel execution scenarios
+- **Coordination Tests:** Team coordination scenarios
 - **Edge Cases:** Error handling, deadlocks, conflicts
 
 ---
@@ -873,7 +872,6 @@ See [../deployment/SECURITY.md](../deployment/SECURITY.md) for details.
 ## Related Documentation
 
 - [CLI_SPEC.md](CLI_SPEC.md) - Complete command reference
-- [PARALLEL_ORCHESTRATION.md](PARALLEL_ORCHESTRATION.md) - Concurrency details
 - [../CONTRIBUTING.md](../CONTRIBUTING.md) - Development guidelines
 - [../deployment/QUICKSTART.md](../deployment/QUICKSTART.md) - Deployment guide
 

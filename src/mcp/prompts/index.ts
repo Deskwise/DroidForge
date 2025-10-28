@@ -8,3 +8,4 @@ export * from './restoreSnapshot.js';
 export * from './logs.js';
 export * from './help.js';
 export * from './orchestratorParallel.js';
+export * from './onboarding-intelligent.js';

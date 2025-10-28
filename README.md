@@ -14,8 +14,8 @@ Built as a Model Context Protocol (MCP) server for Factory.ai's Droid CLI.
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-%3E%3D16-green.svg)](https://nodejs.org/)
 [![Tests Passing](https://img.shields.io/badge/Tests-41%2F41%20Passing-brightgreen.svg)](src/mcp/__tests__/e2e/)
-[![Production Ready](https://img.shields.io/badge/Production-Ready-success.svg)](docs/PRODUCTION_READINESS_REPORT.md)
-[![Security Reviewed](https://img.shields.io/badge/Security-Reviewed-blue.svg)](docs/SECURITY_REVIEW.md)
+[![Production Ready](https://img.shields.io/badge/Production-Ready-success.svg)](docs/project/production-readiness.md)
+[![Security Reviewed](https://img.shields.io/badge/Security-Reviewed-blue.svg)](docs/specifications/security.md)
 
 ---
 
@@ -123,7 +123,7 @@ The technical innovation that makes safe parallel work possible:
 - Health monitoring detects stuck or failed tasks
 - Metrics track performance and resource usage
 
-**See [docs/PARALLEL_ORCHESTRATION.md](docs/PARALLEL_ORCHESTRATION.md) for technical deep dive.**
+**See [docs/explanation/parallel-execution.md](docs/explanation/parallel-execution.md) for technical deep dive.**
 
 ---
 
@@ -451,10 +451,13 @@ DroidForge/
 │   │   └── conflictResolver.ts      # Conflict resolution
 │   └── types.ts                # TypeScript definitions
 ├── docs/
-│   ├── CLI_SPEC.md             # Complete command reference
-│   ├── PARALLEL_ORCHESTRATION.md   # Concurrency details
-│   ├── ARCHITECTURE.md         # System architecture
-│   └── droid-guide.md          # Droid creation guide
+│   ├── tutorials/              # Learning-oriented guides
+│   ├── guides/                 # How-to guides (user & developer)
+│   ├── reference/              # Technical reference docs
+│   ├── explanation/            # Understanding concepts
+│   ├── specifications/         # Design specs
+│   ├── project/                # Project management
+│   └── archive/                # Historical docs
 ├── templates/                   # Droid templates
 ├── deployment/                  # Deployment guides
 ├── archive/                     # Historical documentation
@@ -539,12 +542,21 @@ npm run typecheck
 
 ## 📚 Documentation
 
-- **[QUICKSTART.md](QUICKSTART.md)** - Get started in 5 minutes
-- **[docs/CLI_SPEC.md](docs/CLI_SPEC.md)** - Complete command reference
-- **[docs/PARALLEL_ORCHESTRATION.md](docs/PARALLEL_ORCHESTRATION.md)** - Parallel execution details
-- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System design and architecture
-- **[CONTRIBUTING.md](CONTRIBUTING.md)** - How to contribute
-- **[CHANGELOG.md](CHANGELOG.md)** - Version history and changes
+**Complete documentation at [docs/](docs/)**
+
+### Quick Links
+- **[Getting Started](docs/tutorials/getting-started.md)** - 5-minute quickstart tutorial
+- **[CLI Reference](docs/reference/cli-commands.md)** - Complete command reference
+- **[Architecture](docs/explanation/architecture.md)** - System design and components
+- **[Parallel Execution](docs/explanation/parallel-execution.md)** - Concurrency explained
+- **[Contributing Guide](docs/guides/developer/contributing.md)** - How to contribute
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history
+
+### Documentation Structure
+- **[Tutorials](docs/tutorials/)** - Learn by doing
+- **[Guides](docs/guides/)** - Solve specific problems
+- **[Reference](docs/reference/)** - Look up details
+- **[Explanation](docs/explanation/)** - Understand concepts
 
 ---
 

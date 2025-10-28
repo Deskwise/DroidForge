@@ -164,7 +164,7 @@ You'll see:
   "payload": {
     "droidCount": 3,
     "droidUUIDs": ["uuid-1", "uuid-2", "uuid-3"],
-    "filesRemoved": [".droidforge", "docs/DROIDS.md"],
+    "filesRemoved": [".droidforge", "docs/guides/user/DROIDS.md"],
     "fileCount": 2,
     "keptGuide": false
   }

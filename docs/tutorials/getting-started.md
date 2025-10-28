@@ -82,7 +82,7 @@ Use the orchestrator to coordinate your droid team:
 The `df` (DroidForge) command routes requests to `df-orchestrator`, who:
 - Creates an execution plan
 - Delegates tasks to appropriate specialists
-- Coordinates parallel work when safe
+- Coordinates team work when safe
 - Reports progress and results
 
 ### Step 3: Monitor Progress
@@ -193,21 +193,21 @@ The manifest tracks:
 
 ## Advanced Features
 
-### Parallel Orchestration
+### Team Coordination
 
-DroidForge can run multiple droids simultaneously on independent tasks:
+DroidForge can coordinate multiple droids working together on your project:
 
 ```
 /df Implement user authentication AND write API documentation
 ```
 
 The orchestrator will:
-- Detect independent tasks
-- Assign to different droids
-- Coordinate via resource locking
+- Analyze your project requirements
+- Assign tasks to appropriate specialist droids
+- Coordinate work between team members
 - Merge results safely
 
-See [docs/explanation/parallel-execution.md](docs/explanation/parallel-execution.md) for details.
+See [../explanation/architecture.md](../explanation/architecture.md) for details on how DroidForge coordinates work.
 
 ### Snapshots
 
@@ -246,11 +246,11 @@ Run `/forge-start` to initialize the team.
 
 Check logs with `/forge-logs` and the execution status with `/forge-status`.
 
-### Conflicts During Parallel Work
+### Resolving Conflicts
 
-DroidForge uses resource locking to prevent conflicts. If one occurs:
+DroidForge uses resource management to prevent conflicts. If one occurs:
 1. Check `/ forge-status` for details
-2. Review staging areas in `.droidforge/exec/`
+2. Review work areas in `.droidforge/`
 3. Manually resolve if needed
 
 ### Clean Start
@@ -271,10 +271,10 @@ After removal, run `/forge-start` to reinitialize.
 
 ## Next Steps
 
-- Read the [full README](README.md) for architecture details
-- Review [docs/reference/cli-commands.md](docs/reference/cli-commands.md) for complete command reference
-- Check [docs/explanation/parallel-execution.md](docs/explanation/parallel-execution.md) for concurrency details
-- See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute
+- Read the [full README](../../README.md) for architecture details
+- Review [CLI Reference](../reference/cli-commands.md) for complete command reference
+- Check [Parallel Execution](../explanation/parallel-execution.md) for concurrency details
+- See [Contributing Guide](../guides/developer/contributing.md) to contribute
 
 ## Getting Help
 

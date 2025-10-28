@@ -54,7 +54,7 @@ npm start
 ### ✅ Performance Validation
 - [ ] Run stress tests: `npm run test:performance`
 - [ ] Verify 1000+ file scans complete <2s
-- [ ] Confirm parallel execution works with 10+ concurrent tasks
+- [ ] Confirm system works with multiple concurrent tasks
 - [ ] Check memory usage stays within limits
 
 ## 🔧 Production Configuration
@@ -68,7 +68,7 @@ LOG_LEVEL=info                        # Optional: debug|info|warn|error
 
 # Security
 AUDIT_LOG_PATH=/var/log/droidforge     # Optional: Custom audit log location
-MAX_CONCURRENT_EXECUTIONS=10           # Optional: Limit parallel tasks
+MAX_CONCURRENT_EXECUTIONS=10           # Optional: Limit concurrent tasks
 
 # Performance
 CACHE_TTL=3600                       # Optional: Cache duration in seconds
@@ -238,7 +238,7 @@ ls -la .droidforge/droids/
 chmod 755 .droidforge/droids
 ```
 
-#### 3. Parallel execution failures
+#### 3. System coordination failures
 ```bash
 # Check resource limits
 ulimit -n  # File descriptors
@@ -279,8 +279,8 @@ rm -rf .droidforge/cache/*
 - Implement load balancer for HTTP API
 
 ### Vertical Scaling
-- Increase `MAX_CONCURRENT_EXECUTIONS` for more parallel tasks
-- Add more CPU cores for parallel processing
+- Increase `MAX_CONCURRENT_TASKS` for more concurrent tasks
+- Add more CPU cores for concurrent processing
 - Increase memory allocation for large repositories
 
 ### Performance Optimization
