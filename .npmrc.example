@@ -1,0 +1,6 @@
+# Copy this to .npmrc and set NPM_TOKEN in your shell or CI secrets
+//registry.npmjs.org/:_authToken=${NPM_TOKEN}
+registry=https://registry.npmjs.org/
+@deskwise:registry=https://registry.npmjs.org/
+# Optional: always-auth if your org requires it
+always-auth=true
