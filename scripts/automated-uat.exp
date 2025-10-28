@@ -80,6 +80,9 @@ expect {
     "up to date" {
         log_output "✓ DroidForge already up to date"
     }
+    "changed" {
+        log_output "✓ DroidForge updated successfully"
+    }
     timeout {
         log_output "✗ ERROR: npm install timed out"
         exit 1
