@@ -5,7 +5,6 @@ import { createCleanupScript } from './cleanup.js';
 import { createHelpScript } from './help.js';
 import { createLogsScript } from './logs.js';
 import { createOnboardingScript } from './onboarding.js';
-import { createIntelligentOnboardingScript } from './onboarding-intelligent.js';
 import { createRestoreSnapshotScript } from './restoreSnapshot.js';
 import { createResumeOnboardingScript } from './resumeOnboarding.js';
 import { createReturningUserScript } from './returningUser.js';
