@@ -14,7 +14,7 @@ Built as a Model Context Protocol (MCP) server for Factory.ai's Droid CLI.
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue.svg)](https://www.typescriptlang.org/)
 [![Node](https://img.shields.io/badge/Node-%3E%3D16-green.svg)](https://nodejs.org/)
 [![Tests Passing](https://img.shields.io/badge/Tests-41%2F41%20Passing-brightgreen.svg)](src/mcp/__tests__/e2e/)
-[![Production Ready](https://img.shields.io/badge/Production-Ready-success.svg)](docs/project/production-readiness.md)
+[![Production Ready](https://img.shields.io/badge/Production-Ready-success.svg)](docs/project/audit-log.md)
 [![Security Reviewed](https://img.shields.io/badge/Security-Reviewed-blue.svg)](docs/specifications/security.md)
 
 ---
@@ -123,7 +123,7 @@ The technical innovation that makes safe parallel work possible:
 - Health monitoring detects stuck or failed tasks
 - Metrics track performance and resource usage
 
-**See [docs/explanation/parallel-execution.md](docs/explanation/parallel-execution.md) for technical deep dive.**
+**Parallel execution deep dive is being refreshed; previous version now lives in `docs/_archive_legacy/explanation/`.**
 
 ---
 
@@ -545,18 +545,16 @@ npm run typecheck
 **Complete documentation at [docs/](docs/)**
 
 ### Quick Links
-- **[Getting Started](docs/tutorials/getting-started.md)** - 5-minute quickstart tutorial
-- **[CLI Reference](docs/reference/cli-commands.md)** - Complete command reference
-- **[Architecture](docs/explanation/architecture.md)** - System design and components
-- **[Parallel Execution](docs/explanation/parallel-execution.md)** - Concurrency explained
-- **[Contributing Guide](docs/guides/developer/contributing.md)** - How to contribute
+- **[Methodology Spec](docs/SPEC-METHODOLOGY-RECOMMENDATIONS.md)** - Recommendation rules
+- **[Implementation Plan](docs/specifications/implementation-plan.md)** - Engineering roadmap
+- **[Onboarding Spec](docs/specifications/onboarding-spec.md)** - UX contract
+- **[Audit Log](docs/project/audit-log.md)** - Documentation reality check
+- **[Agent Rules](docs/project/AGENTS.md)** - Ground rules before changing anything
 - **[CHANGELOG.md](CHANGELOG.md)** - Version history
 
 ### Documentation Structure
-- **[Tutorials](docs/tutorials/)** - Learn by doing
-- **[Guides](docs/guides/)** - Solve specific problems
-- **[Reference](docs/reference/)** - Look up details
-- **[Explanation](docs/explanation/)** - Understand concepts
+- **[Active Docs](docs/README.md)** - Current authoritative set
+- **[Archived Docs](docs/_archive_legacy/README.md)** - Historical snapshots (read-only)
 
 ---
 

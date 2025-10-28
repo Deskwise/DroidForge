@@ -24,6 +24,25 @@ DroidForge should feel like **chatting with an omniscient humble friend who can 
 
 ---
 
+## Data Requirements (Non-Negotiable)
+
+The interview must capture these 10 data points before moving past Gate 3 (methodology):
+
+1. Project description / vision
+2. Target audience
+3. Timeline constraints
+4. Quality vs. speed priorities
+5. Team size / solo vs. team
+6. Technical experience level
+7. Budget constraints
+8. Deployment/hosting requirements
+9. Security or compliance needs
+10. Scalability expectations
+
+Use intelligent parsing first, then follow-up questions to fill gaps. Track explicit vs. inferred answers so the AI can confirm low-confidence assumptions.
+
+---
+
 ## The 5 Gates (Deterministic Structure)
 
 The onboarding flow MUST go through these gates in order. They're non-negotiable checkpoints, but transitions should feel natural.
@@ -157,17 +176,16 @@ Examples: "2" or "tdd" or "whichever is fastest" or "you decide"
 
 ### Top 3 Recommendation Logic:
 
-**Based on project context, suggest most relevant:**
+**Based on project context, suggest the most relevant approaches dynamically.**
 
-| Project Type | Top 3 Suggestions |
-|-------------|------------------|
-| Game with physics/AI | TDD, Rapid, Agile |
-| Business SaaS | Agile, Lean, Enterprise |
-| Landing page | Rapid, Kanban, Waterfall |
-| Complex business logic | DDD, TDD, Enterprise |
-| Infrastructure/DevOps | DevOps, Kanban, Agile |
-| Startup MVP | Lean, Rapid, Agile |
-| Compliance-heavy | Enterprise, Waterfall, TDD |
+The AI must:
+- Consider timeline pressure vs. quality expectations
+- Weigh regulatory or compliance requirements
+- Factor in team size and experience level
+- Recognize domain constraints (physics, infra, content-heavy, etc.)
+- Ask for clarification when context is ambiguous
+
+**Critical:** No hard-coded mappings or keyword lookups. Recommendations must emerge from the collected 10 data points.
 
 ### Design Requirements:
 - **Always list all 10** (after showing top 3)

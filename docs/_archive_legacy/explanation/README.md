@@ -7,10 +7,7 @@ Explanation documentation helps you understand how DroidForge works, why it's de
 ## Available Explanations
 
 - `architecture.md` - System design and technical architecture
-- `team-coordination.md` - How droid team coordination works
-- `onboarding-system.md` - The 10-data-point collection system explained
-- `methodology-selection.md` - Why AI-powered, not pattern matching
-- `design-decisions.md` - Architecture Decision Records (ADRs)
+- _(See `../project/audit-log.md` for the 10-data-point vision critique)_
 
 ## For Explanation Writers
 

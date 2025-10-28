@@ -19,6 +19,8 @@ You must use AI intelligence, not rules.
 
 ---
 
+> ❗️ Ignore `docs/_archive_legacy/` unless the user instructs otherwise. It contains stale snapshots.
+
 ## Step 1: Read These Files (In Order)
 
 ### A. Understanding the Problem
@@ -27,9 +29,9 @@ You must use AI intelligence, not rules.
    - Pay special attention to the ❌ and ✅ sections
    - Read all examples
 
-2. **Read:** `docs/TODO-METHODOLOGY-SELECTION-FIX.md`
-   - This documents the existing bugs that need fixing
-   - Shows what the previous agent tried and failed at
+2. **Read:** `docs/project/audit-log.md`
+   - Documents the known gaps and broken attempts
+   - Explains why the last implementation failed the spec
 
 ### B. Understanding the Codebase
 3. **Read:** `AGENTS.md`

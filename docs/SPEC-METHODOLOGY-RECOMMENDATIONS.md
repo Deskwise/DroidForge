@@ -83,7 +83,18 @@ AI: "Based on your project, I recommend:
    Why: Flexible sprints let you adapt based on playtesting feedback 
    and balance gameplay mechanics iteratively.
 
-Here are all 10 methodologies: [list]
+Here are all 10 methodologies:
+
+1. **Agile / Scrum** – Iterative sprints with frequent stakeholder feedback.
+2. **Test-Driven Development (TDD)** – Write tests first to drive resilient code.
+3. **Behavior-Driven Development (BDD)** – Collaboratively define behavior with executable specs.
+4. **Waterfall** – Sequential phases with heavy upfront planning and documentation.
+5. **Kanban** – Continuous flow, visualize work in progress, limit bottlenecks.
+6. **Lean Startup** – Validate ideas quickly with minimal viable products and data loops.
+7. **Domain-Driven Design (DDD)** – Model complex domains with ubiquitous language and bounded contexts.
+8. **DevOps** – Combine development and operations for fast, reliable delivery pipelines.
+9. **Rapid Prototyping** – Build quick experiments to explore usability and product-market fit.
+10. **Enterprise Delivery** – Emphasize compliance, governance, and risk management for regulated orgs.
 
 Which one fits your workflow?"
 ```

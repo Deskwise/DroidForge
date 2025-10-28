@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-The [`onboarding-implementation-plan.md`](onboarding-implementation-plan.md) describes a comprehensive intelligent onboarding system that is **NOT yet fully implemented**. Multiple documentation files incorrectly state the system is complete.
+The [`implementation-plan.md`](../specifications/implementation-plan.md) describes a comprehensive intelligent onboarding system that is **NOT yet fully implemented**. Multiple documentation files (many now archived under `docs/_archive_legacy/`) incorrectly state the system is complete.
 
 ### Critical Finding
 **CHANGELOG.md claims v2.0.0 (2025-10-27) implemented "conversational onboarding"** but this does NOT match the comprehensive 10-data-point system specified in the implementation plan.
@@ -62,7 +62,8 @@ AI asks ONLY about missing items:
 
 **Reality:** The full 10-data-point intelligent parsing system is NOT implemented
 
-### IMPLEMENTATION_STATUS.md (INCORRECT)
+### Legacy Status Doc (INCORRECT, now archived)
+**Location:** `docs/_archive_legacy/status.md`  
 **Claims:** "Conversational Onboarding ✅ Fully implemented and tested"
 
 **Lists as complete:**
@@ -76,16 +77,8 @@ AI asks ONLY about missing items:
 **Contains:**
 - ✅ Methodology-specific droid naming requirements
 - ✅ Flexible input handling (numbers, names, delegation)
-- ❌ Pattern matching examples (contradicts "no pattern matching" requirement)
-- ❌ Missing 10 required data points
-
-**Example contradiction:**
-```markdown
-| Project Type | Top 3 Suggestions |
-|-------------|------------------|
-| Game with physics/AI | TDD, Rapid, Agile |
-```
-This is pattern matching - exactly what implementation-plan forbids!
+- ✅ Guidance now emphasizes AI reasoning (pattern matching table removed)
+- ✅ Explicit section listing the 10 required data points
 
 ### onboarding-spec.md (ALIGNED)
 **Correctly describes:**
@@ -120,10 +113,10 @@ This is pattern matching - exactly what implementation-plan forbids!
 - Not showing follow-up question flow
 - Not showing AI recommendations with reasoning
 
-### INDEX.md
-**Status:** Generic documentation index, doesn't address onboarding details
+### Legacy INDEX.md
+**Status:** Historical index (now archived) that didn't address onboarding details
 
-**Action needed:** None (it's just an index)
+**Action needed:** None (kept only for history)
 
 ---
 
@@ -154,12 +147,12 @@ From the provided app output, users see:
 
 ### Priority 1: CRITICAL (Incorrect Claims)
 1. **CHANGELOG.md** - Update v2.0.0 to clarify what's actually implemented vs planned
-2. **IMPLEMENTATION_STATUS.md** - Remove "✅ Fully implemented" claims for incomplete features
+2. **Legacy status doc** - If restored, remove "✅ Fully implemented" claims for incomplete features
 
 ### Priority 2: HIGH (Missing Information)
 3. **README.md** - Add description of 10-data-point intelligent collection
 4. **QUICKSTART.md** - Show realistic onboarding flow with intelligent parsing
-5. **docs/specifications/ux-spec.md** - Remove pattern matching table, replace with AI-powered approach
+5. **docs/specifications/ux-spec.md** - ✅ Updated to emphasize AI-powered recommendations (no pattern matching)
 
 ### Priority 3: MEDIUM (Alignment)
 6. **docs/README.md** - Add link to onboarding-implementation-plan.md
@@ -178,7 +171,7 @@ From the provided app output, users see:
    - Change "Conversational onboarding" to "Basic conversational flow"
    - Add note: "Full intelligent 10-data-point system planned for v2.1.0"
 
-3. **Fix IMPLEMENTATION_STATUS.md**:
+3. **Fix archived status doc (if revived)**:
    - Mark intelligent parsing as "Designed, not implemented"
    - Mark AI recommendations as "Designed, not implemented"
    - Keep basic conversation as "Implemented"
@@ -186,7 +179,7 @@ From the provided app output, users see:
 ### Before Implementation
 4. **Create implementation checklist** from onboarding-implementation-plan.md
 5. **Write E2E tests** for 10-data-point collection scenarios
-6. **Update docs/specifications/ux-spec.md** to remove pattern matching contradictions
+6. **Keep docs/specifications/ux-spec.md** aligned with AI-first guidance (no regressions)
 
 ### After Implementation
 7. **Update all user-facing docs** to reflect intelligent system
@@ -199,15 +192,15 @@ From the provided app output, users see:
 
 | Document | Status | Action Required |
 |----------|--------|----------------|
-| [`onboarding-implementation-plan.md`](onboarding-implementation-plan.md) | ✅ Correct | None - this is the spec |
+| [`implementation-plan.md`](../specifications/implementation-plan.md) | ✅ Correct | None - this is the spec |
 | [`docs/specifications/onboarding-spec.md`](docs/specifications/onboarding-spec.md) | ✅ Aligned | None - matches plan |
 | [`AGENTS.md`](../AGENTS.md) | ✅ Updated | None - UX rules added |
 | [`CHANGELOG.md`](../CHANGELOG.md) | ❌ Incorrect | Clarify v2.0.0 vs planned features |
-| [`IMPLEMENTATION_STATUS.md`](IMPLEMENTATION_STATUS.md) | ❌ Incorrect | Mark intelligent features as planned |
-| [`UX_SPEC.md`](UX_SPEC.md) | ⚠️ Conflicts | Remove pattern matching table |
+| [`status.md`](../_archive_legacy/status.md) | ❌ Incorrect | Mark intelligent features as planned (if restored) |
+| [`UX_SPEC.md`](UX_SPEC.md) | ✅ Aligned | Ensure it stays synced with implementation plan |
 | [`README.md`](../README.md) | ⚠️ Incomplete | Add 10-data-point description |
 | [`QUICKSTART.md`](../QUICKSTART.md) | ⚠️ Incomplete | Show intelligent parsing examples |
-| [`INDEX.md`](INDEX.md) | ⚠️ Missing link | Add implementation plan reference |
+| Legacy `INDEX.md` | ⏸ Archived | Only restore if we need a global index again |
 
 ---
 
@@ -218,10 +211,9 @@ From the provided app output, users see:
 **NO.** The documentation is NOT aligned with the onboarding-implementation-plan.md:
 
 1. **CHANGELOG.md incorrectly claims** v2.0.0 implemented the full conversational system
-2. **IMPLEMENTATION_STATUS.md incorrectly states** onboarding is "fully implemented"
-3. **UX_SPEC.md contradicts** the "no pattern matching" requirement
-4. **README.md and QUICKSTART.md** don't describe the intelligent 10-data-point system
-5. **Current user output** exposes technical internals that should be hidden
+2. **Legacy status doc incorrectly states** onboarding is "fully implemented"
+3. **README.md and QUICKSTART.md** don't describe the intelligent 10-data-point system
+4. **Current user output** exposes technical internals that should be hidden
 
 **Next Steps:**
 1. Update documentation to accurately reflect current state vs planned features

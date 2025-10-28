@@ -207,7 +207,7 @@ The orchestrator will:
 - Coordinate via resource locking
 - Merge results safely
 
-See [docs/explanation/parallel-execution.md](docs/explanation/parallel-execution.md) for details.
+Parallel execution deep dive is being refreshed (archived notes live under `docs/_archive_legacy/explanation/`).
 
 ### Snapshots
 
@@ -271,9 +271,9 @@ After removal, run `/forge-start` to reinitialize.
 
 ## Next Steps
 
-- Read the [full README](README.md) for architecture details
-- Review [docs/reference/cli-commands.md](docs/reference/cli-commands.md) for complete command reference
-- Check [docs/explanation/parallel-execution.md](docs/explanation/parallel-execution.md) for concurrency details
+- Read the [full README](README.md) for architecture overview
+- Keep the active spec index handy: [docs/README.md](docs/README.md)
+- Follow the methodology rules: [docs/SPEC-METHODOLOGY-RECOMMENDATIONS.md](docs/SPEC-METHODOLOGY-RECOMMENDATIONS.md)
 - See [CONTRIBUTING.md](CONTRIBUTING.md) to contribute
 
 ## Getting Help

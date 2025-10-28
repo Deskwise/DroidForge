@@ -23,9 +23,10 @@
 set timeout 120  ;# Max seconds to wait for each expect pattern
 set test_repo "/home/richard/code/droidtest"
 set cleanup_script "/home/richard/.factory/cleanup-droidtest.sh"
+set log_dir "/home/richard/.factory/uat-test-logs"
 set timestamp [clock format [clock seconds] -format "%Y%m%d-%H%M%S"]
-set report_file "uat-report-$timestamp.md"
-set transcript_file "uat-transcript-$timestamp.log"
+set report_file "$log_dir/uat-report-$timestamp.md"
+set transcript_file "$log_dir/uat-transcript-$timestamp.log"
 
 # Test data for onboarding
 set project_description "iOS 2D artillery game with physics (wind, power, angle) - single player vs CPU"
@@ -53,6 +54,11 @@ proc log_section {title} {
 }
 
 # ============================================================================
+# ENSURE LOG DIRECTORY EXISTS
+# ============================================================================
+file mkdir $log_dir
+
+# ============================================================================
 # STEP 1: CLEANUP PREVIOUS TEST RUN
 # ============================================================================
 log_section "STEP 1: Cleaning up previous test run"
@@ -76,19 +82,24 @@ expect {
     # Pattern matching: look for specific text in output
     "added" {
         log_output "✓ DroidForge installed successfully"
+        exp_continue
     }
     "up to date" {
         log_output "✓ DroidForge already up to date"
+        exp_continue
     }
     "changed" {
         log_output "✓ DroidForge updated successfully"
+        exp_continue
+    }
+    eof {
+        # Process finished normally
     }
     timeout {
         log_output "✗ ERROR: npm install timed out"
         exit 1
     }
 }
-expect eof
 
 # ============================================================================
 # STEP 3: TEST MCP SERVER ERROR (Not Installed)
@@ -118,20 +129,28 @@ expect {
 send "/forge-start\r"
 
 # Expect patterns can have multiple branches
+# Use short timeout (3 seconds) for this check
+set timeout 3
 expect {
     "💡 DroidForge Setup Required" {
         log_output "✓ PASS: Friendly error message displayed"
         set mcp_error_test "PASS"
+        exp_continue
     }
     "ERROR: DroidForge MCP Server Not Registered" {
         log_output "✗ FAIL: Old harsh error message still showing"
         set mcp_error_test "FAIL"
+        exp_continue
+    }
+    ">" {
+        # Returned to prompt
     }
     timeout {
         log_output "✗ FAIL: No error message shown (timeout)"
         set mcp_error_test "FAIL"
     }
 }
+set timeout 120  ;# Reset to default
 
 # Exit droid (Ctrl+C twice)
 send "\x03"  ;# Ctrl+C
@@ -146,15 +165,20 @@ log_output "MCP Error Test: $mcp_error_test\n"
 # ============================================================================
 log_section "STEP 4: Installing MCP server"
 
+cd $test_repo
 spawn droid
 expect ">"
 
 send "/mcp add droidforge droidforge-mcp-server\r"
 
-# Wait for MCP installation to complete
+# Wait for MCP installation to complete and consume all output
 expect {
-    -re "(?:success|added|installed)" {
-        log_output "✓ MCP server installed"
+    -re "(?:success|added|installed|Starting MCP server)" {
+        log_output "✓ MCP server installation initiated"
+        exp_continue
+    }
+    ">" {
+        log_output "✓ Droid ready after MCP installation"
     }
     timeout {
         log_output "✗ ERROR: MCP installation timeout"
@@ -162,19 +186,22 @@ expect {
     }
 }
 
-# Exit and relaunch (MCP requires restart)
-send "\x03"
+# CRITICAL: Exit droid completely and relaunch (MCP requires full restart)
+log_output "Exiting droid to activate MCP server..."
+send "\x03"  ;# First Ctrl+C
 sleep 1
-send "\x03"
+send "\x03"  ;# Second Ctrl+C to force exit
 expect eof
 
-sleep 2  ;# Give system time to register MCP
+log_output "Waiting 3 seconds for MCP registration to complete..."
+sleep 3  ;# Give system time to register MCP server
 
 # ============================================================================
 # STEP 5: FULL ONBOARDING FLOW
 # ============================================================================
 log_section "STEP 5: Running full onboarding flow"
 
+cd $test_repo
 spawn droid
 expect ">"
 
