@@ -4,9 +4,9 @@
 
 ## Executive Summary
 
-⚠️ **DroidForge core functionality implemented with recent critical fixes**
+✅ **DroidForge core functionality implemented with recent critical fixes**
 
-Recent updates have fixed critical bugs in methodology selection and error handling. Core features are now working as intended.
+Recent updates have fixed critical bugs in methodology selection, error handling, and added intelligent project-based recommendations. Core features are now working as intended.
 
 ---
   
@@ -58,20 +58,28 @@ DroidForge’s documentation is comprehensive and well‑structured, covering bo
 
 ### 1. Conversational Onboarding
 
-**Status:** ✅ Fully implemented with recent fixes
+**Status:** ✅ Fully implemented and tested
 
 **What it does:**
 - Interactive multi-step conversation with user
 - Asks about project goals
-- Intelligently understands methodology choices (handles typos/variations)
-- Recommends methodologies based on project type
+- **Intelligently recommends top 3 methodologies based on project description**
+- Understands methodology choices (handles numbers, names, typos, variations)
 - Suggests droid team based on repo scan
 - Allows custom droid creation
 
-**Recent Fixes:**
-- Fixed methodology selection to properly use intelligent understanding
-- Added methodology recommendations based on project type
-- Prevented silent default to Agile when selection fails
+**Recent Fixes (v1.6.10+):**
+- ✅ Fixed line 100 bug: Now uses `finalChoice` instead of `mappedChoice` (intelligent understanding works)
+- ✅ Fixed error handling: Shows real error messages instead of generic "Something went wrong"
+- ✅ Added `RECOMMEND_METHODOLOGY` tool that analyzes project description
+- ✅ Recommendations adapt to project type:
+  - Games → TDD, Rapid, Agile
+  - SaaS → Agile, Lean, Enterprise
+  - Landing pages → Rapid, Kanban, Waterfall
+  - Infrastructure → DevOps, Kanban, Agile
+  - Startups → Lean, Rapid, Agile
+  - Complex business apps → DDD, BDD, Agile
+- ✅ No silent defaults - user must explicitly choose methodology
 
 **Implementation:**
 - `src/mcp/prompts/onboarding.ts` - Full conversation flow
