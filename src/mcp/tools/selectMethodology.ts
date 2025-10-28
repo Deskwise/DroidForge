@@ -42,11 +42,11 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
         '10': 'enterprise'
       };
       
-      // ONLY accept numbers - NO PATTERN MATCHING
-      const mappedChoice = numberMap[choice];
+      // Accept numbers OR natural methodology names - NO AUTO-PATTERN MATCHING
+      const mappedChoice = numberMap[choice] || choice.toLowerCase().trim();
       
       if (!mappedChoice || !ALLOWED.has(mappedChoice)) {
-        throw new Error(`Please enter a number between 1 and 10. Examples: "2" for TDD, "9" for Rapid.`);
+        throw new Error(`Please enter a number between 1-10, or a methodology name like "agile", "tdd", "rapid", etc. Examples: "2" or "agile"`);
       }
       
       choice = mappedChoice as typeof choice;
