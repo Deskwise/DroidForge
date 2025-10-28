@@ -11,20 +11,33 @@ ROOT_DIR=$(pwd)
 TMP_NPMRC_CREATED=false
 
 get_token() {
-  if [[ -n "${NPM_TOKEN:-}" ]]; then
-    echo "$NPM_TOKEN"
-    return 0
-  fi
+  # Load .env if present (without renaming vars)
   if [[ -f .env ]]; then
-    head -n1 .env | tr -d '\r\n '
-    return 0
+    set -a
+    # shellcheck disable=SC1091
+    source .env
+    set +a
+  fi
+  # Prefer standard vars
+  if [[ -n "${NPM_TOKEN:-}" ]]; then
+    echo "$NPM_TOKEN"; return 0
+  fi
+  if [[ -n "${NODE_AUTH_TOKEN:-}" ]]; then
+    echo "$NODE_AUTH_TOKEN"; return 0
+  fi
+  # Fallback: find any *_TOKEN in .env and extract its value
+  if [[ -f .env ]]; then
+    token_line=$(grep -E '^[A-Za-z0-9_]*TOKEN=' .env | head -n1 || true)
+    if [[ -n "$token_line" ]]; then
+      echo "${token_line#*=}" | tr -d '\r\n ' ; return 0
+    fi
   fi
   return 1
 }
 
 TOKEN=$(get_token || true)
 if [[ -z "${TOKEN:-}" ]]; then
-  echo "ERROR: No token found. Set NPM_TOKEN env var or put token on first line of .env" >&2
+  echo "ERROR: No token found. Set NPM_TOKEN or NODE_AUTH_TOKEN in env or .env" >&2
   exit 1
 fi
 
