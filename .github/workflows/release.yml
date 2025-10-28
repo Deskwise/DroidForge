@@ -81,6 +81,8 @@ jobs:
       run: npm publish --access public
       env:
         NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        NPM_CONFIG_ALWAYS_AUTH: true
+        NPM_CONFIG_REGISTRY: https://registry.npmjs.org/
 
   publish-docker:
     name: Publish Docker Image

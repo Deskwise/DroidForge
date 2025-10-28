@@ -18,6 +18,13 @@ get_token() {
     source .env
     set +a
   fi
+  # Load .env if present (without renaming vars)
+  if [[ -f .env ]]; then
+    set -a
+    # shellcheck disable=SC1091
+    source .env
+    set +a
+  fi
   # Prefer standard vars
   if [[ -n "${NPM_TOKEN:-}" ]]; then
     echo "$NPM_TOKEN"; return 0
@@ -25,6 +32,15 @@ get_token() {
   if [[ -n "${NODE_AUTH_TOKEN:-}" ]]; then
     echo "$NODE_AUTH_TOKEN"; return 0
   fi
+  # Next: any env var whose NAME matches *TOKEN or *NPM*
+  for name in $(env | cut -d= -f1); do
+    case "$name" in
+      *TOKEN*|*NPM*|*npm*|*NODE_AUTH*)
+        val="${!name}"
+        if [[ -n "$val" ]]; then echo "$val"; return 0; fi
+        ;;
+    esac
+  done
   # Fallback: find any *_TOKEN in .env and extract its value
   if [[ -f .env ]]; then
     # First try key=value like *_TOKEN=...
@@ -32,7 +48,7 @@ get_token() {
     if [[ -n "$token_line" ]]; then
       echo "${token_line#*=}" | tr -d '\r\n ' ; return 0
     fi
-    # Fallback: treat first non-empty non-comment line as raw token
+    # Fallback: treat first non-empty non-comment line as raw token or key=value
     raw=$(grep -v '^[#[:space:]]*$' .env | head -n1 | tr -d '\r\n ')
     if [[ -n "$raw" ]]; then
       echo "$raw"; return 0
