@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (optional). Defaults to package.json version.'
+        required: false
+        type: string
 
 jobs:
   release:
@@ -45,7 +51,7 @@ jobs:
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref }}
+        tag_name: ${{ github.ref || format('v{0}', steps.version.outputs.VERSION) }}
         name: Release ${{ steps.version.outputs.VERSION }}
         body: |
           ## Release ${{ steps.version.outputs.VERSION }}

@@ -43,8 +43,17 @@ npm publish --access public
 - Dry run: `npm publish --dry-run`
 
 ## GitHub Actions Release
-The `.github/workflows/release.yml` workflow can publish on tags. Ensure repository secrets:
-- `NPM_TOKEN` (npm automation token)
-- `NODE_AUTH_TOKEN` (alias to NPM_TOKEN if workflow uses this)
+We support both tag-based and manual (button) releases.
 
-Then push a tag like `v1.7.0` to trigger.
+Triggers:
+- Tag push: push a tag like `v1.7.1`
+- Manual: run the Release workflow via "Run workflow" (workflow_dispatch). Optionally pass a version input. If omitted, it uses package.json version.
+
+Requirements:
+- Repo secret `NPM_TOKEN` (npm Automation Token) — CI uses it as `NODE_AUTH_TOKEN`.
+
+Steps:
+1. Bump version in package.json (e.g., `npm version patch` and push)
+2. Either push a tag `vX.Y.Z` OR manually dispatch the Release workflow
+
+The workflow will: build, create a GitHub Release, and `npm publish --access public`.
