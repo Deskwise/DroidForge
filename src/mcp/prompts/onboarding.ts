@@ -1,4 +1,5 @@
 import type { PromptScript } from './types.js';
+import { recommendMethodologies } from './methodologyRecommendations.js';
 
 const ALL_METHODOLOGIES = [
   { value: 'agile', title: '1. Agile / Scrum', description: 'Ships in short sprints so you can adapt as plans change.' },
@@ -53,15 +54,13 @@ Examples:
         name: 'record_project_goal',
         input: { repoRoot: { literal: repoRoot }, description: { fromInput: 'project-goal' } }
       },
-      
-      // PHASE 3: Methodology Consultation (1 minute) - Show All 10, Then Recommend
       {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Development Methodology Selection
-
-Here are all the development approaches I support. Each one shapes how your specialist droids will work together:`
+        kind: 'tool',
+        name: 'recommend_methodology',
+        input: { repoRoot: { literal: repoRoot } }
       },
+      
+      // PHASE 3: Methodology Consultation (1 minute) - User picks from all 10
       {
         kind: 'choice',
         id: 'methodology-choice',

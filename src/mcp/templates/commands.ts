@@ -167,23 +167,27 @@ When onboarding is needed, follow this INTERACTIVE flow:
 
 3. **ASK user about methodology**
    
-   **CRITICAL: User MUST respond with a NUMBER (1-10). This saves typing time.**
+   **CRITICAL: Use intelligent understanding - accept numbers, names, or typos.**
    
    Process:
-   a) Show ALL 10 methodologies numbered 1-10:
+   a) Call RECOMMEND_METHODOLOGY tool (repoRoot only) - it will analyze the project description and return top 3 recommendations
+   
+   b) Present the recommendations from the tool result to the user naturally:
+      "Based on your project, I recommend these methodologies:
+      [Show the 3 recommendations from the tool with reasons]"
+   
+   c) Show ALL 10 methodologies for reference:
 ${methodologyList}
    
-   b) Based on their project type, suggest the TOP 3 that best match:
+   d) Ask: "Which methodology fits your workflow? (Pick 1-10, or tell me the name like 'agile' or 'rapid')"
    
-   **Project Type → Top 3 Recommendations:**
-   - **Game with physics/AI** → "For physics accuracy, I recommend: 1. TDD 2. Rapid 3. Agile"
-   - **Business SaaS** → "For product iteration, I recommend: 1. Agile 2. Lean 3. Enterprise"
-   - **Landing page/marketing** → "For quick delivery, I recommend: 1. Rapid 2. Kanban 3. Waterfall"
-   - **Infrastructure/DevOps** → "For automation, I recommend: 1. DevOps 2. Kanban 3. Agile"
-   - **Startup MVP** → "For fast validation, I recommend: 1. Lean 2. Rapid 3. Agile"
-   - **Complex business app** → "For domain modeling, I recommend: 1. DDD 2. Agile 3. Enterprise"
+   **User can respond with:**
+   - Numbers: "2", "9", "1"
+   - Names: "agile", "tdd", "rapid"
+   - Typos/variations: "test driven dev", "spec", "rapid prototyping"
+   - Industry terms: "spec" → BDD, "mvp" → Lean
    
-   c) Ask: "Which methodology? (Pick 1-10)"
+   **The tool handles intelligent understanding automatically**
    
    d) WAIT FOR USER RESPONSE - they will enter a NUMBER
    

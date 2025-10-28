@@ -2,6 +2,7 @@ import type { SessionStore } from '../sessionStore.js';
 import type { ToolDefinition } from '../types.js';
 import { createSmartScanTool } from './smartScan.js';
 import { createRecordProjectGoalTool } from './recordProjectGoal.js';
+import { createRecommendMethodologyTool } from './recommendMethodology.js';
 import { createSelectMethodologyTool } from './selectMethodology.js';
 import { createRecommendDroidsTool } from './recommendDroids.js';
 import { createForgeRosterTool } from './forgeRoster.js';
@@ -43,6 +44,7 @@ export function createToolRegistry(deps: ToolFactoryDeps): Map<string, ToolDefin
   const tools: ToolDefinition<any, any>[] = [
     createSmartScanTool(deps),
     createRecordProjectGoalTool(deps),
+    createRecommendMethodologyTool(deps),
     createSelectMethodologyTool(deps),
     createRecommendDroidsTool(deps),
     createForgeRosterTool(deps),

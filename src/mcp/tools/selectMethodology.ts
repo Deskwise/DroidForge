@@ -78,13 +78,26 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
         // If we can't understand, ask for clarification instead of rigid rejection
         if (choice.length > 3) {
           // For longer inputs, try to understand what they mean
-          throw new Error(`I'm not sure I understand "${choice}". Could you clarify what development approach you'd like, or pick from: agile, tdd, bdd, waterfall, kanban, lean, ddd, devops, rapid, enterprise? You can also use numbers 1-10.`);
+          throw new Error(`I'm not sure I understand "${choice}". Could you clarify what development approach you'd like? Here are our recommendations:
+          
+1. Agile (1) - Best for most software projects with changing requirements
+2. TDD (2) - Ideal for quality-focused projects with clear specifications
+3. BDD (3) - Great for business-aligned projects with stakeholder involvement
+4. Waterfall (4) - Suitable for projects with fixed, well-defined requirements
+5. Kanban (5) - Good for maintenance/support work with continuous flow
+6. Lean (6) - Best for startups and MVPs with resource constraints
+7. DDD (7) - Recommended for complex business domain projects
+8. DevOps (8) - Ideal for infrastructure/operations-heavy projects
+9. Rapid (9) - Good for prototypes and proof-of-concepts
+10. Enterprise (10) - Best for large-scale corporate projects
+
+You can enter the number or name of your preferred methodology.`);
         } else {
-          throw new Error(`Please enter a number 1-10, or clarify your approach (e.g., "test-first", "specs-first", "rapid prototyping").`);
+          throw new Error(`Please enter a number 1-10 corresponding to your preferred methodology, or its name (e.g., "agile", "tdd").`);
         }
       }
       
-      choice = mappedChoice as typeof choice;
+      choice = finalChoice as typeof choice;
       
       // Try to load by sessionId first (if provided), otherwise load the active session
       let session: OnboardingSession | null = null;
