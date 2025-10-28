@@ -42,11 +42,46 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
         '10': 'enterprise'
       };
       
-      // Accept numbers OR natural methodology names - NO AUTO-PATTERN MATCHING
+      // Accept numbers, methodology names, or intelligent understanding of user intent
       const mappedChoice = numberMap[choice] || choice.toLowerCase().trim();
       
-      if (!mappedChoice || !ALLOWED.has(mappedChoice)) {
-        throw new Error(`Please enter a number between 1-10, or a methodology name like "agile", "tdd", "rapid", etc. Examples: "2" or "agile"`);
+      // Handle common typos and industry variations intelligently
+      let finalChoice = mappedChoice;
+      if (!ALLOWED.has(mappedChoice)) {
+        const lower = choice.toLowerCase().trim();
+        
+        // Intelligent understanding of common variations/typos
+        if (lower.includes('tset') && lower.includes('driven') || lower.includes('test driven')) {
+          finalChoice = 'tdd';
+        } else if (lower.includes('spec') || lower.includes('specification')) {
+          finalChoice = 'bdd';
+        } else if (lower.includes('rapid') || lower.includes('prototype')) {
+          finalChoice = 'rapid';
+        } else if (lower.includes('agile') || lower.includes('sprint') || lower.includes('scrum')) {
+          finalChoice = 'agile';
+        } else if (lower.includes('lean') || lower.includes('mvp') || lower.includes('startup')) {
+          finalChoice = 'lean';
+        } else if (lower.includes('waterfall') || lower.includes('sequential')) {
+          finalChoice = 'waterfall';
+        } else if (lower.includes('kanban') || lower.includes('flow')) {
+          finalChoice = 'kanban';
+        } else if (lower.includes('domain') || lower.includes('business') || lower.includes('ddd')) {
+          finalChoice = 'ddd';
+        } else if (lower.includes('devops') || lower.includes('infrastructure')) {
+          finalChoice = 'devops';
+        } else if (lower.includes('enterprise') || lower.includes('corporate')) {
+          finalChoice = 'enterprise';
+        }
+      }
+      
+      if (!finalChoice || !ALLOWED.has(finalChoice)) {
+        // If we can't understand, ask for clarification instead of rigid rejection
+        if (choice.length > 3) {
+          // For longer inputs, try to understand what they mean
+          throw new Error(`I'm not sure I understand "${choice}". Could you clarify what development approach you'd like, or pick from: agile, tdd, bdd, waterfall, kanban, lean, ddd, devops, rapid, enterprise? You can also use numbers 1-10.`);
+        } else {
+          throw new Error(`Please enter a number 1-10, or clarify your approach (e.g., "test-first", "specs-first", "rapid prototyping").`);
+        }
       }
       
       choice = mappedChoice as typeof choice;
