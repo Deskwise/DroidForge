@@ -27,9 +27,15 @@ get_token() {
   fi
   # Fallback: find any *_TOKEN in .env and extract its value
   if [[ -f .env ]]; then
+    # First try key=value like *_TOKEN=...
     token_line=$(grep -E '^[A-Za-z0-9_]*TOKEN=' .env | head -n1 || true)
     if [[ -n "$token_line" ]]; then
       echo "${token_line#*=}" | tr -d '\r\n ' ; return 0
+    fi
+    # Fallback: treat first non-empty non-comment line as raw token
+    raw=$(grep -v '^[#[:space:]]*$' .env | head -n1 | tr -d '\r\n ')
+    if [[ -n "$raw" ]]; then
+      echo "$raw"; return 0
     fi
   fi
   return 1
