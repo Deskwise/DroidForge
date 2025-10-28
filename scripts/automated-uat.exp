@@ -1,0 +1,445 @@
+#!/usr/bin/expect -f
+################################################################################
+# DroidForge Automated UAT Script
+# 
+# This script uses 'expect' to automate the full UAT testing cycle:
+# 1. Cleanup previous test runs
+# 2. Install latest DroidForge
+# 3. Test MCP server error (when not installed)
+# 4. Install MCP server
+# 5. Run full onboarding flow
+# 6. Capture and analyze output
+# 7. Generate test report
+#
+# LEARNING EXPECT:
+# - expect is a tool for automating interactive CLI programs
+# - It works by: send commands → expect patterns → send more commands
+# - Think of it like a robot typing and reading the screen
+################################################################################
+
+# ============================================================================
+# CONFIGURATION
+# ============================================================================
+set timeout 120  ;# Max seconds to wait for each expect pattern
+set test_repo "/home/richard/code/droidtest"
+set cleanup_script "/home/richard/.factory/cleanup-droidtest.sh"
+set timestamp [clock format [clock seconds] -format "%Y%m%d-%H%M%S"]
+set report_file "uat-report-$timestamp.md"
+set transcript_file "uat-transcript-$timestamp.log"
+
+# Test data for onboarding
+set project_description "iOS 2D artillery game with physics (wind, power, angle) - single player vs CPU"
+set methodology_choice "2"  ;# TDD
+
+# ============================================================================
+# HELPER PROCEDURES
+# ============================================================================
+
+# Log both to console and transcript file
+proc log_output {message} {
+    global transcript_file
+    puts "$message"
+    set fp [open "$transcript_file" a]
+    puts $fp "$message"
+    close $fp
+}
+
+# Log section headers
+proc log_section {title} {
+    set separator "========================================"
+    log_output "\n$separator"
+    log_output "$title"
+    log_output "$separator\n"
+}
+
+# ============================================================================
+# STEP 1: CLEANUP PREVIOUS TEST RUN
+# ============================================================================
+log_section "STEP 1: Cleaning up previous test run"
+
+# This spawns a new process and returns control to expect
+spawn bash -c "$cleanup_script"
+
+# 'expect' waits for a pattern to appear in the output
+# eof = end of file (process finished)
+expect eof
+
+log_output "✓ Cleanup complete\n"
+
+# ============================================================================
+# STEP 2: INSTALL LATEST DROIDFORGE
+# ============================================================================
+log_section "STEP 2: Installing latest DroidForge"
+
+spawn bash -c "npm install -g droidforge@latest"
+expect {
+    # Pattern matching: look for specific text in output
+    "added" {
+        log_output "✓ DroidForge installed successfully"
+    }
+    "up to date" {
+        log_output "✓ DroidForge already up to date"
+    }
+    timeout {
+        log_output "✗ ERROR: npm install timed out"
+        exit 1
+    }
+}
+expect eof
+
+# ============================================================================
+# STEP 3: TEST MCP SERVER ERROR (Not Installed)
+# ============================================================================
+log_section "STEP 3: Testing MCP server error message"
+
+# Change to test repository
+cd $test_repo
+
+# Spawn the droid CLI
+spawn droid
+
+# Wait for droid to be ready
+# The '>' prompt means droid is waiting for input
+expect {
+    ">" {
+        log_output "✓ Droid launched successfully"
+    }
+    timeout {
+        log_output "✗ ERROR: Droid failed to launch"
+        exit 1
+    }
+}
+
+# Send the /forge-start command
+# \r is "Enter" key
+send "/forge-start\r"
+
+# Expect patterns can have multiple branches
+expect {
+    "💡 DroidForge Setup Required" {
+        log_output "✓ PASS: Friendly error message displayed"
+        set mcp_error_test "PASS"
+    }
+    "ERROR: DroidForge MCP Server Not Registered" {
+        log_output "✗ FAIL: Old harsh error message still showing"
+        set mcp_error_test "FAIL"
+    }
+    timeout {
+        log_output "✗ FAIL: No error message shown (timeout)"
+        set mcp_error_test "FAIL"
+    }
+}
+
+# Exit droid (Ctrl+C twice)
+send "\x03"  ;# Ctrl+C
+sleep 1
+send "\x03"  ;# Ctrl+C again
+expect eof
+
+log_output "MCP Error Test: $mcp_error_test\n"
+
+# ============================================================================
+# STEP 4: INSTALL MCP SERVER
+# ============================================================================
+log_section "STEP 4: Installing MCP server"
+
+spawn droid
+expect ">"
+
+send "/mcp add droidforge droidforge-mcp-server\r"
+
+# Wait for MCP installation to complete
+expect {
+    -re "(?:success|added|installed)" {
+        log_output "✓ MCP server installed"
+    }
+    timeout {
+        log_output "✗ ERROR: MCP installation timeout"
+        exit 1
+    }
+}
+
+# Exit and relaunch (MCP requires restart)
+send "\x03"
+sleep 1
+send "\x03"
+expect eof
+
+sleep 2  ;# Give system time to register MCP
+
+# ============================================================================
+# STEP 5: FULL ONBOARDING FLOW
+# ============================================================================
+log_section "STEP 5: Running full onboarding flow"
+
+spawn droid
+expect ">"
+
+# Start onboarding
+send "/forge-start\r"
+
+# CHECKPOINT 1: GET_STATUS tool called
+expect {
+    "DROIDFORGE:GET_STATUS" {
+        log_output "✓ GET_STATUS tool called"
+        set checkpoint_status "PASS"
+    }
+    timeout {
+        log_output "✗ GET_STATUS not called"
+        set checkpoint_status "FAIL"
+    }
+}
+
+# CHECKPOINT 2: SMART_SCAN tool called  
+expect {
+    "DROIDFORGE:SMART_SCAN" {
+        log_output "✓ SMART_SCAN tool called"
+        set checkpoint_scan "PASS"
+    }
+    timeout {
+        log_output "✗ SMART_SCAN not called"
+        set checkpoint_scan "FAIL"
+    }
+}
+
+# CHECKPOINT 3: Asked for project description
+expect {
+    -re "What are you building" {
+        log_output "✓ Asked for project description"
+        set checkpoint_description "PASS"
+    }
+    timeout {
+        log_output "✗ Never asked for project description"
+        set checkpoint_description "FAIL"
+    }
+}
+
+# Send project description
+send "$project_description\r"
+
+# CHECKPOINT 4: RECORD_PROJECT_GOAL called
+expect {
+    "DROIDFORGE:RECORD_PROJECT_GOAL" {
+        log_output "✓ PROJECT_GOAL recorded"
+        set checkpoint_goal "PASS"
+    }
+    timeout {
+        log_output "✗ PROJECT_GOAL not recorded"
+        set checkpoint_goal "FAIL"
+    }
+}
+
+# CHECKPOINT 5: Methodology list shows correct names (not role names)
+expect {
+    -re "1\\. Agile / Scrum" {
+        log_output "✓ PASS: Methodology shows 'Agile / Scrum' (not 'Sprint Coordinator')"
+        set methodology_names "PASS"
+    }
+    "1. Sprint Coordinator" {
+        log_output "✗ FAIL: Still showing role names instead of methodology names"
+        set methodology_names "FAIL"
+    }
+    timeout {
+        log_output "✗ FAIL: No methodology list shown"
+        set methodology_names "FAIL"
+    }
+}
+
+# CHECKPOINT 6: Check for TDD  
+expect {
+    -re "2\\. Test-Driven Development \\(TDD\\)" {
+        log_output "✓ PASS: TDD shows as 'Test-Driven Development (TDD)'"
+    }
+    "2. Test-First Lead" {
+        log_output "✗ FAIL: Still showing 'Test-First Lead' role name"
+    }
+}
+
+# CHECKPOINT 7: Recommendations use consistent format
+expect {
+    -re "#2 TDD|Test-Driven Development" {
+        log_output "✓ PASS: Recommendations use consistent naming"
+        set recommendations_format "PASS"
+    }
+    timeout {
+        log_output "⚠ WARNING: No recommendations shown"
+        set recommendations_format "WARN"
+    }
+}
+
+# Send methodology choice
+send "$methodology_choice\r"
+
+# CHECKPOINT 8: SELECT_METHODOLOGY called
+expect {
+    "DROIDFORGE:SELECT_METHODOLOGY" {
+        log_output "✓ SELECT_METHODOLOGY called"
+        set checkpoint_select "PASS"
+    }
+    timeout {
+        log_output "✗ SELECT_METHODOLOGY not called (onboarding incomplete)"
+        set checkpoint_select "FAIL"
+    }
+}
+
+# CHECKPOINT 9: RECOMMEND_DROIDS called
+expect {
+    "DROIDFORGE:RECOMMEND_DROIDS" {
+        log_output "✓ RECOMMEND_DROIDS called"
+        set checkpoint_recommend "PASS"
+    }
+    timeout {
+        log_output "✗ RECOMMEND_DROIDS not called"
+        set checkpoint_recommend "FAIL"
+    }
+}
+
+# CHECKPOINT 10: Asked about customizations
+expect {
+    -re "(?:custom|add|specialist)" {
+        log_output "✓ Asked about team customizations"
+        set checkpoint_custom "PASS"
+    }
+    timeout {
+        log_output "⚠ WARNING: Not asked about customizations"
+        set checkpoint_custom "WARN"
+    }
+}
+
+# No customizations
+send "\r"
+
+# CHECKPOINT 11: FORGE_ROSTER called
+expect {
+    "DROIDFORGE:FORGE_ROSTER" {
+        log_output "✓ FORGE_ROSTER called (creating droids)"
+        set checkpoint_roster "PASS"
+    }
+    timeout {
+        log_output "✗ FORGE_ROSTER not called"
+        set checkpoint_roster "FAIL"
+    }
+}
+
+# CHECKPOINT 12: Completion summary shown
+expect {
+    -re "(?:Done|complete|ready)" {
+        log_output "✓ Onboarding completed successfully"
+        set checkpoint_complete "PASS"
+    }
+    timeout {
+        log_output "✗ Onboarding did not complete"
+        set checkpoint_complete "FAIL"
+    }
+}
+
+# Exit droid
+send "\x03"
+sleep 1
+send "\x03"
+expect eof
+
+# ============================================================================
+# STEP 6: GENERATE TEST REPORT
+# ============================================================================
+log_section "STEP 6: Generating test report"
+
+# Create markdown report
+set report [open "$report_file" w]
+
+puts $report "# DroidForge UAT Test Report"
+puts $report ""
+puts $report "**Generated:** $timestamp"
+puts $report "**Test Repository:** $test_repo"
+puts $report ""
+puts $report "---"
+puts $report ""
+puts $report "## Test Results Summary"
+puts $report ""
+puts $report "| Checkpoint | Status |"
+puts $report "|------------|--------|"
+puts $report "| MCP Error Message (Friendly) | $mcp_error_test |"
+puts $report "| GET_STATUS Tool | $checkpoint_status |"
+puts $report "| SMART_SCAN Tool | $checkpoint_scan |"
+puts $report "| Project Description Prompt | $checkpoint_description |"
+puts $report "| RECORD_PROJECT_GOAL Tool | $checkpoint_goal |"
+puts $report "| Methodology Names (Not Roles) | $methodology_names |"
+puts $report "| Recommendation Format | $recommendations_format |"
+puts $report "| SELECT_METHODOLOGY Tool | $checkpoint_select |"
+puts $report "| RECOMMEND_DROIDS Tool | $checkpoint_recommend |"
+puts $report "| Custom Droids Prompt | $checkpoint_custom |"
+puts $report "| FORGE_ROSTER Tool | $checkpoint_roster |"
+puts $report "| Onboarding Completion | $checkpoint_complete |"
+puts $report ""
+
+# Count passes and fails
+set pass_count 0
+set fail_count 0
+foreach result [list $mcp_error_test $checkpoint_status $checkpoint_scan \
+                     $checkpoint_description $checkpoint_goal $methodology_names \
+                     $checkpoint_select $checkpoint_recommend $checkpoint_roster \
+                     $checkpoint_complete] {
+    if {$result == "PASS"} {
+        incr pass_count
+    } elseif {$result == "FAIL"} {
+        incr fail_count
+    }
+}
+
+set total_tests [expr $pass_count + $fail_count]
+set pass_rate [expr ($pass_count * 100) / $total_tests]
+
+puts $report "## Overall Results"
+puts $report ""
+puts $report "- **Total Tests:** $total_tests"
+puts $report "- **Passed:** $pass_count"
+puts $report "- **Failed:** $fail_count"
+puts $report "- **Pass Rate:** $pass_rate%"
+puts $report ""
+
+if {$fail_count == 0} {
+    puts $report "### ✅ ALL TESTS PASSED"
+} else {
+    puts $report "### ❌ TESTS FAILED"
+    puts $report ""
+    puts $report "See transcript file for detailed output: `$transcript_file`"
+}
+
+puts $report ""
+puts $report "---"
+puts $report ""
+puts $report "## Test Configuration"
+puts $report ""
+puts $report "- **Project Description:** $project_description"
+puts $report "- **Methodology Choice:** #$methodology_choice (TDD)"
+puts $report "- **Timeout:** ${timeout}s per checkpoint"
+puts $report ""
+puts $report "## Next Steps"
+puts $report ""
+if {$fail_count > 0} {
+    puts $report "1. Review transcript: `$transcript_file`"
+    puts $report "2. Fix failing checkpoints"
+    puts $report "3. Run automated UAT again: `./scripts/automated-uat.exp`"
+} else {
+    puts $report "1. All automated checks passed!"
+    puts $report "2. Perform manual exploratory testing for edge cases"
+    puts $report "3. Consider adding more test scenarios"
+}
+
+close $report
+
+log_output "\n✓ Test report generated: $report_file"
+log_output "✓ Transcript saved: $transcript_file"
+log_output "\n═══════════════════════════════════════"
+log_output "UAT COMPLETE"
+log_output "═══════════════════════════════════════"
+log_output "Pass Rate: $pass_rate% ($pass_count/$total_tests)"
+
+if {$fail_count == 0} {
+    log_output "Result: ✅ ALL TESTS PASSED"
+    exit 0
+} else {
+    log_output "Result: ❌ $fail_count TESTS FAILED"
+    log_output "\nView report: $report_file"
+    exit 1
+}
