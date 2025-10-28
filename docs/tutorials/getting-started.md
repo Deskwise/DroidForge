@@ -273,7 +273,7 @@ After removal, run `/forge-start` to reinitialize.
 
 - Read the [full README](../../README.md) for architecture details
 - Review [CLI Reference](../reference/cli-commands.md) for complete command reference
-- Check [Parallel Execution](../explanation/parallel-execution.md) for concurrency details
+- See [Architecture Overview](../explanation/architecture.md) for system design details
 - See [Contributing Guide](../guides/developer/contributing.md) to contribute
 
 ## Getting Help

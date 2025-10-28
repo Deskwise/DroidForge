@@ -56,7 +56,7 @@ DroidForge is built as an **MCP (Model Context Protocol) server** that integrate
 │ └─────────────────┘  └───────────────┬───────────────┘ │
 │                                      │                   │
 │         ┌────────────────────────────┼────────────────┐ │
-│         │     Parallel Execution Subsystem           │ │
+│         │     Team Coordination Subsystem            │ │
 │         │  ┌──────────────┬──────────────┬─────────┐ │ │
 │         │  │ Sync/Locks   │ Staging      │ Merger  │ │ │
 │         │  │ Event Bus    │ Deadlock Det │ Metrics │ │ │
@@ -131,7 +131,7 @@ interface NodeState {
 }
 ```
 
-### 4. Parallel Execution Subsystem (`src/mcp/execution/`)
+### 4. Team Coordination Subsystem (`src/mcp/execution/`)
 
 Components for safe concurrent execution:
 

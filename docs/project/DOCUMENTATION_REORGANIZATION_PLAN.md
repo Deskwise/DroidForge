@@ -81,8 +81,7 @@ docs/
 │
 ├── tutorials/                   # LEARNING (for newcomers)
 │   ├── getting-started.md       # Consolidated from QUICKSTART.md
-│   ├── first-team.md            # Create your first droid team
-│   └── parallel-execution.md    # Understanding parallel work
+│   └── first-team.md            # Create your first droid team
 │
 ├── guides/                      # PROBLEM-SOLVING (for users)
 │   ├── user/                    # End-user guides
@@ -105,8 +104,7 @@ docs/
 │   └── methodology-catalog.md   # All 10 methodologies explained
 │
 ├── explanation/                 # UNDERSTANDING (concepts)
-│   ├── architecture.md          # From ARCHITECTURE.md
-│   ├── parallel-execution.md    # How it works internally
+│   ├── architecture.md          # From ARCHITECTURE.md (includes Team Coordination section)
 │   ├── onboarding-system.md     # 10-data-point collection explained
 │   ├── methodology-selection.md # Why no pattern matching
 │   └── design-decisions.md      # ADRs (Architecture Decision Records)
@@ -282,8 +280,7 @@ Create `docs/README.md` as the main index:
 - [Methodology Catalog](reference/methodology-catalog.md)
 
 ## 💡 Understanding DroidForge
-- [System Architecture](explanation/architecture.md)
-- [Parallel Execution Explained](explanation/parallel-execution.md)
+- [System Architecture](explanation/architecture.md) - includes Team Coordination details
 - [The 10-Data-Point System](explanation/onboarding-system.md)
 - [Design Decisions](explanation/design-decisions.md)
 
