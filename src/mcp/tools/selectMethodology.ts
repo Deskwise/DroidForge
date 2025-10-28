@@ -42,11 +42,11 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
         '10': 'enterprise'
       };
       
-      // Map number to methodology, or accept lowercase methodology name directly
-      const mappedChoice = numberMap[choice] || choice.toLowerCase().trim();
+      // ONLY accept numbers - NO PATTERN MATCHING
+      const mappedChoice = numberMap[choice];
       
-      if (!ALLOWED.has(mappedChoice)) {
-        throw new Error(`Please enter a number between 1 and 10. For example: "2" for TDD, "9" for Rapid Prototyping.`);
+      if (!mappedChoice || !ALLOWED.has(mappedChoice)) {
+        throw new Error(`Please enter a number between 1 and 10. Examples: "2" for TDD, "9" for Rapid.`);
       }
       
       choice = mappedChoice as typeof choice;
