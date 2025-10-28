@@ -1,15 +1,12 @@
 import type { InstallCommandPayload } from '../types.js';
-import { METHODOLOGY_ROLES } from '../generation/methodologyRoles.js';
+import { formatMethodologyList } from '../generation/methodologyDefinitions.js';
 
 /**
  * Build default command definitions for a repository.
  * These are fallback commands installed when none are explicitly provided.
  */
 export async function buildDefaultCommands(repoRoot: string): Promise<InstallCommandPayload[]> {
-  const methodologyEntries = Object.entries(METHODOLOGY_ROLES);
-  const methodologyList = methodologyEntries.map(([id, role], i) =>
-    `     ${i + 1}. ${role.name} (${id}) - ${role.purpose}`
-  ).join('\n');
+  const methodologyList = formatMethodologyList();
 
   return [
     // Primary orchestrator
@@ -116,10 +113,10 @@ You are the DroidForge setup assistant.
    - Display this message to the user:
 
    ===================================================================
-   ERROR: DroidForge MCP Server Not Registered
+   💡 DroidForge Setup Required
    ===================================================================
    
-   To use DroidForge, you need to register the MCP server first:
+   Let's get DroidForge configured! You need to register the MCP server first:
    
    Step 1: Run this command in any droid session:
    
@@ -176,12 +173,12 @@ ${methodologyList}
    b) Based on their project type, suggest the TOP 3 that best match:
    
    **Project Type → Top 3 Recommendations:**
-   - **Game with physics/AI** → "For physics accuracy, I recommend: 1. TDD 2. Rapid 3. Agile"
-   - **Business SaaS** → "For product iteration, I recommend: 1. Agile 2. Lean 3. Enterprise"
-   - **Landing page/marketing** → "For quick delivery, I recommend: 1. Rapid 2. Kanban 3. Waterfall"
-   - **Infrastructure/DevOps** → "For automation, I recommend: 1. DevOps 2. Kanban 3. Agile"
-   - **Startup MVP** → "For fast validation, I recommend: 1. Lean 2. Rapid 3. Agile"
-   - **Complex business app** → "For domain modeling, I recommend: 1. DDD 2. Agile 3. Enterprise"
+   - **Game with physics/AI** → "For physics accuracy, I recommend: #2 TDD, #9 Rapid Prototyping, #1 Agile"
+   - **Business SaaS** → "For product iteration, I recommend: #1 Agile, #6 Lean Startup, #10 Enterprise"
+   - **Landing page/marketing** → "For quick delivery, I recommend: #9 Rapid Prototyping, #5 Kanban, #4 Waterfall"
+   - **Infrastructure/DevOps** → "For automation, I recommend: #8 DevOps, #5 Kanban, #1 Agile"
+   - **Startup MVP** → "For fast validation, I recommend: #6 Lean Startup, #9 Rapid Prototyping, #1 Agile"
+   - **Complex business app** → "For domain modeling, I recommend: #7 DDD, #1 Agile, #10 Enterprise"
    
    c) Ask: "Which methodology? (Pick 1-10)"
    

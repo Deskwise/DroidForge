@@ -1,17 +1,7 @@
 import type { PromptScript } from './types.js';
+import { getMethodologyChoices } from '../generation/methodologyDefinitions.js';
 
-const ALL_METHODOLOGIES = [
-  { value: 'agile', title: '1. Agile / Scrum', description: 'Ships in short sprints so you can adapt as plans change.' },
-  { value: 'tdd', title: '2. Test-Driven Development (TDD)', description: 'Catches bugs early by writing the safety net of tests first.' },
-  { value: 'bdd', title: '3. Behavior-Driven Development (BDD)', description: 'Keeps product and engineering aligned with shared behavior examples.' },
-  { value: 'waterfall', title: '4. Waterfall', description: 'Locks scope and budget early with a tightly sequenced plan.' },
-  { value: 'kanban', title: '5. Kanban / Continuous Flow', description: 'Maintains steady progress with visual queues and WIP limits.' },
-  { value: 'lean', title: '6. Lean Startup', description: 'Validates ideas fast with small builds and quick feedback loops.' },
-  { value: 'ddd', title: '7. Domain-Driven Design (DDD)', description: 'Untangles complex business rules with a shared domain language.' },
-  { value: 'devops', title: '8. DevOps / Platform Engineering', description: 'Automates deploys and keeps environments healthy.' },
-  { value: 'rapid', title: '9. Rapid Prototyping', description: 'Spins up throwaway experiments to explore ideas quickly.' },
-  { value: 'enterprise', title: '10. Enterprise / Governance', description: 'Meets compliance, review, and audit requirements for large teams.' }
-];
+const ALL_METHODOLOGIES = getMethodologyChoices();
 
 export function createOnboardingScript(sessionId: string, repoRoot: string): PromptScript {
   return {
