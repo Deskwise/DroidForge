@@ -26,7 +26,16 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
     name: 'select_methodology',
     description: 'Record the methodology selection from onboarding.',
     handler: async input => {
-      let { repoRoot, sessionId, choice, otherText } = input;
+      let { repoRoot, sessionId } = input;
+      // Sanitize inputs for bracketed paste and ANSI sequences
+      const sanitize = (s?: string) => (s ?? '')
+        .replace(/\x1b\[\?2004[hl]/g, '')
+        .replace(/\x1b\[200~|\x1b\[201~/g, '')
+        .replace(/\x1b\[[0-9;]*[A-Za-z]/g, '')
+        .replace(/\r/g, '')
+        .trim();
+      let choice = sanitize(input.choice);
+      let otherText = sanitize(input.otherText);
       
       // Map numbers to methodology names (user picks 1-10 to save typing)
       const numberMap: Record<string, string> = {

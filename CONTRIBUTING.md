@@ -43,17 +43,23 @@ npm run build
 ```
 droidforge/
 ├── src/                    # TypeScript source code
-│   ├── cli.ts             # Main CLI entry point
-│   ├── detectors/         # Repository scanning modules
-│   ├── orchestrator/      # Droid generation logic
-│   ├── utils/             # Utility functions
-│   ├── writers/           # File writing modules
+│   ├── mcp/               # Model Context Protocol server implementation
+│   │   ├── tools/         # MCP tools (forge-*, df)
+│   │   ├── prompts/       # Prompt handlers
+│   │   ├── execution/     # Execution management
+│   │   ├── generation/    # Droid generation
+│   │   ├── __tests__/     # Test files
+│   │   ├── fs.ts
+│   │   ├── logging.ts
+│   │   ├── server.ts
+│   │   ├── sessionStore.ts
+│   │   ├── suggestions.ts
+│   │   └── stdio-server.ts
+│   ├── detectors/         # Repository analysis
 │   └── types.ts           # TypeScript type definitions
-├── tests/                 # Test files
 ├── docs/                  # Documentation
-├── bin/                   # CLI binary files
 ├── dist/                  # Compiled JavaScript (generated)
-└── .droidforge/              # Generated droid files (example)
+└── .droidforge/           # Generated droid files (example)
 ```
 
 ## 🧪 Testing
@@ -286,7 +292,7 @@ Any other relevant information
 - **GitHub Issues**: Bug reports and feature requests
 - **GitHub Discussions**: General questions and ideas
 - **Discord**: Real-time chat and community support
-- **Email**: security@factory.ai (security issues only)
+- **Email**: [GitHub Issues](https://github.com/Deskwise/DroidForge/issues) (security issues included)
 
 ##  Development Tools
 

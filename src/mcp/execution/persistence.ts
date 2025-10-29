@@ -96,8 +96,9 @@ export class ExecutionPersistence {
         await this.appendTimeline(dir, lastEvent);
       }
     } catch (error) {
-      // Gracefully handle ENOENT errors (directory was deleted, e.g., during test cleanup)
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+      // Gracefully handle cleanup races where the execution directory disappears
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code === 'ENOENT' || code === 'ENOTDIR') {
         // Silently ignore - the directory was likely cleaned up intentionally
         return;
       }

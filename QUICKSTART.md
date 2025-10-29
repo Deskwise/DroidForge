@@ -35,19 +35,13 @@ npm run build
 
 ### 2. Configure with Factory.ai
 
-Add DroidForge as an MCP server in your Factory.ai configuration:
+Add DroidForge as an MCP server:
 
-```json
-{
-  "mcpServers": {
-    "droidforge": {
-      "command": "node",
-      "args": ["/path/to/DroidForge/dist/mcp/server.js"],
-      "env": {}
-    }
-  }
-}
+```bash
+/mcp add droidforge droidforge-mcp-server
 ```
+
+That's it! The server will start automatically when needed.
 
 ## First Time Usage
 
@@ -152,11 +146,10 @@ After initialization, DroidForge creates:
 
 ```
 your-repo/
-├── .droidforge/
-│   ├── droids/           # Droid definitions (*.json)
-│   ├── manifest.json     # Team configuration
-│   └── exec/             # Execution state and staging areas
 ├── .factory/
+│   ├── droids/           # Droid definitions (*.json)
+│   ├── droids-manifest.json  # Team configuration
+│   ├── exec/             # Execution state and staging areas
 │   └── commands/         # Installed slash commands (*.md)
 └── docs/
     └── DroidForge_user_guide_en.md  # Generated guide

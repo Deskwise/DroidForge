@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - 2025-10-27
 
 ### Changed
-- Conversational onboarding replaces form-style prompts for `/forge-start`
+- Introduced a basic conversational flow for `/forge-start`, replacing form-style prompts
 - Methodology selection now recommends the top three fits based on project context
 - First specialist in the roster reflects the chosen methodology role
 - Command templates explain each methodology in plain, outcome-focused language

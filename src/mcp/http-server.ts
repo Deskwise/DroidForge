@@ -6,6 +6,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { createServer } from './server.js';
+import { ensureRipgrep } from './utils/ensureRipgrep.js';
 import type { ToolInvocation } from './types.js';
 import { ExecutionManager } from './execution/manager.js';
 import { ExecutionEventBus } from './execution/eventBus.js';
@@ -113,6 +114,9 @@ app.post('/mcp', authMiddleware, async (req: Request, res: Response) => {
       });
     }
 
+    // Ensure ripgrep (rg) is available or provide a local fallback shim
+    try { ensureRipgrep(); } catch {}
+
     // Create MCP server instance
     const mcpServer = createServer({ repoRoot: effectiveRepoRoot });
 
@@ -168,6 +172,8 @@ app.post('/mcp', authMiddleware, async (req: Request, res: Response) => {
 // List available tools
 app.get('/mcp/tools', authMiddleware, (req: Request, res: Response) => {
   try {
+    // Ensure ripgrep (rg) is available or provide a local fallback shim
+    try { ensureRipgrep(); } catch {}
     const mcpServer = createServer({ repoRoot: process.cwd() });
     
     // Get tool list from server

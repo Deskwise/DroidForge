@@ -102,6 +102,7 @@ export class ExecutionManager {
   private readonly resourceLocks = new Map<string, ResourceLockManager>();
   private readonly deadlockDetector = new DeadlockDetector();
   private readonly persistence = new ExecutionPersistence();
+  private readonly pendingPersists = new Set<Promise<void>>();
 
   /**
    * Get or create an execution lock for the given execution ID.
@@ -271,13 +272,30 @@ export class ExecutionManager {
 
   /**
    * Persist execution state to disk.
-   * 
+   *
    * @param executionId The execution ID
    */
   private async persistState(executionId: string): Promise<void> {
     const record = this.requireExecution(executionId);
     const lockManager = this.getResourceLockManager(executionId);
-    await this.persistence.save(record.repoRoot, record, lockManager.getLockState());
+    const persistPromise = this.persistence.save(record.repoRoot, record, lockManager.getLockState());
+    this.pendingPersists.add(persistPromise);
+    
+    try {
+      await persistPromise;
+    } finally {
+      this.pendingPersists.delete(persistPromise);
+    }
+  }
+  
+  /**
+   * Shutdown the execution manager, waiting for all pending operations to complete.
+   * This is crucial for tests to ensure clean teardown.
+   */
+  async shutdown(): Promise<void> {
+    if (this.pendingPersists.size > 0) {
+      await Promise.all(Array.from(this.pendingPersists));
+    }
   }
 
   async completeNode(executionId: string, nodeId: string, detail?: Record<string, unknown>): Promise<void> {

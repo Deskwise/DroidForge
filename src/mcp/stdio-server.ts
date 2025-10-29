@@ -15,10 +15,14 @@ import {
   GetPromptRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
 import { createServer } from './server.js';
+import { ensureRipgrep } from './utils/ensureRipgrep.js';
 import type { ToolInvocation } from './types.js';
 
 // Get repoRoot from environment or use cwd
 const repoRoot = process.env.DROIDFORGE_REPO_ROOT || process.cwd();
+
+// Ensure ripgrep (rg) is available or provide a local fallback shim
+try { ensureRipgrep(); } catch {}
 
 // Create core DroidForge server
 const droidForge = createServer({ repoRoot });

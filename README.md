@@ -167,10 +167,10 @@ Navigate to your project directory and run:
 droid /forge-start
 ```
 
-You'll have a natural conversation:
-- Tell DroidForge what you're building
-- Pick a methodology (or let it recommend the top three)
-- Confirm the specialist team it assembles for you
+You'll have a conversation to gather information about your project:
+- DroidForge asks questions to understand your project
+- It recommends methodologies based on your answers
+- You pick a methodology and confirm the specialist team it assembles for you
 
 Example:
 ```
