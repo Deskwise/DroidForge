@@ -115,7 +115,7 @@ app.post('/mcp', authMiddleware, async (req: Request, res: Response) => {
     }
 
     // Ensure ripgrep (rg) is available or provide a local fallback shim
-    try { ensureRipgrep(); } catch {}
+    try { ensureRipgrep(); } catch (_e) { void _e; }
 
     // Create MCP server instance
     const mcpServer = createServer({ repoRoot: effectiveRepoRoot });
@@ -173,7 +173,7 @@ app.post('/mcp', authMiddleware, async (req: Request, res: Response) => {
 app.get('/mcp/tools', authMiddleware, (req: Request, res: Response) => {
   try {
     // Ensure ripgrep (rg) is available or provide a local fallback shim
-    try { ensureRipgrep(); } catch {}
+    try { ensureRipgrep(); } catch (_e) { void _e; }
     const mcpServer = createServer({ repoRoot: process.cwd() });
     
     // Get tool list from server
