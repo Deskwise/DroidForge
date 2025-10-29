@@ -1,0 +1,124 @@
+#!/usr/bin/expect -f
+################################################################################
+# DroidForge UAT2 Bootstrap (force re-add MCP, restart droid, handoff)
+#
+# Purpose: Do everything needed so you don't have to manually remove/add MCP
+#          or restart droid. No onboarding automation; you take it from there.
+#
+# Usage:
+#   - Use npm latest (published):
+#       scripts/automated-uat2.exp
+#   - Use your local linked build (skip install):
+#       UAT_SKIP_INSTALL=1 scripts/automated-uat2.exp
+#
+# Env (optional):
+#   UAT_REPO=/path/to/test/repo   # default: /home/richard/code/droidtest
+#   UAT_SKIP_INSTALL=1            # skip npm install -g droidforge@latest
+################################################################################
+
+# Settings
+set timeout 120
+set test_repo [expr {[info exists env(UAT_REPO)] ? $env(UAT_REPO) : "/home/richard/code/droidtest"}]
+set cleanup_script "/home/richard/.factory/cleanup-droidtest.sh"
+set log_dir "/home/richard/.factory/uat-test-logs"
+set timestamp [clock format [clock seconds] -format "%Y%m%d-%H%M%S"]
+set transcript_file "$log_dir/uat2-transcript-$timestamp.log"
+
+proc log_output {message} {
+    global transcript_file
+    puts "$message"
+    set fp [open "$transcript_file" a]
+    puts $fp "$message"
+    close $fp
+}
+
+proc log_section {title} {
+    set sep "========================================"
+    log_output "\n$sep"
+    log_output "$title"
+    log_output "$sep\n"
+}
+
+file mkdir $log_dir
+
+# STEP 1: Cleanup
+log_section "STEP 1: Cleanup previous run (best-effort)"
+if {[file exists $cleanup_script]} {
+    spawn bash -c "$cleanup_script"
+    expect eof
+} else {
+    # Fallback: remove repo state only
+    spawn bash -c "rm -rf $test_repo/.droidforge $test_repo/DroidForge_user_guide_en.md"
+    expect eof
+}
+log_output "✓ Cleanup complete"
+
+# STEP 2: Optional global install
+if {[info exists env(UAT_SKIP_INSTALL)] && $env(UAT_SKIP_INSTALL) == "1"} {
+    log_section "STEP 2: Skipping global install (UAT_SKIP_INSTALL=1)"
+} else {
+    log_section "STEP 2: Installing latest droidforge from npm"
+    spawn bash -c "npm install -g droidforge@latest"
+    expect {
+        "added" { log_output "✓ Installed"; exp_continue }
+        "up to date" { log_output "✓ Already up to date"; exp_continue }
+        "changed" { log_output "✓ Updated"; exp_continue }
+        timeout { log_output "✗ ERROR: npm install timed out"; exit 1 }
+        eof {}
+    }
+}
+
+# STEP 3: Register MCP and restart droid
+log_section "STEP 3: Register MCP and restart droid"
+cd $test_repo
+spawn droid
+set timeout 20
+expect {
+    ">" { log_output "✓ Droid prompt detected" }
+    -re "(?i)mcp|factory|forge" { log_output "✓ Droid output detected (no prompt yet)" }
+    timeout { log_output "⚠ No prompt detected; continuing" }
+}
+
+# Remove old binding (ignore failures)
+send "/mcp remove droidforge\r"
+set timeout 10
+expect {
+    -re "(?i)removed|not found|unknown|no such" { log_output "ℹ remove: ok/ignored" }
+    timeout { log_output "ℹ remove: no response (ignored)" }
+}
+
+# Add binding
+send "/mcp add droidforge droidforge-mcp-server\r"
+set timeout 30
+expect {
+    -re "(?i)(Starting MCP server|added|already|installed|registered|success)" { log_output "✓ MCP add acknowledged" }
+    timeout { log_output "⚠ MCP add gave no confirmation (continuing)" }
+}
+
+# Exit cleanly
+log_output "Exiting droid to activate MCP registration..."
+send "/quit\r"
+set timeout 10
+expect {
+    eof { log_output "✓ Droid exited (quit)" }
+    timeout {
+        log_output "⚠ /quit not recognized, sending Ctrl+C"
+        send "\x03"
+        sleep 1
+        send "\x03"
+        expect eof
+        log_output "✓ Droid exited (Ctrl+C)"
+    }
+}
+
+log_output "Waiting 2 seconds before relaunch..."
+sleep 2
+
+# STEP 4: Relaunch and handoff
+log_section "STEP 4: Relaunch droid and handoff"
+spawn droid
+log_output "You are now in a live droid session. Run /forge-start when ready."
+interact
+log_output "Session closed."
+exit 0
+

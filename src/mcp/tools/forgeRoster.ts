@@ -45,6 +45,50 @@ function normaliseCustom(input: ForgeRosterInput): CustomDroidSeed[] {
     .map(line => inferCustomSeed(line));
 }
 
+const REQUIRED_SESSION_FIELDS: Array<keyof OnboardingSession> = [
+  'projectVision',
+  'targetAudience',
+  'timelineConstraints',
+  'qualityVsSpeed',
+  'teamSize',
+  'experienceLevel',
+  'budgetConstraints',
+  'deploymentRequirements',
+  'securityRequirements',
+  'scalabilityNeeds'
+];
+
+const FIELD_LABELS: Record<string, string> = {
+  projectVision: 'project vision',
+  targetAudience: 'target audience',
+  timelineConstraints: 'timeline',
+  qualityVsSpeed: 'quality vs speed preference',
+  teamSize: 'team size',
+  experienceLevel: 'experience level',
+  budgetConstraints: 'budget',
+  deploymentRequirements: 'deployment requirements',
+  securityRequirements: 'security requirements',
+  scalabilityNeeds: 'scalability needs'
+};
+
+function collectMissing(session: OnboardingSession): string[] {
+  const have = (value: unknown) => typeof value === 'string' && value.trim().length > 0;
+  const missing: string[] = [];
+
+  if (!have(session.projectVision ?? session.description)) {
+    missing.push(FIELD_LABELS.projectVision);
+  }
+
+  for (const field of REQUIRED_SESSION_FIELDS.filter(f => f !== 'projectVision')) {
+    const value = (session as any)[field];
+    if (!have(value)) {
+      missing.push(FIELD_LABELS[field] ?? field);
+    }
+  }
+
+  return missing;
+}
+
 export function createForgeRosterTool(deps: Deps): ToolDefinition<ForgeRosterInput, ForgeRosterOutput> {
   return {
     name: 'forge_roster',
@@ -55,6 +99,12 @@ export function createForgeRosterTool(deps: Deps): ToolDefinition<ForgeRosterInp
       if (!session) {
         throw new Error('No active onboarding session found. Please run /forge-start first.');
       }
+
+      const missing = collectMissing(session);
+      if (missing.length > 0) {
+        throw new Error(`Onboarding is incomplete. Please provide: ${missing.join(', ')}. Run /forge-start to continue.`);
+      }
+
       session.state = 'forging';
 
       const selected = normaliseSelection(input, session);

@@ -6,10 +6,19 @@ import { METHODOLOGY_ROLES } from '../generation/methodologyRoles.js';
  * These are fallback commands installed when none are explicitly provided.
  */
 export async function buildDefaultCommands(repoRoot: string): Promise<InstallCommandPayload[]> {
-  const methodologyEntries = Object.entries(METHODOLOGY_ROLES);
-  const methodologyList = methodologyEntries.map(([id, role], i) =>
-    `     ${i + 1}. ${role.name} (${id}) - ${role.purpose}`
-  ).join('\n');
+  // Present methodology names (not role names) for the command guidance.
+  const methodologyListText = [
+    '     1. Agile / Scrum - Ships in short sprints and adapts as plans change',
+    '     2. Test-Driven Development (TDD) - Write tests first to prevent regressions',
+    '     3. Behavior-Driven Development (BDD) - Shared behavior specs align stakeholders',
+    '     4. Waterfall - Sequential phases with upfront planning and documentation',
+    '     5. Kanban - Continuous flow with WIP limits',
+    '     6. Lean Startup - Build–measure–learn with fast experiments',
+    '     7. Domain-Driven Design (DDD) - Model complex business domains clearly',
+    '     8. DevOps - Automated pipelines and reliable delivery',
+    '     9. Rapid Prototyping - Explore ideas quickly with throwaway experiments',
+    '    10. Enterprise / Governance - Compliance, reviews, and audit trails'
+  ].join('\n');
 
   return [
     // Primary orchestrator
@@ -162,44 +171,44 @@ When onboarding is needed, follow this INTERACTIVE flow:
 
 2. **ASK user about their project vision**
    - "What are you building? Describe your project goals."
-   - WAIT FOR USER RESPONSE
-   - After user responds, call RECORD_PROJECT_GOAL with the repoRoot and the user's description (do not pass sessionId)
+  - WAIT FOR USER RESPONSE
+  - After user responds, call RECORD_PROJECT_GOAL with the repoRoot and the user's description (do not pass sessionId)
 
-3. **ASK user about methodology**
-   
-   **CRITICAL: User MUST respond with a NUMBER (1-10). This saves typing time.**
-   
-   Process:
-   a) Show ALL 10 methodologies numbered 1-10:
-${methodologyList}
-   
-   b) Based on their project type, suggest the TOP 3 that best match:
-   
-   **Project Type → Top 3 Recommendations:**
-   - **Game with physics/AI** → "For physics accuracy, I recommend: 1. TDD 2. Rapid 3. Agile"
-   - **Business SaaS** → "For product iteration, I recommend: 1. Agile 2. Lean 3. Enterprise"
-   - **Landing page/marketing** → "For quick delivery, I recommend: 1. Rapid 2. Kanban 3. Waterfall"
-   - **Infrastructure/DevOps** → "For automation, I recommend: 1. DevOps 2. Kanban 3. Agile"
-   - **Startup MVP** → "For fast validation, I recommend: 1. Lean 2. Rapid 3. Agile"
-   - **Complex business app** → "For domain modeling, I recommend: 1. DDD 2. Agile 3. Enterprise"
-   
-   c) Ask: "Which methodology? (Pick 1-10)"
-   
-   d) WAIT FOR USER RESPONSE - they will enter a NUMBER
-   
-   e) User responds with NUMBER like "2" → Maps to methodology automatically
-   
-   **Why numbers?**
-   - "2" is faster to type than "test-driven development"
-   - No confusion from typos or similar names
-   - Clear, unambiguous selection
+3. **Collect ALL 10 required data points BEFORE methodology selection**
 
-   - Then call SELECT_METHODOLOGY tool with JSON parameters:
-     {
-       "repoRoot": "<the repo path>",
-       "choice": "<the mapped methodology code from above>"
-     }
-   - CRITICAL: The "choice" parameter MUST be one of the exact strings above (lowercase)
+  Must secure these 10 items before proceeding to methodology:
+  - projectVision ✓ (from initial description)
+  - targetAudience, timelineConstraints, qualityVsSpeed, teamSize, experienceLevel, budgetConstraints, deploymentRequirements, securityRequirements, scalabilityNeeds
+
+  Guidelines:
+  - Ask ONE friendly question at a time that can elicit multiple fields.
+  - Each question must show EXACTLY 2 examples (not 3).
+  - Confirm inferences explicitly ("sounds like solo, is that right?").
+  - Order for follow‑ups (by impact): experienceLevel → qualityVsSpeed → securityRequirements → deploymentRequirements → scalabilityNeeds → budgetConstraints → teamSize → targetAudience → timelineConstraints.
+  - MUST stop asking once all 10 are collected.
+  - DO NOT proceed to methodology selection until 10/10 is complete.
+  - Before showing methodologies, CALL GET_ONBOARDING_PROGRESS to confirm completeness. If incomplete, list the missing keys and ask them explicitly (one at a time with 2 examples each). Only proceed once complete.
+
+4. **AI-powered methodology recommendation and selection**
+
+   a) First, analyze ALL collected data points and recommend EXACTLY 3 methodologies with specific reasoning:
+   
+   "Based on your responses about [key details from their answers], I recommend:
+   
+   1. [Methodology Name] - Because you mentioned [specific context] and need [specific requirement]
+   2. [Methodology Name] - Since you're [user situation] and prioritize [user priority]
+   3. [Methodology Name] - Given your [experience level/timeline/constraints] this approach will work best
+   
+   Here are all 10 approaches to consider:"
+
+   b) Show ALL 10 methodologies as numbered names (not role descriptions):
+   ${methodologyListText}
+
+   c) Ask: "Which fits your workflow best? You can pick 1-10, type the name, or say 'you decide'"
+
+   d) WAIT FOR USER RESPONSE; accept numbers, names, or delegation.
+
+   e) Call SELECT_METHODOLOGY with the resolved choice (lowercase code: agile, tdd, bdd, waterfall, kanban, lean, ddd, devops, rapid, enterprise).
 
 4. **Call RECOMMEND_DROIDS** (repoRoot only)
    - Show the user the recommended specialist team
@@ -213,7 +222,7 @@ ${methodologyList}
 **CRITICAL RULES**:
 - NEVER call a tool that requires user input before getting that input
 - ASK questions, WAIT for answers, THEN call tools
- - SMART_SCAN may return an internal sessionId; the system will manage the active onboarding session. Do not require capturing or passing sessionId between tool calls.
+ - SMART_SCAN may return an internal sessionId; the system manages the active onboarding session. Do not require capturing or passing sessionId between tool calls.
  - Do NOT batch tool calls - this is a conversation, not a script
  - Keep any internal session identifiers out of user-facing messages
 

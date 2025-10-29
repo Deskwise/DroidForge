@@ -14,7 +14,9 @@ import { createRestoreSnapshotTool } from './restoreSnapshot.js';
 import { createFetchLogsTool } from './fetchLogs.js';
 import { createGetStatusTool } from './getStatus.js';
 import { createAddCustomDroidTool } from './addCustomDroid.js';
+import { createRecordOnboardingDataTool } from './recordOnboardingData.js';
 import { createListSnapshotsTool } from './listSnapshots.js';
+import { createGetOnboardingProgressTool } from './getOnboardingProgress.js';
 import { createRouteTools } from './routeRequests.js';
 import { createPlanExecutionTool } from './planExecution.js';
 import { createStartExecutionTool } from './startExecution.js';
@@ -43,6 +45,7 @@ export function createToolRegistry(deps: ToolFactoryDeps): Map<string, ToolDefin
   const tools: ToolDefinition<any, any>[] = [
     createSmartScanTool(deps),
     createRecordProjectGoalTool(deps),
+    createRecordOnboardingDataTool(deps),
     createSelectMethodologyTool(deps),
     createRecommendDroidsTool(deps),
     createForgeRosterTool(deps),
@@ -53,6 +56,7 @@ export function createToolRegistry(deps: ToolFactoryDeps): Map<string, ToolDefin
     createCleanupRepoTool(),
     createSnapshotTool(),
     createListSnapshotsTool(),
+    createGetOnboardingProgressTool(deps),
     createRestoreSnapshotTool(),
     createPlanExecutionTool(deps),
     createStartExecutionTool(deps),

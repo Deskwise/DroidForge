@@ -62,6 +62,11 @@ export function createRecordProjectGoalTool(deps: Deps): ToolDefinition<RecordPr
         }
       }
       
+      // Require a non-empty project vision before proceeding
+      if (!description || description.trim().length === 0) {
+        throw new Error('Project vision is required before we proceed. Please describe what you are building (one or two sentences is fine).');
+      }
+
       // Try to load by sessionId first (if provided), otherwise load the active session
       let session: OnboardingSession | null = null;
       if (sessionId) {
@@ -74,7 +79,8 @@ export function createRecordProjectGoalTool(deps: Deps): ToolDefinition<RecordPr
         throw new Error('No active onboarding session found. Please run /forge-start first.');
       }
       session.description = description;
-      session.state = 'methodology';
+      session.projectVision = description;
+      session.state = 'collecting-goal';
       await deps.sessionStore.save(repoRoot, session);
       await appendLog(repoRoot, {
         timestamp: new Date().toISOString(),

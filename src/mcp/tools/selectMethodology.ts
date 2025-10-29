@@ -51,38 +51,33 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
         '10': 'enterprise'
       };
       
-      // Accept numbers, methodology names, or intelligent understanding of user intent
-      const mappedChoice = numberMap[choice] || choice.toLowerCase().trim();
-      
-      // Handle common typos and industry variations intelligently
+      // Accept numbers or methodology names
+      let mappedChoice = numberMap[choice] || choice.toLowerCase().trim();
+
+      // Delegation: allow the user to say "you decide" (and common variants)
+      const delegationPhrases = ['you decide', 'you choose', 'decide for me', 'pick for me', 'up to you', 'you-decide'];
+      const isDelegated = delegationPhrases.some(p => choice.toLowerCase().includes(p));
+
       let finalChoice = mappedChoice;
-      if (!ALLOWED.has(mappedChoice)) {
-        const lower = choice.toLowerCase().trim();
-        
-        // Intelligent understanding of common variations/typos
-        if (lower.includes('tset') && lower.includes('driven') || lower.includes('test driven')) {
-          finalChoice = 'tdd';
-        } else if (lower.includes('spec') || lower.includes('specification')) {
-          finalChoice = 'bdd';
-        } else if (lower.includes('rapid') || lower.includes('prototype')) {
-          finalChoice = 'rapid';
-        } else if (lower.includes('agile') || lower.includes('sprint') || lower.includes('scrum')) {
+      if (isDelegated) {
+        // Resolve based on prior onboarding answers if available
+        let session: OnboardingSession | null = null;
+        if (sessionId) {
+          session = await deps.sessionStore.load(repoRoot, sessionId);
+        } else {
+          session = await deps.sessionStore.loadActive(repoRoot);
+        }
+        if (!session) {
+          // Fallback default
           finalChoice = 'agile';
-        } else if (lower.includes('lean') || lower.includes('mvp') || lower.includes('startup')) {
-          finalChoice = 'lean';
-        } else if (lower.includes('waterfall') || lower.includes('sequential')) {
-          finalChoice = 'waterfall';
-        } else if (lower.includes('kanban') || lower.includes('flow')) {
-          finalChoice = 'kanban';
-        } else if (lower.includes('domain') || lower.includes('business') || lower.includes('ddd')) {
-          finalChoice = 'ddd';
-        } else if (lower.includes('devops') || lower.includes('infrastructure')) {
-          finalChoice = 'devops';
-        } else if (lower.includes('enterprise') || lower.includes('corporate')) {
-          finalChoice = 'enterprise';
+        } else {
+          const pref = (session.qualityVsSpeed || '').toLowerCase();
+          if (pref === 'speed') finalChoice = 'rapid';
+          else if (pref === 'quality') finalChoice = 'tdd';
+          else finalChoice = 'agile';
         }
       }
-      
+
       if (!finalChoice || !ALLOWED.has(finalChoice)) {
         // If we can't understand, ask for clarification instead of rigid rejection
         if (choice.length > 3) {
@@ -92,8 +87,8 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
           throw new Error(`Please enter a number 1-10, or clarify your approach (e.g., "test-first", "specs-first", "rapid prototyping").`);
         }
       }
-      
-      choice = mappedChoice as typeof choice;
+      // Normalize to final choice
+      choice = finalChoice as typeof choice;
       
       // Try to load by sessionId first (if provided), otherwise load the active session
       let session: OnboardingSession | null = null;
@@ -105,6 +100,32 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
       
       if (!session) {
         throw new Error('No active onboarding session found. Please run /forge-start first.');
+      }
+      // Gate: ensure all 10 onboarding items are present before allowing methodology selection
+      const have = (k: keyof OnboardingSession) => typeof (session as any)[k] === 'string' && (session as any)[k].trim().length > 0;
+      const projectVisionOk = have('projectVision') || have('description');
+      const required: (keyof OnboardingSession)[] = [
+        'targetAudience',
+        'timelineConstraints',
+        'qualityVsSpeed',
+        'teamSize',
+        'experienceLevel',
+        'budgetConstraints',
+        'deploymentRequirements',
+        'securityRequirements',
+        'scalabilityNeeds'
+      ];
+      const missing: string[] = [];
+      if (!projectVisionOk) missing.push('projectVision');
+      for (const k of required) {
+        if (!have(k)) missing.push(String(k));
+      }
+      if (missing.length) {
+        throw new Error(`Onboarding incomplete. Please provide: ${missing.join(', ')}. After answering, run /forge-start again to continue.`);
+      }
+      // Enforce state progression
+      if (session.state !== 'collecting-goal') {
+        throw new Error(`Methodology cannot be selected while state is '${session.state}'. Resume onboarding with /forge-start.`);
       }
       const resolved = choice === 'other'
         ? (otherText?.trim() || 'custom')

@@ -5,6 +5,54 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.16] - 2025-10-29
+
+### Changed
+- Onboarding flow now strictly collects all 10 required data points before methodology selection (per spec):
+  - Added explicit prompts with exactly 2 examples each.
+  - New tool `record_onboarding_data` persists each response to the active session.
+  - `record_project_goal` now stores `projectVision` and keeps state in `collecting-goal` (no premature transition).
+- Methodology selection supports delegation:
+  - Users can say "you decide"; selection is resolved from onboarding preferences (speed → rapid, quality → tdd, else agile).
+  - Accepts 1–10 or names everywhere.
+- UAT automation simplified: `scripts/automated-uat.exp` only cleans, installs, registers MCP, relaunches droid, and hands off for manual testing (no overlays/assertions).
+
+### Removed
+- Ripgrep auto-provisioning and shim logic fully removed. If `rg` is missing, GREP operations surface a clear MCP error. No binaries are bundled or downloaded by DroidForge.
+
+### Fixed
+- Input sanitization: ensured onboarding tools strip bracketed-paste markers and ANSI sequences.
+
+
+## [1.6.15] - 2025-10-29
+
+### Added
+- Default ripgrep provisioning (no user action required):
+  - On first run, download pinned ripgrep v14.1.0 for the current OS/arch into `$HOME/.factory/bin/rg[.exe]`.
+  - Verify the download with embedded SHA-256 checksums for Linux (x64/arm64), macOS (x64/arm64), and Windows (x64).
+  - Prepend `$HOME/.factory/bin` to PATH in-process; if `~/.local/bin` is already on PATH, best‑effort symlink `~/.local/bin/rg` → provisioned binary so the `droid` CLI also sees it.
+  - If download is unavailable or verification fails: fall back to a grep‑based shim so GREP tooling still works (slower but reliable).
+- Input robustness for the onboarding “vision” prompt:
+  - Server‑side sanitization of bracketed‑paste markers (`ESC [200~/201~`) and ANSI sequences.
+  - Non‑interactive inputs: `DROIDFORGE_VISION` and `DROIDFORGE_VISION_FILE` env vars.
+  - Editor flow: typing `:edit` opens `$EDITOR`/`$VISUAL` (or `nano`) and reads the saved text.
+
+### Changed
+- UAT script: more tolerant prompt detection and MCP add handling; avoids long waits and proceeds to restart reliably.
+
+### Security
+- Ripgrep provisioning is confined to the user profile; checksums are enforced before activation; no system‑wide mutation.
+
+## [1.6.14] - 2025-10-29
+
+### Added
+- Product‑level ripgrep self‑heal for the MCP server (prior to default provisioning):
+  - Creates a grep‑based `rg` shim under `$HOME/.factory/bin` and prepends PATH in‑process when `rg` is missing.
+- Initial input sanitization for free‑text prompts to tolerate bracketed‑paste sequences.
+
+### Changed
+- UAT automation: reduced timeouts, fast MCP restart after “Starting MCP server…”, and improved logging.
+
 ## [2.0.0] - 2025-10-27
 
 ### Changed

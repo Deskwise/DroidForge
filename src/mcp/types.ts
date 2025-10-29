@@ -27,6 +27,19 @@ export interface OnboardingSession {
   state: OnboardingState;
   scan?: ScanSnapshot;
   description?: string;
+  // Extended onboarding data per spec
+  projectVision?: string;
+  targetAudience?: string;
+  timelineConstraints?: string;
+  qualityVsSpeed?: string;
+  teamSize?: string;
+  experienceLevel?: string;
+  budgetConstraints?: string;
+  deploymentRequirements?: string;
+  securityRequirements?: string;
+  scalabilityNeeds?: string;
+  aiRecommendations?: string[];
+  inferredData?: Record<string, string>;
   methodology?: string;
   selectedDroids?: string[];
   customDroids?: CustomDroidSeed[];
@@ -54,6 +67,33 @@ export interface RecordProjectGoalInput extends ToolContext {
 
 export interface RecordProjectGoalOutput {
   ack: true;
+}
+
+export interface RecordOnboardingDataInput extends ToolContext {
+  projectVision?: string;
+  targetAudience?: string;
+  timelineConstraints?: string;
+  qualityVsSpeed?: string;
+  teamSize?: string;
+  experienceLevel?: string;
+  budgetConstraints?: string;
+  deploymentRequirements?: string;
+  securityRequirements?: string;
+  scalabilityNeeds?: string;
+  inferred?: Record<string, string>;
+}
+
+export interface RecordOnboardingDataOutput {
+  saved: (keyof RecordOnboardingDataInput)[];
+}
+
+export interface GetOnboardingProgressInput extends ToolContext {}
+
+export interface GetOnboardingProgressOutput {
+  collected: Record<string, boolean>;
+  missing: string[];
+  collectedCount: number;
+  complete: boolean;
 }
 
 export type MethodologyChoice =

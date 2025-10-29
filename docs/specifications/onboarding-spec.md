@@ -37,83 +37,61 @@ The AI must intelligently extract information from user responses. Examples:
 - Quality vs speed: speed prioritized (pitch deadline) ✓
 - Budget constraints: startup context (cost-conscious) ✓
 
-### Question Flow
+### Conversation Flow (User-Centric)
 
-#### Phase 1: Initial Open Question
-**Goal**: Get maximum information with minimal questions
+#### Phase 1: Context Hook & Vision
+1. **Scan Reflection + Guesses**
+   - Present 2–3 intelligent guesses derived from SMART_SCAN (frameworks, folders, docs) as “Maybe…” questions to let the user confirm or correct quickly.
+2. **Vision Prompt**
+   - Ask: “Tell me about your project. What are you building, who’s it for, and what’s your situation?”
+   - Rotate two concise example answers to keep the prompt fresh.
+3. **Follow-up Mini Brainstorm (2 questions)**
+   - Ask two tailored clarifiers based on the user’s vision (e.g., difficulty levels, target platforms). Never repeat the original question; keep it conversational.
+4. **Vision Mirror**
+   - Summarize the captured vision in 2–3 bullet points and ask, “Did I miss anything big?” before moving on.
 
-**Q1: Project Overview**
-"Tell me about your project. What are you building, who's it for, and what's your situation?"
+#### Phase 2: Requirements Checklist (10/10 Data)
+- Maintain a dynamic checklist of the required fields. Skip any item already inferred from earlier answers; otherwise ask a focused question with exactly two context-rich examples.
+- Always confirm inferences (“Sounds like solo dev—log it that way?”).
+- Record each response via `record_onboarding_data` as soon as it’s provided.
+- After all ten items are captured, present a confidence summary showing every data point and ask for corrections.
 
-**Examples to provide**:
-- "E-commerce site for handmade pottery, targeting craft enthusiasts, solo developer with 3-month timeline"
-- "Internal tool for employee training tracking, 50-person company, team of 2 developers, needs HIPAA compliance"
+Required items remain:
+1. Project description/vision (vision prompt)
+2. Target audience
+3. Timeline constraints
+4. Quality vs speed preferences
+5. Team size / solo
+6. Technical experience level
+7. Budget constraints
+8. Deployment requirements
+9. Security requirements
+10. Scalability needs
 
-#### Phase 2: Intelligent Follow-up
-**Goal**: Fill in missing information only
+#### Phase 3: Methodology Discovery (Top 5 Focus)
+1. **Contextual Recommendations**
+   - Analyze the 10 captured items and recommend three methodologies with explicit “because you said…” reasoning.
+2. **Present Common Options**
+   - Show the top 5 approaches (numbered) as the default catalog, while noting that other styles are available on request.
+3. **Flexible Selection**
+   - Accept numbers, names, or “you decide.” If delegated, choose intelligently and explain the rationale.
+4. **Transition Reminder**
+   - Before forging, remind the user they’ll need to restart the droid CLI to see the new commands once the team is created.
 
-The AI analyzes the initial response and asks targeted questions for missing items:
+#### Phase 4: Droid Team Forging
+- The final gate happens here: confirm all 10 items are recorded. If any are missing, return to Phase 2.
+- Forge the roster, reiterate the restart instruction, and provide numbered next steps for immediate action (e.g., “1. /df to talk to the orchestrator, 2. /forge-task …”).
+- Offer one or two optional follow-up assists (numbered) to keep momentum (“1. Scaffold tests, 2. Generate asset checklist”).
 
-**If missing technical experience**:
-"How would you describe your coding experience?"
-- Example 1: "Beginner, learning as I build"
-- Example 2: "Senior engineer, 8 years experience"
+### Methodology Catalog (Top 5 Default)
 
-**If missing quality vs speed**:
-"What's more important right now: getting it working fast or building it rock-solid?"
-- Example 1: "Speed - need to validate the idea quickly"
-- Example 2: "Quality - this will handle sensitive financial data"
+1. **Agile / Scrum** — Short sprints; adapt as you learn.
+2. **Test-Driven Development (TDD)** — Tests first to prevent regressions.
+3. **Behavior-Driven Development (BDD)** — Shared behavior stories keep everyone aligned.
+4. **Rapid Prototyping** — Explore ideas quickly with low-risk experiments.
+5. **DevOps / Platform** — Automation and reliability for frequent releases.
 
-**If missing deployment requirements**:
-"Where do you want to deploy this? Any platform preferences?"
-- Example 1: "Heroku or Vercel, want it simple"
-- Example 2: "AWS, need full control and custom infrastructure"
-
-**If missing security requirements**:
-"Any security requirements or sensitive data I should know about?"
-- Example 1: "Just basic user accounts, nothing sensitive"
-- Example 2: "Payment processing and PII data, need SOC 2 compliance"
-
-**If missing budget constraints**:
-"Any budget constraints or resource limitations?"
-- Example 1: "Bootstrap startup, minimal costs preferred"
-- Example 2: "Enterprise project, cost not a major factor"
-
-**If missing scalability needs**:
-"How many users do you expect? Any special performance needs?"
-- Example 1: "Maybe 100 users max, simple CRUD operations"
-- Example 2: "Could scale to 10k+ users, real-time features needed"
-
-#### Phase 3: Methodology Selection
-**Goal**: Choose development approach based on all collected information
-
-**Step 1: Show All 10 Methodologies**
-```
-Here are all development approaches (pick 1-10):
-
-1. Agile/Scrum - Short sprints, adapt as you learn
-2. Test-Driven Development - Write tests first, catch bugs early
-3. Behavior-Driven Development - Clear specs everyone understands
-4. Waterfall - Plan everything upfront, execute step-by-step
-5. Kanban - Steady flow, visual progress tracking
-6. Lean Startup - Build minimum, test with real users, iterate
-7. Domain-Driven Design - Model complex business rules clearly
-8. DevOps - Automated deployments, rock-solid infrastructure
-9. Rapid Prototyping - Quick experiments to test ideas
-10. Enterprise - Documentation, approvals, audit trails
-```
-
-**Step 2: AI Recommendations**
-Based on ALL collected information, AI provides 2 specific recommendations:
-
-```
-"Based on your answers, I recommend:
-
-1. [Methodology] - Because you mentioned [specific user context] and need [specific requirement]
-2. [Methodology] - Since you're [user situation] and prioritize [user priority]
-
-Which fits better, or would you prefer a different approach?"
-```
+> Other methodologies (Kanban, Lean, Waterfall, Enterprise, DDD, etc.) remain available on request. The assistant should mention this when presenting the top 5.
 
 ### AI Behavior Guidelines
 
@@ -123,6 +101,7 @@ Which fits better, or would you prefer a different approach?"
 - Ask follow-up questions if answers are unclear
 - Acknowledge their experience level in responses
 - Use their terminology back to them
+- Do not use emojis or emoticons during onboarding conversations (keep tone warm with words only)
 
 #### Intelligence Requirements
 - Parse compound responses for multiple data points
@@ -130,6 +109,7 @@ Which fits better, or would you prefer a different approach?"
 - Avoid asking redundant questions
 - Recognize when all 10 items are collected
 - Adapt question complexity to user's experience level
+- Before forging the roster, remind the user to restart the droid CLI to load the new commands in their shell.
 
 #### Example Intelligent Responses
 
