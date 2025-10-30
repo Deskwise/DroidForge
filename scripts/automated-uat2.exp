@@ -68,57 +68,32 @@ if {[info exists env(UAT_SKIP_INSTALL)] && $env(UAT_SKIP_INSTALL) == "1"} {
     }
 }
 
-# STEP 3: Register MCP and restart droid
-log_section "STEP 3: Register MCP and restart droid"
-cd $test_repo
-spawn droid
-set timeout 20
-expect {
-    ">" { log_output "✓ Droid prompt detected" }
-    -re "(?i)mcp|factory|forge" { log_output "✓ Droid output detected (no prompt yet)" }
-    timeout { log_output "⚠ No prompt detected; continuing" }
-}
-
-# Remove old binding (ignore failures)
-send "/mcp remove droidforge\r"
-set timeout 10
-expect {
-    -re "(?i)removed|not found|unknown|no such" { log_output "ℹ remove: ok/ignored" }
-    timeout { log_output "ℹ remove: no response (ignored)" }
-}
-
-# Add binding
-send "/mcp add droidforge droidforge-mcp-server\r"
+# STEP 3: Register MCP via CLI
+log_section "STEP 3: Register MCP via CLI"
 set timeout 30
+
+spawn bash -c "droid mcp remove droidforge"
 expect {
-    -re "(?i)(Starting MCP server|added|already|installed|registered|success)" { log_output "✓ MCP add acknowledged" }
-    timeout { log_output "⚠ MCP add gave no confirmation (continuing)" }
+    -re "(?i)removed|not found" { log_output "ℹ Existing MCP entry removed (or not present)" }
+    timeout { log_output "ℹ MCP remove command produced no output (continuing)" }
+    eof {}
 }
 
-# Exit cleanly
-log_output "Exiting droid to activate MCP registration..."
-send "/quit\r"
-set timeout 10
+spawn bash -c "droid mcp add droidforge droidforge-mcp-server --type stdio"
 expect {
-    eof { log_output "✓ Droid exited (quit)" }
-    timeout {
-        log_output "⚠ /quit not recognized, sending Ctrl+C"
-        send "\x03"
-        sleep 1
-        send "\x03"
-        expect eof
-        log_output "✓ Droid exited (Ctrl+C)"
-    }
+    -re "(?i)Added stdio MCP server" { log_output "✓ MCP server registered via CLI" }
+    timeout { log_output "✗ ERROR: droid mcp add timed out"; exit 1 }
+    eof {}
 }
 
-log_output "Waiting 2 seconds before relaunch..."
+log_output "Waiting 2 seconds before launching droid..."
 sleep 2
 
 # STEP 4: Relaunch and handoff
 log_section "STEP 4: Relaunch droid and handoff"
+cd $test_repo
 spawn droid
 log_output "You are now in a live droid session. Run /forge-start when ready."
 interact
 log_output "Session closed."
 exit 0
-

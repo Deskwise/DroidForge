@@ -34,7 +34,7 @@ curl https://droidforge.yourdomain.com/mcp/tools
 ### Option 1: Factory CLI
 
 ```bash
-/mcp add --type http droidforge https://droidforge.yourdomain.com/mcp -H "Authorization: Bearer YOUR_API_KEY"
+droid mcp add droidforge https://droidforge.yourdomain.com/mcp --type http --header "Authorization: Bearer YOUR_API_KEY"
 ```
 
 ### Option 2: Factory Bridge `mcp.json`

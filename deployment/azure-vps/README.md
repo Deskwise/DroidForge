@@ -190,7 +190,7 @@ curl -X POST http://localhost:3000/mcp \\
 Once deployed, add to Factory CLI:
 
 ```bash
-/mcp add --type http droidforge https://droidforge.yourdomain.com/mcp -H "Authorization: Bearer your-api-key"
+droid mcp add droidforge https://droidforge.yourdomain.com/mcp --type http --header "Authorization: Bearer your-api-key"
 ```
 
 Or configure in `mcp.json`:

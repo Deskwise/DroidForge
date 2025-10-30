@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Users can say "you decide"; selection is resolved from onboarding preferences (speed → rapid, quality → tdd, else agile).
   - Accepts 1–10 or names everywhere.
 - UAT automation simplified: `scripts/automated-uat.exp` only cleans, installs, registers MCP, relaunches droid, and hands off for manual testing (no overlays/assertions).
+- Documentation and automation now register the MCP server via `droid mcp add` CLI commands instead of interactive `/mcp` prompts.
 
 ### Removed
 - Ripgrep auto-provisioning and shim logic fully removed. If `rg` is missing, GREP operations surface a clear MCP error. No binaries are bundled or downloaded by DroidForge.

@@ -201,8 +201,8 @@ echo "   Status:       systemctl status $SERVICE_NAME"
 echo ""
 echo "💡 To add to Factory CLI:"
 if [ -n "$API_KEY" ]; then
-    echo "   /mcp add --type http droidforge https://$DOMAIN/mcp -H \"Authorization: Bearer $API_KEY\""
+    echo "   droid mcp add droidforge https://$DOMAIN/mcp --type http --header \"Authorization: Bearer $API_KEY\""
 else
-    echo "   /mcp add --type http droidforge https://$DOMAIN/mcp"
+    echo "   droid mcp add droidforge https://$DOMAIN/mcp --type http"
 fi
 echo ""

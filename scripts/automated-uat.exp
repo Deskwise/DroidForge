@@ -99,28 +99,25 @@ if {[info exists env(UAT_SKIP_INSTALL)] && $env(UAT_SKIP_INSTALL) == "1"} {
 # ============================================================================
 log_section "STEP 3: Registering DroidForge MCP server"
 
-cd $test_repo
-spawn droid
-set timeout 15
+set timeout 30
+
+# Remove any existing registration (ignore failures)
+spawn bash -c "droid mcp remove droidforge"
 expect {
-    ">" { log_output "✓ Droid launched" }
-    -re "(?i)droid|mcp|factory" { log_output "✓ Droid output detected" }
-    timeout { log_output "⚠ No prompt detected; sending command anyway" }
-}
-send "/mcp add droidforge droidforge-mcp-server\r"
-set timeout 20
-expect {
-    -re "(?i)(Starting MCP server|added|already|installed|registered|success)" { log_output "✓ MCP add acknowledged" }
-    timeout { log_output "⚠ MCP add gave no confirmation (continuing)" }
+    -re "(?i)removed|not found" { log_output "ℹ Existing MCP entry removed (or not present)" }
+    timeout { log_output "ℹ MCP remove command produced no output (continuing)" }
+    eof {}
 }
 
-log_output "Exiting droid to activate MCP registration..."
-send "\x03"
-sleep 1
-send "\x03"
-expect eof
+# Add stdio MCP server via CLI (non-interactive)
+spawn bash -c "droid mcp add droidforge droidforge-mcp-server --type stdio"
+expect {
+    -re "(?i)Added stdio MCP server" { log_output "✓ MCP server registered via CLI" }
+    timeout { log_output "✗ ERROR: droid mcp add timed out"; exit 1 }
+    eof {}
+}
 
-log_output "Waiting 2 seconds before relaunch..."
+log_output "Waiting 2 seconds before launching droid..."
 sleep 2
 
 # ============================================================================

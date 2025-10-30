@@ -132,8 +132,8 @@ async function installGlobalCommands() {
       console.log(`DroidForge: Installed ${installedCount} global commands to ~/.factory/commands/`);
       console.log('');
       console.log('Next step: Register the MCP server in Factory Droid');
-      console.log('Run this command in any droid session:');
-      console.log('  /mcp add droidforge droidforge-mcp-server');
+      console.log('Run this command in your shell:');
+      console.log('  droid mcp add droidforge droidforge-mcp-server --type stdio');
       console.log('');
     }
     

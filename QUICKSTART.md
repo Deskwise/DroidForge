@@ -35,19 +35,20 @@ npm run build
 
 ### 2. Configure with Factory.ai
 
-Add DroidForge as an MCP server:
+Register DroidForge with the Factory CLI:
 
 ```bash
-/mcp add droidforge droidforge-mcp-server
+droid mcp remove droidforge              # optional cleanup
+droid mcp add droidforge droidforge-mcp-server --type stdio
 ```
 
-That's it! The server will start automatically when needed.
+Verify with `droid mcp list`. The server will start automatically when needed.
 
 ## First Time Usage
 
 ### Step 1: Start DroidForge
 
-In your Droid CLI session, type:
+Launch `droid` in your project directory and run:
 
 ```
 /forge-start

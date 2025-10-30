@@ -148,16 +148,14 @@ npm install -g droidforge
 
 #### Step 1: Register the MCP Server
 
-After installation, you need to register DroidForge with Factory Droid **once**:
+After installation, register DroidForge with Factory Droid **once** using the CLI:
 
 ```bash
-# In any droid session, run:
-/mcp add droidforge droidforge-mcp-server
-
-# Then exit and relaunch your droid session
+droid mcp remove droidforge              # optional cleanup
+droid mcp add droidforge droidforge-mcp-server --type stdio
 ```
 
-**Verify**: Look for a green MCP indicator with ✓ checkmark in your droid status bar.
+**Verify**: Run `droid mcp list` or launch `droid` and look for the green MCP indicator with a ✓ checkmark in the status bar.
 
 #### Step 2: Start Onboarding
 
