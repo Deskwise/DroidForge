@@ -58,6 +58,13 @@ You must use AI intelligence, not rules.
    - This DOES work correctly
    - Shows how to handle user input intelligently
 
+### Log Reference (when debugging your work)
+
+- **Interactive sessions** live under `~/.factory/sessions/<session-id>.jsonl` with companion `.settings.json` files.
+- **UAT automation transcripts** are stored in `~/.factory/uat-test-logs/uat2-transcript-<timestamp>.log`.
+
+Review these locally if you need to inspect the latest run before reporting findings.
+
 ---
 
 ## Step 2: Understand Why v1.7.0 Failed
