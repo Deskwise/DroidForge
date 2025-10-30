@@ -6,7 +6,7 @@
 
 ## Critical References
 - [`docs/SPEC-METHODOLOGY-RECOMMENDATIONS.md`](SPEC-METHODOLOGY-RECOMMENDATIONS.md) — Pattern-matching ban + methodology guidance.
-- [`docs/INSTRUCTIONS-FOR-NEW-AGENT.md`](INSTRUCTIONS-FOR-NEW-AGENT.md) — Onboarding instructions for implementers.
+- [`docs/specifications/INSTRUCTIONS-FOR-NEW-AGENT.md`](specifications/INSTRUCTIONS-FOR-NEW-AGENT.md) — Onboarding instructions for implementers.
 - [`docs/specifications/implementation-plan.md`](specifications/implementation-plan.md) — Current engineering roadmap.
 - [`docs/specifications/onboarding-spec.md`](specifications/onboarding-spec.md) — UX contract for onboarding.
 - [`docs/project/audit-log.md`](project/audit-log.md) — Documentation gap tracker.

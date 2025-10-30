@@ -33,7 +33,7 @@ set methodology_choice "2"  ;# TDD
 # Log both to console and transcript file
 proc log_output {message} {
     global transcript_file
-    puts "$message"
+    catch { puts "$message" }
     set fp [open "$transcript_file" a]
     puts $fp "$message"
     close $fp
@@ -52,7 +52,7 @@ proc log_section {title} {
 # ============================================================================
 file mkdir $log_dir
 
-if {[info exists env(UAT_SKIP_INSTALL)] && $env(UAT_SKIP_INSTALL) == "1"} {
+if {[info exists ::env(UAT_SKIP_INSTALL)] && $::env(UAT_SKIP_INSTALL) == "1"} {
     log_section "STEP 0: Build & link local DroidForge"
     set timeout 600
     spawn bash -c "cd $repo_root && ./scripts/dev-link.sh"

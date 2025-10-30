@@ -28,7 +28,7 @@ set transcript_file "$log_dir/uat2-transcript-$timestamp.log"
 
 proc log_output {message} {
     global transcript_file
-    puts "$message"
+    catch { puts "$message" }
     set fp [open "$transcript_file" a]
     puts $fp "$message"
     close $fp
@@ -43,7 +43,11 @@ proc log_section {title} {
 
 file mkdir $log_dir
 
-if {[info exists env(UAT_SKIP_INSTALL)] && $env(UAT_SKIP_INSTALL) == "1"} {
+if {[info exists ::env(UAT_SKIP_INSTALL)]} {
+    log_output "ℹ UAT_SKIP_INSTALL=$::env(UAT_SKIP_INSTALL)"
+}
+
+if {[info exists ::env(UAT_SKIP_INSTALL)] && $::env(UAT_SKIP_INSTALL) == "1"} {
     log_section "STEP 0: Build & link local DroidForge"
     set timeout 600
     spawn bash -c "cd $repo_root && ./scripts/dev-link.sh"
@@ -67,7 +71,7 @@ if {[file exists $cleanup_script]} {
 log_output "✓ Cleanup complete"
 
 # STEP 2: Optional global install
-if {[info exists env(UAT_SKIP_INSTALL)] && $env(UAT_SKIP_INSTALL) == "1"} {
+if {[info exists ::env(UAT_SKIP_INSTALL)] && $::env(UAT_SKIP_INSTALL) == "1"} {
     log_section "STEP 2: Skipping global install (UAT_SKIP_INSTALL=1)"
 } else {
     log_section "STEP 2: Installing latest droidforge from npm"
