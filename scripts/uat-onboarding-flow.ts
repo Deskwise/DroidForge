@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict';
 import { createOnboardingScript } from '../src/mcp/prompts/onboarding.js';
 import { PromptRunner } from '../src/mcp/prompts/runner.js';
 import type { ToolInvocation } from '../src/mcp/types.js';
@@ -23,7 +24,13 @@ const responses: Record<string, string> = {
   'custom-droids': ''
 };
 
+const inputOrder: string[] = [];
+const collectedKeys = new Set<string>();
+const toolOrder: string[] = [];
+
 function getResponse(id: string): string {
+  inputOrder.push(id);
+
   if (responses[id]) {
     return responses[id];
   }
@@ -37,6 +44,8 @@ function getResponse(id: string): string {
 const script = createOnboardingScript('uat-session', process.cwd());
 const runner = new PromptRunner(script, async <TInput, TOutput>(invocation: ToolInvocation<TInput>): Promise<TOutput> => {
   const name = invocation.name;
+  toolOrder.push(name);
+
   switch (name) {
   case 'smart_scan':
     return {
@@ -50,15 +59,32 @@ const runner = new PromptRunner(script, async <TInput, TOutput>(invocation: Tool
   case 'record_project_goal':
     return { ack: true } as TOutput;
   case 'record_onboarding_data': {
-    const keys = Object.keys(invocation.input ?? {}).filter(key => key !== 'repoRoot' && key !== 'sessionId');
+    const payload = invocation.input ?? {};
+    const keys = Object.keys(payload).filter(key => key !== 'repoRoot' && key !== 'sessionId');
+    keys.forEach(key => collectedKeys.add(key));
     return { saved: keys } as TOutput;
   }
   case 'get_onboarding_progress':
     return {
-      collected: {},
-      missing: [],
-      collectedCount: 10,
-      complete: true
+      collected: Object.fromEntries(
+        ['projectVision', 'targetAudience', 'timelineConstraints', 'qualityVsSpeed', 'teamSize', 'experienceLevel',
+          'budgetConstraints', 'deploymentRequirements', 'securityRequirements', 'scalabilityNeeds'
+        ].map(key => [key, collectedKeys.has(key)])
+      ),
+      missing: [
+        'projectVision',
+        'targetAudience',
+        'timelineConstraints',
+        'qualityVsSpeed',
+        'teamSize',
+        'experienceLevel',
+        'budgetConstraints',
+        'deploymentRequirements',
+        'securityRequirements',
+        'scalabilityNeeds'
+      ].filter(key => !collectedKeys.has(key)),
+      collectedCount: collectedKeys.size,
+      complete: collectedKeys.size >= 10
     } as TOutput;
   case 'select_methodology':
     return { methodology: 'tdd' } as TOutput;
@@ -113,10 +139,55 @@ async function run(): Promise<void> {
       runner.submitChoice(event.segment.id, answer);
     }
   }
+
+  // Assertions
+  const followUps = inputOrder.filter(id => id.startsWith('vision-') && id !== 'vision-confirm' && id !== 'project-vision');
+  assert.equal(followUps.length, 2, `Expected exactly two tailored vision follow-ups, saw ${followUps.length}. Sequence: ${followUps.join(', ')}`);
+
+  const confirmIndex = inputOrder.indexOf('vision-confirm');
+  followUps.forEach(id => {
+    const idx = inputOrder.indexOf(id);
+    assert(idx > inputOrder.indexOf('project-vision') && idx < confirmIndex, `Follow-up ${id} should appear after project vision and before confirmation.`);
+  });
+
+  const methodologyIndex = inputOrder.indexOf('methodology-choice');
+  ['core-target', 'core-timeline', 'core-quality', 'core-team', 'core-experience'].forEach(id => {
+    const idx = inputOrder.indexOf(id);
+    assert(idx !== -1 && idx < methodologyIndex, `Core checklist item ${id} must be captured before methodology discussion.`);
+  });
+
+  ['delivery-budget', 'delivery-deployment', 'delivery-security', 'delivery-scale'].forEach(id => {
+    const idx = inputOrder.indexOf(id);
+    assert(idx !== -1 && idx > methodologyIndex, `Delivery item ${id} must be captured after methodology.`);
+  });
+
+  const selectIndex = toolOrder.indexOf('select_methodology');
+  const recommendIndex = toolOrder.indexOf('recommend_droids');
+  const forgeIndex = toolOrder.indexOf('forge_roster');
+  assert(selectIndex !== -1, 'select_methodology tool must be called.');
+  assert(recommendIndex > selectIndex, 'recommend_droids must run after select_methodology.');
+  assert(forgeIndex > recommendIndex, 'forge_roster must run after recommend_droids.');
+
+  const requiredKeys = [
+    'projectVision',
+    'targetAudience',
+    'timelineConstraints',
+    'qualityVsSpeed',
+    'teamSize',
+    'experienceLevel',
+    'budgetConstraints',
+    'deploymentRequirements',
+    'securityRequirements',
+    'scalabilityNeeds'
+  ];
+  requiredKeys.forEach(key => {
+    assert(collectedKeys.has(key), `Onboarding data missing ${key}.`);
+  });
+
+  console.log('UAT assertions passed ✅');
 }
 
 run().catch(err => {
   console.error('UAT harness failed:', err);
   process.exitCode = 1;
 });
-

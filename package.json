@@ -27,6 +27,7 @@
     "postversion": "git push && git push --tags",
     "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\"",
     "test": "tsx --test src/mcp/**/*.test.ts src/mcp/**/*.e2e.test.ts",
+    "uat": "tsx scripts/uat-onboarding-flow.ts",
     "postinstall": "node scripts/install-global-commands.js"
   },
   "keywords": [
