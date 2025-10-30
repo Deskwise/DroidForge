@@ -65,6 +65,8 @@ You must use AI intelligence, not rules.
 
 Review these locally if you need to inspect the latest run before reporting findings.
 
+**Local test shortcut:** run `UAT_SKIP_INSTALL=1 scripts/automated-uat2.exp`. The script auto-runs `scripts/dev-link.sh` so you don’t have to link manually.
+
 ---
 
 ## Step 2: Understand Why v1.7.0 Failed

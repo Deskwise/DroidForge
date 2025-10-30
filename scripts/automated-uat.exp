@@ -13,6 +13,8 @@
 # CONFIGURATION
 # ============================================================================
 set timeout 120  ;# Max seconds to wait for each expect pattern
+set script_dir [file dirname [info script]]
+set repo_root [file dirname $script_dir]
 set test_repo "/home/richard/code/droidtest"
 set cleanup_script "/home/richard/.factory/cleanup-droidtest.sh"
 set log_dir "/home/richard/.factory/uat-test-logs"
@@ -49,6 +51,17 @@ proc log_section {title} {
 # ENSURE LOG DIRECTORY EXISTS
 # ============================================================================
 file mkdir $log_dir
+
+if {[info exists env(UAT_SKIP_INSTALL)] && $env(UAT_SKIP_INSTALL) == "1"} {
+    log_section "STEP 0: Build & link local DroidForge"
+    set timeout 600
+    spawn bash -c "cd $repo_root && ./scripts/dev-link.sh"
+    expect {
+        timeout { log_output "✗ ERROR: dev-link.sh timed out"; exit 1 }
+        eof { log_output "✓ Local build linked via ./scripts/dev-link.sh" }
+    }
+    set timeout 120
+}
 
 # ============================================================================
 # STEP 1: CLEANUP PREVIOUS TEST RUN

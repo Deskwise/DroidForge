@@ -208,6 +208,16 @@ See [QUICKSTART.md](QUICKSTART.md) for a detailed walkthrough.
 
 These files remain on your machine; redact sensitive details before sharing.
 
+### Local Testing Shortcut
+
+To exercise the onboarding flow against your current source without reinstalling from npm:
+
+```bash
+UAT_SKIP_INSTALL=1 scripts/automated-uat2.exp
+```
+
+When `UAT_SKIP_INSTALL=1` is set, the UAT script automatically runs `scripts/dev-link.sh` (clean → build → `npm link`) before launching `droid`. You can override the repo path with `UAT_REPO=/path/to/project` if needed.
+
 ---
 
 ## How It Works
