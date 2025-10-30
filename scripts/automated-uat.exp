@@ -102,9 +102,12 @@ log_section "STEP 3: Registering DroidForge MCP server"
 set timeout 30
 
 # Remove any existing registration (ignore failures)
-spawn bash -c "droid mcp remove droidforge >/dev/null 2>&1 || true"
-expect eof
-log_output "ℹ Ensured previous MCP entry is removed"
+spawn bash -c "droid mcp remove droidforge"
+expect {
+    -re "(?i)removed|not found" { log_output "ℹ Existing MCP entry removed (or not present)" }
+    timeout { log_output "ℹ MCP remove command produced no output (continuing)" }
+    eof {}
+}
 
 # Add stdio MCP server via CLI (non-interactive)
 spawn bash -c "droid mcp add droidforge droidforge-mcp-server --type stdio"
