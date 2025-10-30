@@ -615,8 +615,7 @@ export const METHODOLOGY_ROLES = {
 ### Phase 6: Documentation (Week 3)
 
 **Files to Update**:
-- [`docs/onboarding-spec.md`](onboarding-spec.md) - Add final implementation details
-- `docs/MIGRATION_GUIDE.md` - Create guide for existing users
+- [`docs/specifications/onboarding-spec.md`](onboarding-spec.md) - Add final implementation details
 - User-facing documentation
 
 ---
