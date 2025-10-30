@@ -1,7 +1,29 @@
 import assert from 'node:assert/strict';
-import { createOnboardingScript } from '../src/mcp/prompts/onboarding.js';
-import { PromptRunner } from '../src/mcp/prompts/runner.js';
+import path from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { ToolInvocation } from '../src/mcp/types.js';
+
+type OnboardingModule = typeof import('../src/mcp/prompts/onboarding.js');
+type RunnerModule = typeof import('../src/mcp/prompts/runner.js');
+
+const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+async function loadModule<T>(relativePath: string): Promise<T> {
+  const srcPath = path.join(ROOT_DIR, 'src', relativePath);
+  const distPath = path.join(ROOT_DIR, 'dist', relativePath);
+
+  try {
+    return (await import(pathToFileURL(srcPath).href)) as T;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException)?.code !== 'ERR_MODULE_NOT_FOUND') {
+      throw error;
+    }
+  }
+  return (await import(pathToFileURL(distPath).href)) as T;
+}
+
+const { createOnboardingScript } = await loadModule<OnboardingModule>('mcp/prompts/onboarding.js');
+const { PromptRunner } = await loadModule<RunnerModule>('mcp/prompts/runner.js');
 
 const responses: Record<string, string> = {
   'project-vision': 'Building a scheduling assistant for community clinics so staff can coordinate on one dashboard.',
