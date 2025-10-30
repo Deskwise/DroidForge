@@ -72,12 +72,9 @@ if {[info exists env(UAT_SKIP_INSTALL)] && $env(UAT_SKIP_INSTALL) == "1"} {
 log_section "STEP 3: Register MCP via CLI"
 set timeout 30
 
-spawn bash -c "droid mcp remove droidforge"
-expect {
-    -re "(?i)removed|not found" { log_output "ℹ Existing MCP entry removed (or not present)" }
-    timeout { log_output "ℹ MCP remove command produced no output (continuing)" }
-    eof {}
-}
+spawn bash -c "droid mcp remove droidforge >/dev/null 2>&1 || true"
+expect eof
+log_output "ℹ Ensured previous MCP entry is removed"
 
 spawn bash -c "droid mcp add droidforge droidforge-mcp-server --type stdio"
 expect {
