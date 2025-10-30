@@ -112,71 +112,42 @@ Check the repository status and either:
 - If "ready": show active droids and next steps
 - If "incomplete": resume where they left off
 
-## Conversational Onboarding Flow
-1) Call SMART_SCAN (repoRoot only). Tell the user what you found.
-2) Ask about project vision: "What are you building? Describe your project goals."
-   - Wait for response
-   - Then call RECORD_PROJECT_GOAL with repoRoot and their description
-
-3) Collect the CORE 6 discovery items BEFORE methodology:
-   - projectVision ✓ (already captured)
-   - targetAudience, timelineConstraints, qualityVsSpeed, teamSize, experienceLevel
-
-Guidelines:
-- Ask ONE friendly question at a time that can elicit multiple fields.
-- Each question shows EXACTLY 2 examples.
-- Confirm inferences ("sounds like solo, is that right?").
-- Follow-up order (by impact): experienceLevel → qualityVsSpeed → targetAudience → timelineConstraints → teamSize.
-- Stop once all 6 are collected.
-- Call GET_ONBOARDING_PROGRESS; if any core item is missing, list it and ask explicitly.
-
-## Methodology Recommendation (UX-first)
-Once the Core 6 are captured (methodology becomes the 7th data point):
-- Analyze their answers intelligently. No pattern matching.
-- Present a dynamic Top 6 tailored to their project.
-- Recommend exactly 1 primary methodology with "because you said ..." reasoning that quotes their details.
-
-Say:
-"Based on your responses about [key details], I recommend:
-[Primary] — because [their context].
-
-Top 6 for your project:
-1) [Name] — why
-2) [Name] — why
-3) [Name] — why
-4) [Name] — why
-5) [Name] — why
-6) [Name] — why"
-
-Offer:
-"Want to see the full catalog for reference?"
-
-If yes, show the full list:
+## Conversational Onboarding Flow — Follow All Five Phases
+1. **Phase 1 · Context hook + vision**
+   - Call SMART_SCAN and reflect the repo back with 2–3 quick "Maybe you're building..." guesses using repo language.
+   - Ask the combined vision question once ("What are you building, who's it for, what's your situation?") and offer two concise examples.
+   - Call RECORD_PROJECT_GOAL and RECORD_ONBOARDING_DATA (projectVision) immediately.
+   - Ask two tailored follow-ups (audience + standout goals) using their words; confirm inferences out loud before logging targetAudience via RECORD_ONBOARDING_DATA.
+   - Mirror the vision in 2–3 bullets and ask "Did I miss anything big?".
+2. **Phase 2 · Core 6 dynamic checklist (vision, audience, timeline, quality vs speed, team size, experience)**
+   - Use GET_ONBOARDING_PROGRESS before each question to show a live checklist (mark collected with ✓, highlight missing).
+   - Ask one conversational question at a time with exactly two relevant examples. Confirm the answer and call RECORD_ONBOARDING_DATA for the specific field right away.
+   - Loop until GET_ONBOARDING_PROGRESS reports all six core fields captured. Do **not** enter methodology discussion early.
+3. **Phase 3 · Methodology recommendation**
+   - Once Core 6 are complete, synthesize the context and recommend **three** approaches with "because you said..." reasoning that quotes their own phrases.
+   - Present the Top 6 catalog tailored to them, mention additional approaches are available, and remind them they can delegate.
+   - Accept numbers 1–6, methodology names, or delegation ("you decide"). If they delegate, clearly state the methodology you are choosing before calling SELECT_METHODOLOGY.
+   - If they propose an unknown style, give a brief acknowledgment/research summary and call SELECT_METHODOLOGY with choice="other" and otherText set to their wording.
+   - No heuristic pattern matching; rely on what the user selected or delegated. Keep the recommendation logic conversational and visible to the user.
+   - If they want to see every option, show:
 ${methodologyListText}
+4. **Phase 4 · Delivery wrap-up (budget, deployment, security, scalability)**
+   - After methodology is recorded, resume GET_ONBOARDING_PROGRESS to track the remaining four fields.
+   - Frame each question through the chosen methodology ("Given we picked DevOps...") and share two examples per question.
+   - Record each answer immediately and do not forge until GET_ONBOARDING_PROGRESS reports all ten data points.
+   - Mirror the full context (items 1–10) and ask for corrections before proceeding.
+5. **Phase 5 · Personalized roster reveal**
+   - Remind the user to restart their CLI before forging so df-* commands load.
+   - Call RECOMMEND_DROIDS and introduce each specialist in first person, two sentences max, tying their remit to the methodology and the user's own language. Mention the df-<role> command once per intro.
+   - Offer to add custom specialists if needed. Respect the df-<role> naming rule.
+   - Once confirmed, call FORGE_ROSTER, then GENERATE_USER_GUIDE and INSTALL_COMMANDS.
+   - Close with a "We heard you" recap linking each roster role back to the ten discovery items and restate the next actionable step.
 
-Flexible input:
-- Accept numbers 1–6, names, or delegation ("you decide")
-- If the user provides a different/unknown methodology: do not hard-fail. Briefly summarize or research it and proceed; optionally confirm.
-
-Finally, call SELECT_METHODOLOGY with:
-{
-  "repoRoot": "<root>",
-  "choice": "<known id or 'other'>",
-  "otherText": "<exact text if custom/unknown>"
-}
-
-4) Collect the remaining delivery requirements AFTER methodology to reach 10/10:
-   - budgetConstraints, deploymentRequirements, securityRequirements, scalabilityNeeds
-   - Frame questions in light of the chosen methodology ("Given we picked DevOps, what does deployment look like?").
-   - Use GET_ONBOARDING_PROGRESS to ensure all 10 are captured before forging.
-
-## Next
-- Call RECOMMEND_DROIDS (repoRoot)
-- Show the recommended team, ask for customization
-- Call FORGE_ROSTER (repoRoot + customizations)
-- Keep all internal session IDs out of user-facing messages
-- UX-first: make them feel heard, reflect their priorities, and keep it conversational
-- Strictly no keyword pattern matching
+## General Guardrails
+- Keep every question conversational (never numbered lists).
+- Never surface internal session IDs, tool names, or raw JSON.
+- Be brutally honest about missing data or blockers and invite corrections.
+- Mirror the user's terminology whenever summarizing or recommending anything.
 `
     },
     {
@@ -198,10 +169,8 @@ Safely remove all DroidForge data from the repository with proper confirmation.
 ## Actions
 1) Call DROIDFORGE:CLEANUP_REPO to preview what will be removed
 2) Show preview of droids and files to be deleted
-3) Require confirmation before proceeding with deletion
-4) Provide cleanup results and instructions for re-setup
-
-Always require explicit confirmation for destructive operations.
+3) Ask the user to confirm removal
+4) Call DROIDFORGE:CLEANUP_REPO again with confirm=true once the user agrees
 `
     }
   ];

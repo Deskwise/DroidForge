@@ -1,11 +1,9 @@
---- a/README.md
-+++ b/README.md
-@@ -16,6 +16,7 @@
-- [ ] Transform `onboarding-intelligent.ts` to follow the new phased script (core discovery → methodology discovery → delivery wrap-up → forging) with dynamic checklist logic.
-- [ ] Update `commands.ts` onboarding guidance so the orchestrator AI mirrors the new gates and methodology recommendation instructions (no pattern matching).
- - [ ] Add intelligent methodology recommendation handling in the live flow (recommend one with “because you said…” reasoning before presenting Top 6).
-- [ ] Ensure roster forging emits the personalized introductions described in the spec and enforces plain `df-<role>` slug naming.
-- [ ] Extend tests/UAT to cover the phased gating (collect 6 items before methodology, 10 before roster) and the personalized roster output.
-- [ ] Re-run `/forge-start` end-to-end after implementation to verify the experience stays conversational and satisfies all gates.
-+- [ ] SelectMethodology must accept unknown methodologies gracefully and research them.
+# Onboarding Flow Tracker
 
+- [x] Transform `src/mcp/prompts/onboarding.ts` to follow the phased script (vision hook → Core 6 checklist → methodology → delivery wrap-up → forging) with a dynamic checklist and mirrored summaries.
+- [x] Update `src/mcp/templates/commands.ts` so forge-start guidance mirrors the gates, explains the three “because you said…” recommendations, and keeps instructions conversational instead of pattern-matched rules.
+- [x] Ensure roster forging delivers personalized first-person introductions, referencing user language while keeping command slugs in the `df-<role>` format.
+- [x] Extend UAT coverage with `scripts/uat-onboarding-flow-check.mjs` to assert the Core 6 gate, the 10/10 data requirement before forging, and successful roster creation once complete.
+- [x] Re-run the onboarding experience (script + harness) to verify the flow remains conversational and satisfies every gate, including handling unknown methodologies via friendly prompts in `select_methodology`.
+
+**Status:** Spec implemented end-to-end. Future adjustments should keep this list in sync.
