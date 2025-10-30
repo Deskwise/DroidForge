@@ -140,6 +140,8 @@ export interface RecommendDroidsOutput {
     id: string;
     summary: string;
   };
+  introText?: string;
+  coverageRecap?: string;
 }
 
 export interface RecommendDroidsInput extends ToolContext {}

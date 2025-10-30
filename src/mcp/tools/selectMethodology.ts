@@ -50,100 +50,6 @@ const FIELD_LABELS: Record<string, string> = {
   scalabilityNeeds: 'scalability needs'
 };
 
-/**
- * Enhanced pattern matching for methodology selection based on user context
- * This is sophisticated pattern matching, NOT AI intelligence
- */
-function recommendMethodology(session: OnboardingSession): string {
-  const text = (field: keyof OnboardingSession) => {
-    const value = session[field];
-    return typeof value === 'string' ? value.toLowerCase() : '';
-  };
-  const vision = text('projectVision');
-  const timeline = text('timelineConstraints');
-  const qualitySpeed = text('qualityVsSpeed');
-  const teamSize = text('teamSize');
-  const experience = text('experienceLevel');
-  const budget = text('budgetConstraints');
-  const security = text('securityRequirements');
-  const deployment = text('deploymentRequirements');
-
-  // Senior developer with complex domain
-  if (experience.includes('senior') || experience.includes('experienced') || experience.includes('years')) {
-    if (vision.includes('domain') || vision.includes('complex') || vision.includes('system')) {
-      return 'ddd'; // Domain-Driven Design for complex domains
-    }
-    if (vision.includes('api') || vision.includes('platform') || vision.includes('infrastructure')) {
-      return 'devops'; // DevOps for infrastructure-heavy projects
-    }
-    return 'agile'; // Default for experienced developers
-  }
-
-  // Quality-focused projects
-  if (qualitySpeed.includes('quality') || qualitySpeed.includes('robust') || qualitySpeed.includes('solid')) {
-    if (vision.includes('financial') || vision.includes('payment') || vision.includes('banking')) {
-      return 'tdd'; // TDD for financial/sensitive data
-    }
-    if (vision.includes('healthcare') || vision.includes('medical') || security.includes('hipaa')) {
-      return 'bdd'; // BDD for regulated industries
-    }
-    return 'tdd'; // Default to TDD for quality focus
-  }
-
-  // Speed-focused projects
-  if (qualitySpeed.includes('speed') || qualitySpeed.includes('fast') || qualitySpeed.includes('quick')) {
-    if (timeline.includes('week') || timeline.includes('month') || timeline.includes('asap')) {
-      return 'rapid'; // Rapid for urgent timelines
-    }
-    return 'lean'; // Lean for speed but with learning focus
-  }
-
-  // Timeline-driven decisions
-  if (timeline.includes('demo') || timeline.includes('pitch') || timeline.includes('investor')) {
-    return 'rapid'; // Rapid prototyping for demos
-  }
-  if (timeline.includes('series') || timeline.includes('funding') || timeline.includes('deadline')) {
-    return 'lean'; // Lean for funding-related timelines
-  }
-
-  // Team size considerations
-  if (teamSize.includes('solo') || teamSize.includes('just me') || teamSize.includes('alone')) {
-    if (qualitySpeed.includes('learn') || experience.includes('learning') || experience.includes('beginner')) {
-      return 'agile'; // Agile for solo learning
-    }
-    return 'rapid'; // Rapid for solo speed
-  }
-
-  if (teamSize.includes('team') || teamSize.includes('developers') || teamSize.includes('multiple')) {
-    return 'agile'; // Agile for team coordination
-  }
-
-  // Budget constraints
-  if (budget.includes('bootstrap') || budget.includes('minimal') || budget.includes('free')) {
-    return 'lean'; // Lean for cost-conscious projects
-  }
-
-  // Security/compliance requirements
-  if (security.includes('hipaa') || security.includes('pci') || security.includes('compliance')) {
-    return 'bdd'; // BDD for compliance requirements
-  }
-
-  // Enterprise contexts
-  if (vision.includes('enterprise') || vision.includes('corporate') || vision.includes('internal')) {
-    if (teamSize.includes('large') || teamSize.includes('many')) {
-      return 'waterfall'; // Waterfall for large enterprise teams
-    }
-    return 'enterprise'; // Enterprise methodology
-  }
-
-  // Default fallbacks
-  if (vision.includes('startup') || vision.includes('mvp') || vision.includes('validate')) {
-    return 'lean'; // Lean for startups
-  }
-
-  return 'agile'; // Safe default
-}
-
 function collectMissingDelivery(session: OnboardingSession): string[] {
   const have = (value: unknown) => typeof value === 'string' && value.trim().length > 0;
   const missing: string[] = [];
@@ -161,8 +67,7 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
     name: 'select_methodology',
     description: 'Record the methodology selection from onboarding.',
     handler: async input => {
-      let { repoRoot, sessionId } = input;
-      // Sanitize inputs for bracketed paste and ANSI sequences
+      const { repoRoot, sessionId } = input;
       const sanitize = (s?: string) => (s ?? '')
         .replace(/\x1b\[\?2004[hl]/g, '')
         .replace(/\x1b\[200~|\x1b\[201~/g, '')
@@ -171,8 +76,11 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
         .trim();
       let choice = sanitize(input.choice);
       let otherText = sanitize(input.otherText);
-      
-      // Map numbers to methodology names (user picks 1-10 to save typing)
+
+      if (!choice) {
+        throw new Error('Please confirm the methodology before I record it.');
+      }
+
       const numberMap: Record<string, string> = {
         '1': 'agile',
         '2': 'tdd',
@@ -185,43 +93,23 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
         '9': 'rapid',
         '10': 'enterprise'
       };
-      
-      // Accept numbers or methodology names
-      let mappedChoice = numberMap[choice] || choice.toLowerCase().trim();
 
-      // Delegation: allow the user to say "you decide" (and common variants)
-      const delegationPhrases = ['you decide', 'you choose', 'decide for me', 'pick for me', 'up to you', 'you-decide'];
-      const isDelegated = delegationPhrases.some(p => choice.toLowerCase().includes(p));
+      let mappedChoice = numberMap[choice] || choice.toLowerCase();
 
-      let finalChoice = mappedChoice;
+      const delegationPhrases = ['you decide', 'you choose', 'decide for me', 'pick for me', 'up to you', 'your call'];
+      const isDelegated = delegationPhrases.some(phrase => mappedChoice.includes(phrase));
       if (isDelegated) {
-        // Load session to analyze context
-        let session: OnboardingSession | null = null;
-        if (sessionId) {
-          session = await deps.sessionStore.load(repoRoot, sessionId);
-        } else {
-          session = await deps.sessionStore.loadActive(repoRoot);
-        }
-        if (!session) {
-          // Fallback default
-          finalChoice = 'agile';
-        } else {
-          // Use enhanced pattern matching instead of simple quality/speed check
-          finalChoice = recommendMethodology(session);
+        throw new Error('I can only record the methodology once you pick it. Confirm the recommendation in conversation, then call select_methodology with that final choice.');
+      }
+
+      if (!mappedChoice || !ALLOWED.has(mappedChoice)) {
+        const original = choice;
+        mappedChoice = 'other';
+        if (!otherText) {
+          otherText = original;
         }
       }
 
-      // If not delegated and not recognized, accept as custom instead of hard-failing
-      if (!finalChoice || !ALLOWED.has(finalChoice)) {
-        // Treat unknown methodology as 'other' and preserve user's text for research/briefing
-        const original = choice; // what user/AI sent
-        finalChoice = 'other';
-        otherText = otherText && otherText.trim().length > 0 ? otherText : original;
-      }
-      // Normalize to final choice
-      choice = finalChoice as typeof choice;
-      
-      // Try to load by sessionId first (if provided), otherwise load the active session
       let session: OnboardingSession | null = null;
       if (sessionId) {
         session = await deps.sessionStore.load(repoRoot, sessionId);
@@ -254,9 +142,10 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
           payload: { sessionId: session.sessionId, missing: deliveryMissing }
         });
       }
-      const resolved = choice === 'other'
+
+      const resolved = mappedChoice === 'other'
         ? (otherText?.trim() || 'custom')
-        : choice;
+        : mappedChoice;
       session.methodology = resolved;
       session.state = 'roster';
       await deps.sessionStore.save(repoRoot, session);
@@ -270,3 +159,4 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
     }
   };
 }
+

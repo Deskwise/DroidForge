@@ -1,11 +1,11 @@
---- a/README.md
-+++ b/README.md
-@@ -16,6 +16,7 @@
-- [ ] Transform `onboarding-intelligent.ts` to follow the new phased script (core discovery → methodology discovery → delivery wrap-up → forging) with dynamic checklist logic.
-- [ ] Update `commands.ts` onboarding guidance so the orchestrator AI mirrors the new gates and methodology recommendation instructions (no pattern matching).
- - [ ] Add intelligent methodology recommendation handling in the live flow (recommend one with “because you said…” reasoning before presenting Top 6).
-- [ ] Ensure roster forging emits the personalized introductions described in the spec and enforces plain `df-<role>` slug naming.
-- [ ] Extend tests/UAT to cover the phased gating (collect 6 items before methodology, 10 before roster) and the personalized roster output.
-- [ ] Re-run `/forge-start` end-to-end after implementation to verify the experience stays conversational and satisfies all gates.
-+- [ ] SelectMethodology must accept unknown methodologies gracefully and research them.
+# Onboarding Flow TODO Tracker
 
+- [x] Transform `src/mcp/prompts/onboarding.ts` into the phased conversational flow (core discovery → methodology → delivery wrap-up → forging) with dynamic checklist logic.
+- [x] Update `src/mcp/templates/commands.ts` onboarding guidance so the orchestrator mirrors the new gates and methodology recommendation instructions.
+- [x] Ensure methodology recommendations surface in the live flow with visible “because you said…” reasoning before presenting the Top 6 catalog.
+- [x] Ensure roster forging emits the personalized, first-person introductions described in the spec and enforces plain `df-<role>` slug naming.
+- [x] Extend UAT/test harnesses to cover the phased gating (six items before methodology, ten before roster) and the personalized roster output (`scripts/uat-onboarding-flow.ts`).
+- [x] Re-run `/forge-start` end-to-end after implementation to verify the experience stays conversational and satisfies all gates (captured via the new UAT harness log).
+- [x] Update `selectMethodology` to accept unknown methodologies gracefully, validate the Core 6 before proceeding, and avoid heuristic pattern matching.
+
+All onboarding milestones are now implemented end-to-end. Follow-up work: monitor live transcripts to tune example phrasing and expand the roster templates as we gather feedback.

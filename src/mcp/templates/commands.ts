@@ -113,62 +113,45 @@ Check the repository status and either:
 - If "incomplete": resume where they left off
 
 ## Conversational Onboarding Flow
-1) Call SMART_SCAN (repoRoot only). Tell the user what you found.
-2) Ask about project vision: "What are you building? Describe your project goals."
-   - Wait for response
-   - Then call RECORD_PROJECT_GOAL with repoRoot and their description
+1) Call SMART_SCAN (repoRoot only) and surface 2–3 guesses (“Maybe you're...”) drawn from the signals. Use them as a quick hook.
+2) Ask for the vision: "Tell me about your project. What are you building, who's it for, and what's the situation?" Rotate two concise examples. Call RECORD_PROJECT_GOAL and RECORD_ONBOARDING_DATA (projectVision) immediately after their answer.
+3) Ask two follow-up clarifiers tailored to what they just said (risks, platforms, success signals, etc.). Keep it conversational.
+4) Mirror back the vision in bullet points and ask "Did I miss anything big?"
 
-3) Collect the CORE 6 discovery items BEFORE methodology:
-   - projectVision ✓ (already captured)
-   - targetAudience, timelineConstraints, qualityVsSpeed, teamSize, experienceLevel
+### Phase 2 – Core 6 Checklist
+Use RECORD_ONBOARDING_DATA to capture each item. Maintain a dynamic checklist after each answer so the user knows what’s locked:
+- projectVision (from step 2)
+- targetAudience
+- timelineConstraints
+- qualityVsSpeed
+- teamSize
+- experienceLevel
 
 Guidelines:
-- Ask ONE friendly question at a time that can elicit multiple fields.
-- Each question shows EXACTLY 2 examples.
-- Confirm inferences ("sounds like solo, is that right?").
-- Follow-up order (by impact): experienceLevel → qualityVsSpeed → targetAudience → timelineConstraints → teamSize.
-- Stop once all 6 are collected.
-- Call GET_ONBOARDING_PROGRESS; if any core item is missing, list it and ask explicitly.
+- Ask one question at a time with exactly two context-rich examples.
+- Confirm inferences if you derive them (“Sounds like solo work—log it that way?”).
+- After each data point, show the updated checklist. Call GET_ONBOARDING_PROGRESS before leaving the phase to ensure all six are filled.
 
-## Methodology Recommendation (UX-first)
-Once the Core 6 are captured (methodology becomes the 7th data point):
-- Analyze their answers intelligently. No pattern matching.
-- Present a dynamic Top 6 tailored to their project.
-- Recommend exactly 1 primary methodology with "because you said ..." reasoning that quotes their details.
+### Phase 3 – Methodology Recommendation
+- Summarise the key signals you heard (audience, timeline, speed/quality, team, experience) before recommending.
+- Present **three** recommendations with explicit “because you said…” reasoning that quotes their wording.
+- Then show the Top 6 list for reference. Offer the full catalog of 10 if they ask (point them to the catalog below).
+- Accept numbers, names, or custom descriptions. If they want you to decide, discuss it conversationally and then supply the final pick when calling SELECT_METHODOLOGY (the tool will not auto-decide).
+- Call SELECT_METHODOLOGY only after the user confirms the exact methodology string.
 
-Say:
-"Based on your responses about [key details], I recommend:
-[Primary] — because [their context].
-
-Top 6 for your project:
-1) [Name] — why
-2) [Name] — why
-3) [Name] — why
-4) [Name] — why
-5) [Name] — why
-6) [Name] — why"
-
-Offer:
-"Want to see the full catalog for reference?"
-
-If yes, show the full list:
+Full catalog (share on request):
 ${methodologyListText}
 
-Flexible input:
-- Accept numbers 1–6, names, or delegation ("you decide")
-- If the user provides a different/unknown methodology: do not hard-fail. Briefly summarize or research it and proceed; optionally confirm.
+### Phase 4 – Delivery Requirements (items 8–10)
+- Resume the checklist for budgetConstraints, deploymentRequirements, securityRequirements, scalabilityNeeds.
+- Frame questions in light of the chosen methodology (“Given we picked DevOps, what’s the deployment story?”).
+- Call GET_ONBOARDING_PROGRESS once all four are captured so you know you have the full 10/10 data points.
 
-Finally, call SELECT_METHODOLOGY with:
-{
-  "repoRoot": "<root>",
-  "choice": "<known id or 'other'>",
-  "otherText": "<exact text if custom/unknown>"
-}
-
-4) Collect the remaining delivery requirements AFTER methodology to reach 10/10:
-   - budgetConstraints, deploymentRequirements, securityRequirements, scalabilityNeeds
-   - Frame questions in light of the chosen methodology ("Given we picked DevOps, what does deployment look like?").
-   - Use GET_ONBOARDING_PROGRESS to ensure all 10 are captured before forging.
+### Phase 5 – Roster Reveal & Forging
+- Call RECOMMEND_DROIDS. Present each specialist in first-person, reusing the user’s language (“Because you said… I’ll…”). Mention the command slug ('df-<role>') with every introduction.
+- Offer room for custom specialists.
+- Remind the user to restart the droid CLI before forging so commands load.
+- Call FORGE_ROSTER → GENERATE_USER_GUIDE → INSTALL_COMMANDS once they’re ready.
 
 ## Next
 - Call RECOMMEND_DROIDS (repoRoot)
