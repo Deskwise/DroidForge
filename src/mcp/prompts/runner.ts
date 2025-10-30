@@ -49,8 +49,13 @@ export class PromptRunner {
       this.index += 1;
 
       switch (segment.kind) {
-      case 'say':
-        return { type: 'say', segment };
+      case 'say': {
+        const resolvedSegment: SaySegment = {
+          ...segment,
+          text: this.resolveText(segment.text)
+        };
+        return { type: 'say', segment: resolvedSegment };
+      }
       case 'summary':
         return { type: 'summary', segment };
       case 'input':
@@ -120,10 +125,28 @@ export class PromptRunner {
     }
     if ('fromTool' in obj) {
       const key = obj.fromTool as string;
-      return this.toolResults.get(key);
+      const result = this.toolResults.get(key);
+      if ('path' in obj && typeof obj.path === 'string') {
+        const segments = obj.path.split('.').filter(Boolean);
+        let current: unknown = result;
+        for (const segment of segments) {
+          if (current && typeof current === 'object' && segment in (current as Record<string, unknown>)) {
+            current = (current as Record<string, unknown>)[segment];
+          } else {
+            current = undefined;
+            break;
+          }
+        }
+        return current;
+      }
+      return result;
     }
     if ('literal' in obj) {
       return obj.literal;
+    }
+    if ('concat' in obj && Array.isArray(obj.concat)) {
+      const parts = obj.concat.map(item => this.resolveValue(item));
+      return parts.map(part => (part == null ? '' : String(part))).join('');
     }
 
     const resolved: Record<string, unknown> = {};
@@ -131,5 +154,16 @@ export class PromptRunner {
       resolved[k] = this.resolveValue(v);
     }
     return resolved;
+  }
+
+  private resolveText(value: unknown): string {
+    const resolved = this.resolveValue(value);
+    if (typeof resolved === 'string') {
+      return resolved;
+    }
+    if (resolved == null) {
+      return '';
+    }
+    return String(resolved);
   }
 }

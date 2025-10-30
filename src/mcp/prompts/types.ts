@@ -1,9 +1,17 @@
 export type Speaker = 'assistant' | 'system';
 
+export type ResolvableText =
+  | string
+  | { literal: string }
+  | { fromInput: string }
+  | { fromChoice: string }
+  | { fromTool: string; path?: string }
+  | { concat: ResolvableText[] };
+
 export interface SaySegment {
   kind: 'say';
   speaker: Speaker;
-  text: string;
+  text: ResolvableText;
 }
 
 export interface InputSegment {

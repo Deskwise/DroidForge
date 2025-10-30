@@ -1,351 +1,666 @@
-import type { PromptScript } from './types.js';
-import { getMethodologyChoices } from '../generation/methodologyDefinitions.js';
+import type { PromptScript, ResolvableText } from './types.js';
 
-const ALL_METHODOLOGIES = getMethodologyChoices();
+const VISION_EXAMPLES = [
+  'a React dashboard that helps founders track investor pipeline updates',
+  'an iOS wellness companion for my family with shared reminders',
+  'a Typescript CLI that reorganises design system tokens overnight',
+  'a Shopify theme refresh for our handmade jewellery store',
+  'a Flask API powering compliance checklists for clinics',
+  'a Unity mini-game to teach algebra with colourful feedback'
+] as const;
+
+const CONTEXT_GUESSES = [
+  "Maybe you're orchestrating a web experience with a services layer in the background?",
+  "Maybe this repo hides a mobile surface that needs a clean deployment story?",
+  "Maybe you're stitching together workflows for a small but mighty founding team?",
+  "Maybe there's a data pipeline brewing that will need dependable automation?",
+  "Maybe you're preparing for an investor milestone that demands polish and proof?",
+  "Maybe you're turning research notes into something teammates can actually use?"
+] as const;
+
+interface FollowUpPrompt {
+  id: string;
+  label: string;
+  prompt: string;
+  examples: readonly [string, string];
+}
+
+const FOLLOW_UP_PROMPTS: FollowUpPrompt[] = [
+  {
+    id: 'vision-risks',
+    label: 'Risks or tricky pieces',
+    prompt: 'What feels riskiest or most unknown? Call out anything that could stall progress.',
+    examples: [
+      'Keeping HIPAA data safe while still iterating quickly',
+      'Nailing the feel of the gameplay loop before adding more content'
+    ]
+  },
+  {
+    id: 'vision-platforms',
+    label: 'Primary platforms',
+    prompt: 'Which platforms or channels matter most on day one?',
+    examples: [
+      'A polished mobile experience is non-negotiable',
+      'Start web-first, then layer in a desktop installer later'
+    ]
+  },
+  {
+    id: 'vision-integrations',
+    label: 'Integrations and dependencies',
+    prompt: 'Any integrations or dependencies already on the table?',
+    examples: [
+      'Need to pull workouts from Apple Health',
+      'Must sync issues from Jira into the dashboard'
+    ]
+  },
+  {
+    id: 'vision-success',
+    label: 'Success signal',
+    prompt: 'Paint the moment you know this project nailed it. What are people doing or saying?',
+    examples: [
+      'A beta clinic renews because the compliance dashboard made audits painless',
+      'Players keep rematching because the AI feels fair but challenging'
+    ]
+  }
+];
+
+interface ChecklistItem {
+  key: string;
+  label: string;
+}
+
+const CORE_CHECKLIST: ChecklistItem[] = [
+  { key: 'projectVision', label: 'Project vision' },
+  { key: 'targetAudience', label: 'Target audience' },
+  { key: 'timelineConstraints', label: 'Timeline or launch window' },
+  { key: 'qualityVsSpeed', label: 'Quality vs speed stance' },
+  { key: 'teamSize', label: 'Team size & roles' },
+  { key: 'experienceLevel', label: 'Experience level' }
+];
+
+const DELIVERY_CHECKLIST: ChecklistItem[] = [
+  { key: 'budgetConstraints', label: 'Budget & resourcing signals' },
+  { key: 'deploymentRequirements', label: 'Deployment & hosting plan' },
+  { key: 'securityRequirements', label: 'Security & compliance guardrails' },
+  { key: 'scalabilityNeeds', label: 'Scalability or load expectations' }
+];
+
+function pickRandom<T>(pool: readonly T[], count: number): T[] {
+  if (pool.length <= count) {
+    return [...pool];
+  }
+  const copy = [...pool];
+  const selection: T[] = [];
+  while (selection.length < count && copy.length > 0) {
+    const index = Math.floor(Math.random() * copy.length);
+    selection.push(copy[index]);
+    copy.splice(index, 1);
+  }
+  return selection;
+}
+
+function renderChecklist(items: ChecklistItem[], completed: string[]): string {
+  return items
+    .map(item => `${completed.includes(item.key) ? '☑︎' : '☐'} ${item.label}`)
+    .join('\n');
+}
+
+const TOP_SIX_METHODS = `Top 6 for this kind of build:\n1) Agile / Scrum — short sprints to adapt as you learn.\n2) Test-Driven Development (TDD) — tests first to lock in quality.\n3) Behavior-Driven Development (BDD) — shared stories keep the vision aligned.\n4) Rapid Prototyping — quick loops to validate ideas without over-investing.\n5) DevOps / Platform — automation plus observability for frequent deploys.\n6) Kanban / Continuous Flow — visualise the work and keep throughput steady.`;
+
+const literal = (text: string): ResolvableText => ({ literal: text });
 
 export function createOnboardingScript(sessionId: string, repoRoot: string): PromptScript {
+  const [visionExampleA, visionExampleB] = pickRandom(VISION_EXAMPLES, 2) as [string, string];
+  const contextGuesses = pickRandom(CONTEXT_GUESSES, 3);
+  const [followUpA, followUpB] = pickRandom(FOLLOW_UP_PROMPTS, 2) as [FollowUpPrompt, FollowUpPrompt];
+
+  const segments: PromptScript['segments'] = [
+    // Phase 1: Context hook and vision capture
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: "Hi! I'm your DroidForge architect. I'll pair a specialist roster to your project, so let me scan the repo to see what you've already got in motion."
+    },
+    {
+      kind: 'tool',
+      name: 'smart_scan',
+      input: { repoRoot: { literal: repoRoot } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Here are a few things that jumped out: ${contextGuesses.map(line => `\n• ${line}`).join('')}`
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Tell me about your project. What are you building, who's it for, and what's the surrounding situation?\nExamples:\n- "${visionExampleA}"\n- "${visionExampleB}"`
+    },
+    {
+      kind: 'input',
+      id: 'project-vision',
+      label: 'Project story, audience, and current situation',
+      placeholder: 'Lay out the big picture in one message'
+    },
+    {
+      kind: 'tool',
+      name: 'record_project_goal',
+      input: { repoRoot: { literal: repoRoot }, description: { fromInput: 'project-vision' } }
+    },
+    {
+      kind: 'tool',
+      name: 'record_onboarding_data',
+      input: { repoRoot: { literal: repoRoot }, projectVision: { fromInput: 'project-vision' } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal('Love that context. Let me zoom in a bit more so we can get the roster thinking ahead.\n\n'),
+          literal(followUpA.prompt),
+          literal('\nExamples:\n- '),
+          literal(followUpA.examples[0]),
+          literal('\n- '),
+          literal(followUpA.examples[1])
+        ]
+      }
+    },
+    {
+      kind: 'input',
+      id: followUpA.id,
+      label: followUpA.label,
+      placeholder: followUpA.examples[0]
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal('Perfect. One more quick angle before we get tactical.\n\n'),
+          literal(followUpB.prompt),
+          literal('\nExamples:\n- '),
+          literal(followUpB.examples[0]),
+          literal('\n- '),
+          literal(followUpB.examples[1])
+        ]
+      }
+    },
+    {
+      kind: 'input',
+      id: followUpB.id,
+      label: followUpB.label,
+      placeholder: followUpB.examples[0]
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal("Here's what I heard:\n"),
+          literal('• Vision: '),
+          { fromInput: 'project-vision' },
+          literal('\n• '),
+          literal(followUpA.label),
+          literal(': '),
+          { fromInput: followUpA.id },
+          literal('\n• '),
+          literal(followUpB.label),
+          literal(': '),
+          { fromInput: followUpB.id },
+          literal('\nDid I miss anything big? Add it here or say "Looks good" and we\'ll keep going.')
+        ]
+      }
+    },
+    {
+      kind: 'input',
+      id: 'vision-confirm',
+      label: 'Anything major to add or clarify?',
+      placeholder: 'Example: Need to mention beta testers in EU with GDPR constraints'
+    },
+
+    // Phase 2: Core six items with dynamic checklist
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Great. Let me grab the core discovery items so methodology guidance is on point.\nChecklist:\n${renderChecklist(CORE_CHECKLIST, ['projectVision'])}`
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: "Who's going to use this day to day? Give me the audience in their own words."
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'Examples:\n- "Solo founders validating a fintech concept"\n- "Nurses in rural clinics tracking inventory"'
+    },
+    {
+      kind: 'input',
+      id: 'core-target',
+      label: 'Target audience',
+      placeholder: 'Describe the people or teams this is for'
+    },
+    {
+      kind: 'tool',
+      name: 'record_onboarding_data',
+      input: { repoRoot: { literal: repoRoot }, targetAudience: { fromInput: 'core-target' } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Checklist update:\n${renderChecklist(CORE_CHECKLIST, ['projectVision', 'targetAudience'])}`
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'What timeline are we dancing with? Share deadlines, launch windows, or “no rush” context.'
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'Examples:\n- "Need an alpha in 6 weeks for an accelerator demo"\n- "Targeting a polished v1 by year-end"'
+    },
+    {
+      kind: 'input',
+      id: 'core-timeline',
+      label: 'Timeline constraints',
+      placeholder: 'Deadlines or timing pressure?'
+    },
+    {
+      kind: 'tool',
+      name: 'record_onboarding_data',
+      input: { repoRoot: { literal: repoRoot }, timelineConstraints: { fromInput: 'core-timeline' } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Checklist update:\n${renderChecklist(CORE_CHECKLIST, ['projectVision', 'targetAudience', 'timelineConstraints'])}`
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'How do you balance speed versus quality here? Say it in your own words so I can keep that lens on the team.'
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'Examples:\n- "Ship fast and iterate – investor pressure"\n- "Quality first – this underpins compliance"'
+    },
+    {
+      kind: 'input',
+      id: 'core-quality',
+      label: 'Quality vs speed preference',
+      placeholder: 'Where do you sit on the spectrum?'
+    },
+    {
+      kind: 'tool',
+      name: 'record_onboarding_data',
+      input: { repoRoot: { literal: repoRoot }, qualityVsSpeed: { fromInput: 'core-quality' } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Checklist update:\n${renderChecklist(CORE_CHECKLIST, ['projectVision', 'targetAudience', 'timelineConstraints', 'qualityVsSpeed'])}`
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: "Who's working alongside you? Solo build, tight pod, or a full crew with specific roles?"
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'Examples:\n- "Just me and occasional contractor help"\n- "Product trio: me, a designer, and a backend dev"'
+    },
+    {
+      kind: 'input',
+      id: 'core-team',
+      label: 'Team size and setup',
+      placeholder: 'How big is the crew and how do you split work?'
+    },
+    {
+      kind: 'tool',
+      name: 'record_onboarding_data',
+      input: { repoRoot: { literal: repoRoot }, teamSize: { fromInput: 'core-team' } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Checklist update:\n${renderChecklist(CORE_CHECKLIST, ['projectVision', 'targetAudience', 'timelineConstraints', 'qualityVsSpeed', 'teamSize'])}`
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'How comfortable are you with this stack? Tell me honestly so we can set the right safety rails.'
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'Examples:\n- "Beginner – learning React and TypeScript as I go"\n- "Seasoned engineer with a backend focus"'
+    },
+    {
+      kind: 'input',
+      id: 'core-experience',
+      label: 'Experience level',
+      placeholder: 'Share your comfort level'
+    },
+    {
+      kind: 'tool',
+      name: 'record_onboarding_data',
+      input: { repoRoot: { literal: repoRoot }, experienceLevel: { fromInput: 'core-experience' } }
+    },
+    {
+      kind: 'tool',
+      name: 'get_onboarding_progress',
+      input: { repoRoot: { literal: repoRoot } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Core discovery locked in. Checklist complete:\n${renderChecklist(CORE_CHECKLIST, CORE_CHECKLIST.map(item => item.key))}`
+    },
+
+    // Phase 3: Methodology guidance
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal("Here's how I'm thinking about methodology:"),
+          literal('\n• Because you\'re targeting '),
+          { fromInput: 'core-target' },
+          literal(', we need a flow that keeps their needs front and centre.'),
+          literal('\n• With timeline: '),
+          { fromInput: 'core-timeline' },
+          literal(', we should balance predictability and iteration.'),
+          literal('\n• Your stance on speed vs quality ('),
+          { fromInput: 'core-quality' },
+          literal(') sets the tone for how strict we make the guardrails.'),
+          literal('\n• Team makeup: '),
+          { fromInput: 'core-team' },
+          literal(' and experience: '),
+          { fromInput: 'core-experience' },
+          literal(' tell me how much structure versus autonomy you want.')
+        ]
+      }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal('My top three fits:'),
+          literal('\n1. Test-Driven Development (TDD) — because you said "'),
+          { fromInput: 'core-quality' },
+          literal('", we can bake quality into every iteration.'),
+          literal('\n2. Agile / Scrum — because your timeline is "'),
+          { fromInput: 'core-timeline' },
+          literal('", sprints will keep you shipping without stalling.'),
+          literal('\n3. Kanban / Continuous Flow — because your team setup is "'),
+          { fromInput: 'core-team' },
+          literal('", a steady stream with WIP limits will keep everyone synced.')
+        ]
+      }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `${TOP_SIX_METHODS}\nWant the full catalog? Just say "Show me more" and I'll list everything.`
+    },
+    {
+      kind: 'input',
+      id: 'methodology-choice',
+      label: 'Which methodology feels right? (number, name, or describe it)',
+      placeholder: 'Example: 1, "TDD", or "Blend Scrum with extra QA gates"'
+    },
+    {
+      kind: 'tool',
+      name: 'select_methodology',
+      input: { repoRoot: { literal: repoRoot }, choice: { fromInput: 'methodology-choice' } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal("Locked. We'll steer the roster with "),
+          { fromTool: 'select_methodology', path: 'methodology' },
+          literal('. Before we forge, let me gather the delivery details so every specialist shows up prepared.')
+        ]
+      }
+    },
+
+    // Phase 4: Remaining delivery requirements
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Delivery checklist incoming (methodology is #7).\n${renderChecklist(DELIVERY_CHECKLIST, [])}`
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: "What's the budget or resourcing picture? Think tooling, hosting, or headcount constraints."
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'Examples:\n- "Bootstrapped – keep costs close to zero"\n- "Venture-backed – happy to invest in automation"'
+    },
+    {
+      kind: 'input',
+      id: 'delivery-budget',
+      label: 'Budget constraints',
+      placeholder: 'Share spend limits or funding context'
+    },
+    {
+      kind: 'tool',
+      name: 'record_onboarding_data',
+      input: { repoRoot: { literal: repoRoot }, budgetConstraints: { fromInput: 'delivery-budget' } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Checklist update:\n${renderChecklist(DELIVERY_CHECKLIST, ['budgetConstraints'])}`
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'Where will this live and how should it scale? Mention hosting preferences and traffic expectations.'
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'Examples:\n- "Start on Vercel, expect a few thousand users"\n- "Deploy on AWS ECS with auto-scaling for enterprise rollouts"'
+    },
+    {
+      kind: 'input',
+      id: 'delivery-deployment',
+      label: 'Deployment & scale',
+      placeholder: 'Hosting, environments, and load expectations'
+    },
+    {
+      kind: 'tool',
+      name: 'record_onboarding_data',
+      input: { repoRoot: { literal: repoRoot }, deploymentRequirements: { fromInput: 'delivery-deployment' } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Checklist update:\n${renderChecklist(DELIVERY_CHECKLIST, ['budgetConstraints', 'deploymentRequirements'])}`
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'Any security, privacy, or compliance guardrails? Call out regulations, audits, or sensitive data.'
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'Examples:\n- "HIPAA and SOC2-ready logging"\n- "Standard web app hardening is enough"'
+    },
+    {
+      kind: 'input',
+      id: 'delivery-security',
+      label: 'Security & compliance',
+      placeholder: 'Regulations, data sensitivity, audit needs'
+    },
+    {
+      kind: 'tool',
+      name: 'record_onboarding_data',
+      input: { repoRoot: { literal: repoRoot }, securityRequirements: { fromInput: 'delivery-security' } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Checklist update:\n${renderChecklist(DELIVERY_CHECKLIST, ['budgetConstraints', 'deploymentRequirements', 'securityRequirements'])}`
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'Lastly, how much scale do we plan for? Mention traffic, concurrency, or growth expectations even if approximate.'
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: 'Examples:\n- "Internal tool for ten teammates"\n- "Expect 50k monthly users within six months"'
+    },
+    {
+      kind: 'input',
+      id: 'delivery-scale',
+      label: 'Scalability needs',
+      placeholder: 'Expected usage and growth horizon'
+    },
+    {
+      kind: 'tool',
+      name: 'record_onboarding_data',
+      input: { repoRoot: { literal: repoRoot }, scalabilityNeeds: { fromInput: 'delivery-scale' } }
+    },
+    {
+      kind: 'tool',
+      name: 'get_onboarding_progress',
+      input: { repoRoot: { literal: repoRoot } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: `Delivery checklist complete:\n${renderChecklist(DELIVERY_CHECKLIST, DELIVERY_CHECKLIST.map(item => item.key))}`
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal('Full context summary before we forge:'),
+          literal('\n• Vision: '),
+          { fromInput: 'project-vision' },
+          literal('\n• Audience: '),
+          { fromInput: 'core-target' },
+          literal('\n• Timeline: '),
+          { fromInput: 'core-timeline' },
+          literal('\n• Speed vs quality: '),
+          { fromInput: 'core-quality' },
+          literal('\n• Team: '),
+          { fromInput: 'core-team' },
+          literal('\n• Experience: '),
+          { fromInput: 'core-experience' },
+          literal('\n• Methodology: '),
+          { fromTool: 'select_methodology', path: 'methodology' },
+          literal('\n• Budget: '),
+          { fromInput: 'delivery-budget' },
+          literal('\n• Deployment: '),
+          { fromInput: 'delivery-deployment' },
+          literal('\n• Security: '),
+          { fromInput: 'delivery-security' },
+          literal('\n• Scalability: '),
+          { fromInput: 'delivery-scale' },
+          literal('\nNeed any tweaks before I forge the roster?')
+        ]
+      }
+    },
+    {
+      kind: 'input',
+      id: 'final-adjustments',
+      label: 'Add tweaks or say "Forge the team" to continue',
+      placeholder: 'Example: Swap deployment focus to serverless functions'
+    },
+
+    // Phase 5: Personalized roster reveal and forging
+    {
+      kind: 'tool',
+      name: 'recommend_droids',
+      input: { repoRoot: { literal: repoRoot } }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: { fromTool: 'recommend_droids', path: 'introText' }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: { fromTool: 'recommend_droids', path: 'coverageRecap' }
+    },
+    {
+      kind: 'input',
+      id: 'custom-droids',
+      label: 'Want extra specialists? List them here or leave blank',
+      helper: 'Example: df-growth — focuses on onboarding funnels for fintech beta cohort'
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal('Time to forge. I\'ll bake in the '),
+          { fromTool: 'select_methodology', path: 'methodology' },
+          literal(' cadence and everything you shared. After this finishes, restart your droid CLI so the new commands load.')
+        ]
+      }
+    },
+    {
+      kind: 'tool',
+      name: 'forge_roster',
+      input: { repoRoot: { literal: repoRoot }, customInput: { fromInput: 'custom-droids' } }
+    },
+    {
+      kind: 'tool',
+      name: 'generate_user_guide',
+      input: { repoRoot: { literal: repoRoot }, rosterFrom: 'forge_roster' }
+    },
+    {
+      kind: 'tool',
+      name: 'install_commands',
+      input: { repoRoot: { literal: repoRoot }, rosterFrom: 'forge_roster' }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal('All forged. Your roster is live, grounded in '),
+          { fromTool: 'select_methodology', path: 'methodology' },
+          literal(" and the priorities you spelled out. When you're ready, run /df to orchestrate tasks or jump straight to a specialist like /df-frontend.")
+        ]
+      }
+    },
+    {
+      kind: 'summary',
+      title: 'Next steps',
+      lines: [
+        'Restart your shell so the new df-* commands register',
+        'Kick things off with /forge-task to route the first request',
+        'Open docs/DroidForge_user_guide_en.md for the full team handbook',
+        'Need to reset later? /forge-removeall will clean everything up'
+      ]
+    }
+  ];
+
   return {
     name: 'onboarding',
     sessionId,
     repoRoot,
-    segments: [
-      // PHASE 1: Welcome & Context 
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Hi! I'm your DroidForge architect. I help you build custom AI specialist droid teams. Let me quickly scan your repository to understand what we're working with...`
-      },
-      {
-        kind: 'tool',
-        name: 'smart_scan',
-        input: { repoRoot: { literal: repoRoot } }
-      },
-
-      // PHASE 2: Project Vision & Initial Discovery
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Perfect! I can see your repository structure. Now let's talk about your project.
-
-Tell me about your project: What are you building, who's it for, and what's your situation? I'm looking for the big picture first - your vision, your audience, timeline pressures, whether you're solo or working with a team, and what matters most to you: speed or quality.
-
-Examples:
-  "Weight management app for me and my wife - solo work, need it working in 3 months"
-  "E-commerce site for my startup - pitching to Series A in 2 months, want to move fast"`
-      },
-      {
-        kind: 'input',
-        id: 'initial-vision',
-        label: 'Tell me about your project',
-        placeholder: 'Example: Weight management app for me and my wife - solo work, need it working in 3 months'
-      },
-      {
-        kind: 'tool',
-        name: 'record_project_goal',
-        input: { repoRoot: { literal: repoRoot }, description: { fromInput: 'initial-vision' } }
-      },
-      {
-        kind: 'tool',
-        name: 'record_onboarding_data',
-        input: { 
-          repoRoot: { literal: repoRoot }, 
-          projectVision: { fromInput: 'initial-vision' }
-        }
-      },
-
-      // PHASE 3: Core Discovery Questions (6/10 Gate)
-      // Ask specific questions for missing core items with intelligent examples
-      {
-        kind: 'tool',
-        name: 'get_onboarding_progress',
-        input: { repoRoot: { literal: repoRoot } }
-      },
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Based on what you've told me, let me ask a few more questions to understand your context better...
-
-What does your timeline look like? Are you working against any deadlines or launch windows?
-
-Examples:
-  "Launching for my wedding in 6 months"  
-  "Need a working prototype for investor demo next month"
-  "No real timeline pressure - just want to learn and build"`
-      },
-      {
-        kind: 'input',
-        id: 'timeline',
-        label: 'Timeline constraints',
-        placeholder: 'Example: Need working prototype for investor demo next month'
-      },
-      {
-        kind: 'tool',
-        name: 'record_onboarding_data',
-        input: { 
-          repoRoot: { literal: repoRoot }, 
-          timelineConstraints: { fromInput: 'timeline' }
-        }
-      },
-
-      // Quality vs Speed
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Where do you fall on the spectrum between speed and quality?
-
-Examples:
-  "I need to move fast - better to ship something working and iterate"  
-  "Quality matters more - I'd rather take longer and build something robust"
-  "Somewhere in the middle - good quality but reasonable speed"`
-      },
-      {
-        kind: 'input',
-        id: 'quality-speed',
-        label: 'Quality vs Speed preference',
-        placeholder: "Example: Quality matters more - I'd rather take longer and build something robust"
-      },
-      {
-        kind: 'tool',
-        name: 'record_onboarding_data',
-        input: { 
-          repoRoot: { literal: repoRoot }, 
-          qualityVsSpeed: { fromInput: 'quality-speed' }
-        }
-      },
-
-      // Team Size
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Are you working solo or with a team?
-
-Examples:
-  "Just me - flying solo on this project"  
-  "Small team - myself and one designer"
-  "Full team - have developers, designers, PM"`
-      },
-      {
-        kind: 'input',
-        id: 'team-size',
-        label: 'Team size and structure',
-        placeholder: 'Example: Small team - myself and one designer'
-      },
-      {
-        kind: 'tool',
-        name: 'record_onboarding_data',
-        input: { 
-          repoRoot: { literal: repoRoot }, 
-          teamSize: { fromInput: 'team-size' }
-        }
-      },
-
-      // Experience Level
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `How comfortable are you with the technology stack for this project?
-
-Examples:
-  "Very experienced - been coding for years, know this stack well"  
-  "Some experience - comfortable with basics but learning new things"
-  "New to development - learning as I go, need lots of guidance"`
-      },
-      {
-        kind: 'input',
-        id: 'experience',
-        label: 'Technical experience level',
-        placeholder: 'Example: Some experience - comfortable with basics but learning new things'
-      },
-      {
-        kind: 'tool',
-        name: 'record_onboarding_data',
-        input: { 
-          repoRoot: { literal: repoRoot }, 
-          experienceLevel: { fromInput: 'experience' }
-        }
-      },
-
-      // PHASE 4: Methodology Discovery (7th data point) - With Recommendations
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Perfect! Based on your responses about ${'your timeline, quality preferences, and team situation'}, I recommend:
-
-**Test-Driven Development (TDD)** — because you mentioned quality matters most to you, and TDD ensures robust code through comprehensive testing.
-
-Here are the top 6 methodologies that fit your project context:
-
-1. **Test-Driven Development (TDD)** — Write tests first to prevent regressions and ensure quality
-2. **Agile / Scrum** — Short sprints so you can adapt as plans evolve  
-3. **Behavior-Driven Development (BDD)** — Keep stakeholders aligned with shared behavior examples
-4. **Kanban / Continuous Flow** — Maintain steady progress with visual workflow limits
-5. **DevOps / Platform Engineering** — Automate deploys for frequent, reliable releases
-6. **Lean Startup** — Validate ideas quickly with small experiments and rapid iteration
-
-The other methodologies (Waterfall, Enterprise, DDD, Rapid Prototyping) remain available if you prefer a different approach.
-
-What's your preference? You can choose by number (1-6), name, or tell me "you decide" if you'd like me to pick based on our conversation.`
-      },
-      {
-        kind: 'input',
-        id: 'methodology-choice',
-        label: 'Choose your development methodology',
-        placeholder: 'Example: 1 (for TDD) or "Agile" or "you decide"'
-      },
-      {
-        kind: 'tool',
-        name: 'record_onboarding_data',
-        input: { 
-          repoRoot: { literal: repoRoot }, 
-          targetAudience: { fromInput: 'initial-vision' }
-        }
-      },
-      {
-        kind: 'tool',
-        name: 'select_methodology',
-        input: { repoRoot: { literal: repoRoot }, choice: { fromInput: 'methodology-choice' } }
-      },
-
-      // PHASE 5: Delivery Requirements (remaining 3 data points)
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Great choice! Now let's talk about the practical aspects of getting this deployed.
-
-What's your budget situation? Any constraints on hosting costs, tools, or services?
-
-Examples:
-  "Bootstrapped startup - very cost-conscious, prefer free/cheap solutions"  
-  "Funded team - can invest in good tooling and services"
-  "Corporate project - have budget but need approvals for larger expenses"`
-      },
-      {
-        kind: 'input',
-        id: 'budget',
-        label: 'Budget constraints and preferences',
-        placeholder: 'Example: Bootstrapped startup - very cost-conscious, prefer free/cheap solutions'
-      },
-      {
-        kind: 'tool',
-        name: 'record_onboarding_data',
-        input: { 
-          repoRoot: { literal: repoRoot }, 
-          budgetConstraints: { fromInput: 'budget' }
-        }
-      },
-
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Where and how do you want to deploy this? What's your hosting and scaling vision?
-
-Examples:
-  "Vercel or Netlify for quick deployment"  
-  "AWS with Docker - want something that can scale"
-  "Just want something that works locally first, deployment is later"`
-      },
-      {
-        kind: 'input',
-        id: 'deployment',
-        label: 'Deployment and scaling requirements',
-        placeholder: 'Example: Vercel or Netlify for quick deployment'
-      },
-      {
-        kind: 'tool',
-        name: 'record_onboarding_data',
-        input: { 
-          repoRoot: { literal: repoRoot }, 
-          deploymentRequirements: { fromInput: 'deployment' }
-        }
-      },
-
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Finally, any security or compliance considerations?
-
-Examples:
-  "HIPAA compliance for healthcare data"  
-  "Financial data - PCI compliance important"
-  "Just standard web security, nothing special required"`
-      },
-      {
-        kind: 'input',
-        id: 'security',
-        label: 'Security and compliance requirements',
-        placeholder: 'Example: Just standard web security, nothing special required'
-      },
-      {
-        kind: 'tool',
-        name: 'record_onboarding_data',
-        input: { 
-          repoRoot: { literal: repoRoot }, 
-          securityRequirements: { fromInput: 'security' },
-          scalabilityNeeds: { literal: 'Based on project scope and target audience' }
-        }
-      },
-
-      // PHASE 6: Team Assembly
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Excellent! I have all the context I need. Based on your project requirements and chosen methodology, let me recommend your specialist droid team.
-
-Each specialist will understand your specific context and follow the methodology you selected. Would you like to customize the team or shall I proceed with these recommendations?`
-      },
-      {
-        kind: 'tool',
-        name: 'recommend_droids',
-        input: { repoRoot: { literal: repoRoot } }
-      },
-      {
-        kind: 'input',
-        id: 'custom-droids',
-        label: 'Optional: Add Custom Specialist Droids',
-        helper: 'Example: SEO Specialist - optimizes for local dental practice search results'
-      },
-      
-      // PHASE 7: Team Creation
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Building your team now. I'll create the specialist droids so they understand your project context and will follow the ${'TDD'} methodology you chose. 
-
-Once complete, remember to restart your droid CLI to load the new commands.`
-      },
-      {
-        kind: 'tool',
-        name: 'forge_roster',
-        input: { repoRoot: { literal: repoRoot }, customInput: { fromInput: 'custom-droids' } }
-      },
-      {
-        kind: 'tool',
-        name: 'generate_user_guide',
-        input: { repoRoot: { literal: repoRoot }, rosterFrom: 'forge_roster' }
-      },
-      {
-        kind: 'tool',
-        name: 'install_commands',
-        input: { repoRoot: { literal: repoRoot }, rosterFrom: 'forge_roster' }
-      },
-      {
-        kind: 'say',
-        speaker: 'assistant',
-        text: `Done! Your specialist droid team is ready and standing by. Each specialist understands your project context and will follow ${'TDD'} principles.
-
-Based on our conversation: you're ${'solo with quality-first approach'}, so your team is optimized for robust, well-tested development that prioritizes code quality over speed.`
-      },
-      {
-        kind: 'summary',
-        title: 'Get Started with Your Specialist Droids',
-        lines: [
-          'Try: /forge-task Create a hero section for the homepage - get routing advice',
-          'Read the team handbook: docs/DroidForge_user_guide_en.md',
-          'Invoke specialists directly: /df-frontend, /df-backend, /df-auth, etc.',
-          'Your team was chosen for: quality-focused solo development with robust testing',
-          'All done? Use /forge-removeall to clean up when finished'
-        ]
-      }
-    ]
+    segments
   };
 }
+
