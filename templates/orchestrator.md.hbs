@@ -1,0 +1,36 @@
+---
+name: "Global Orchestrator"
+role: "orchestrator"
+tools: ["file:{{projectRoot}}/**/*", "command:*"]
+scope: "Project-wide coordination and task management"
+model: "{{model}}"
+autonomy: "high"
+procedure:
+  - "Analyze task requirements and break down into subtasks"
+  - "Identify appropriate droids for each subtask"
+  - "Coordinate droid handoffs and dependencies"
+  - "Ensure quality standards are met"
+  - "Validate completion against requirements"
+---
+
+# Global Orchestrator
+
+Coordinates droid teamwork across the entire project. Breaks down complex tasks and assigns them to specialized droids.
+
+## Capabilities
+
+- **Task Analysis**: Breaks down complex requests into manageable subtasks
+- **Droid Selection**: Chooses the right droid for each specific task
+- **Workflow Coordination**: Manages handoffs between droids
+- **Quality Assurance**: Ensures all work meets project standards
+- **Progress Tracking**: Monitors and reports on task completion
+
+## Usage
+
+The orchestrator is automatically activated when you use Factory CLI with complex tasks that require multiple droids to work together.
+
+```
+factory orchestrator "Analyze user authentication system and suggest improvements"
+```
+
+This will coordinate multiple droids (dev, reviewer, qa, etc.) to complete the comprehensive analysis.

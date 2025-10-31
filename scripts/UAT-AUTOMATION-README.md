@@ -1,202 +1,47 @@
-# DroidForge UAT Automation with Expect
+# DroidForge UAT Workflow
 
-## What is Expect?
+There is now **one** supported path for spinning up a clean manual test session:
 
-**Expect** is a tool for automating interactive command-line programs. Think of it as a robot that:
-1. Types commands for you
-2. Reads the screen output
-3. Responds based on what it sees
-4. Makes decisions based on patterns
+```
+~/code/DroidForge/scripts/uat
+```
 
-It's perfect for automating testing of CLI tools like DroidForge!
+(An alias named `uat` points at that script, so you can just type `uat` from any shell.)
 
-## Installation
+The script performs the exact prep that lived across the old Expect/bash fragments:
+
+1. **Clean slate** – runs `~/.factory/cleanup-droidtest.sh` if it exists, otherwise purges `.droidforge`, generated docs, and droid directories in the target repo.  
+2. **Install or reuse DroidForge** – installs `droidforge@latest` globally unless you set `DF_UAT_SKIP_INSTALL=1` (useful when you already npm-linked a local build).  
+3. **Refresh MCP registration** – removes any stale entry and re-adds the stdio server via `droid mcp add droidforge droidforge-mcp-server --type stdio`.  
+4. **Launch the CLI** – enters `~/code/droidtest` (or another repo you point it at) and execs `droid`, handing control to you. The banner reminds you to run `/forge-start`.
+
+## Usage
 
 ```bash
-# Ubuntu/Debian
-sudo apt-get install expect
+# default (cleans, installs latest, launches in ~/code/droidtest)
+uat
 
-# macOS
-brew install expect
+# skip npm install step (after npm link / local build)
+DF_UAT_SKIP_INSTALL=1 uat
 
-# Already installed? Check version:
-expect -v
+# run against a different repo
+DF_UAT_REPO=~/code/another-playground uat
 ```
 
-## How Expect Works (5-Minute Tutorial)
+Logs from the pre-flight steps are captured under `~/.factory/uat/<timestamp>-prep.log` in case you need to check what happened before `droid` launched.
 
-### Basic Syntax
+## Optional: Automated Guard Rail
 
-```tcl
-#!/usr/bin/expect -f
+`npm run uat` still runs the TypeScript harness (`scripts/uat-onboarding-flow.ts`). That path does **not** launch `droid`; it just exercises the scripted onboarding flow and fails if any of the gates regress (vision follow-ups, checklist order, roster forging, etc.). Keep using it for quick smoke checks, then use `uat` when you want a clean interactive session.
 
-# 1. SPAWN: Start a program
-spawn droid
+## What Was Removed
 
-# 2. EXPECT: Wait for specific output
-expect ">"
+- `scripts/automated-uat.exp`  
+- `scripts/automated-uat2.exp`  
+- `scripts/tmp_rovodev_run-uat.sh`  
+- `scripts/tmp_rovodev_uat-setup.sh`
 
-# 3. SEND: Type a command (with \r for Enter)
-send "/forge-start\r"
-
-# 4. EXPECT (again): Wait for response
-expect "What are you building"
-
-# 5. SEND (again): Respond
-send "My project description\r"
-
-# 6. EOF: Wait for program to finish
-expect eof
-```
-
-### Key Expect Commands
-
-| Command | What It Does | Example |
-|---------|--------------|---------|
-| `spawn` | Launch a program | `spawn droid` |
-| `expect` | Wait for text pattern | `expect ">"` |
-| `send` | Type text + enter | `send "hello\r"` |
-| `expect eof` | Wait for program exit | `expect eof` |
-| `set timeout` | Max wait time | `set timeout 30` |
-
-### Pattern Matching
-
-Expect supports different pattern types:
-
-```tcl
-# 1. Exact string match
-expect "Hello World"
-
-# 2. Regex pattern (use -re flag)
-expect -re "Project (type|kind|description)"
-
-# 3. Multiple possibilities
-expect {
-    "Success" {
-        puts "It worked!"
-    }
-    "Error" {
-        puts "It failed!"
-    }
-    timeout {
-        puts "Took too long"
-    }
-}
-```
-
-### Special Characters
-
-```tcl
-send "\r"     # Enter key
-send "\x03"   # Ctrl+C
-send "\t"     # Tab
-send "\x1b"   # Escape
-```
-
-## Running the UAT Script
-
-### Prerequisites
-
-1. **cleanup-droidtest.sh must exist:**
-   ```bash
-   ls ~/.factory/cleanup-droidtest.sh
-   ```
-
-2. **droidtest repository must exist:**
-   ```bash
-   ls ~/code/droidtest
-   ```
-
-3. **Make script executable:**
-   ```bash
-   chmod +x scripts/automated-uat.exp
-   ```
-
-### Run Full UAT
-
-```bash
-cd ~/code/DroidForge
-./scripts/automated-uat.exp
-```
-
-**What happens:**
-1. ✨ Cleans up previous test runs
-2. 📦 Installs latest DroidForge from npm
-3. ❌ Tests MCP error message (without MCP installed)
-4. ⚙️ Installs MCP server
-5. 🚀 Runs full onboarding flow with test data
-6. 📊 Generates detailed test report
-7. 📝 Saves complete transcript
-
-### Output Files
-
-After running, you'll find:
-
-```
-reports/
-├── uat-report-20251028-143022.md      # Test results summary
-└── uat-transcript-20251028-143022.log # Complete console output
-```
-
-**Report contains:**
-- ✅ Pass/Fail for each checkpoint
-- 📊 Overall pass rate
-- 🔍 Links to transcript for debugging
-- 📋 Next steps recommendations
-
-## Understanding the Test Checkpoints
-
-The script validates 12 critical checkpoints:
-
-### 1. **MCP Error Message** (Friendly)
-- ✅ Shows: "💡 DroidForge Setup Required"
-- ❌ Fails if: "ERROR: DroidForge MCP Server Not Registered"
-
-### 2. **GET_STATUS Tool**
-- ✅ Called at start of /forge-start
-
-### 3. **SMART_SCAN Tool**
-- ✅ Scans repository after status check
-
-### 4. **Project Description Prompt**
-- ✅ Asks: "What are you building?"
-
-### 5. **RECORD_PROJECT_GOAL Tool**
-- ✅ Records user's project description
-
-### 6. **Methodology Names (Not Roles)**
-- ✅ Shows: "1. Agile / Scrum"
-- ❌ Fails if: "1. Sprint Coordinator"
-
-### 7. **Recommendation Format**
-- ✅ Uses consistent naming: "#2 TDD" or "Test-Driven Development"
-
-### 8. **SELECT_METHODOLOGY Tool**
-- ✅ Called after user selects methodology
-
-### 9. **RECOMMEND_DROIDS Tool**
-- ✅ Recommends specialist droid team
-
-### 10. **Custom Droids Prompt**
-- ✅ Asks about team customizations
-
-### 11. **FORGE_ROSTER Tool**
-- ✅ Creates the droid team
-
-### 12. **Onboarding Completion**
-- ✅ Shows completion message
-
-## Customizing the Script
-
-### Change Test Data
-
-Edit these variables at the top:
-
-```tcl
-set project_description "Your test project description"
-set methodology_choice "5"  # Kanban instead of TDD
-set timeout 180  # Increase timeout to 3 minutes
-```
+Those files scattered the workflow across multiple entry points and generated root-level transcripts. Everything above replaces them with a single maintained experience.
 
 ### Add More Checkpoints
 

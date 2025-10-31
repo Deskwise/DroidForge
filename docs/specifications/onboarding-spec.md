@@ -66,7 +66,7 @@ The AI must intelligently extract information from user responses. Examples:
    - Ask: "Tell me about your project. What are you building, who's it for, and what's your situation?"
    - Rotate two concise example answers to keep the prompt fresh.
 3. **Follow-up Mini Brainstorm (2 questions)**
-   - Ask two tailored clarifiers based on the user's vision (e.g., difficulty levels, target platforms). Never repeat the original question; keep it conversational.
+   - Ask one or two tailored clarifiers based on the user's vision (e.g., difficulty levels in a game, scope of a refactoring project). Never repeat the original question; keep it conversational.
 4. **Vision Mirror**
    - Summarize the captured vision in 2–3 bullet points and ask, "Did I miss anything big?" before moving on.
 

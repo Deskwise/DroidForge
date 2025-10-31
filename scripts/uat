@@ -1,5 +1,87 @@
 #!/usr/bin/env bash
+#
+# Unified DroidForge UAT bootstrapper.
+# Prepares a clean test repo, ensures the latest CLI + MCP registration, then
+# drops the user into `droid` ready to run /forge-start by hand.
+
 set -euo pipefail
-SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
-export UAT_SKIP_INSTALL=1
-exec "$SCRIPT_DIR/automated-uat2.exp"
+
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd)
+
+log() {
+  local level=$1; shift
+  printf '[%s] %s\n' "$level" "$*" >&2
+}
+
+info()  { log INFO  "$@"; }
+warn()  { log WARN  "$@"; }
+error() { log ERROR "$@"; }
+
+# Configuration (env-overridable)
+DF_UAT_REPO=${DF_UAT_REPO:-"$HOME/code/droidtest"}
+DF_UAT_CLEANUP=${DF_UAT_CLEANUP:-"$HOME/.factory/cleanup-droidtest.sh"}
+DF_UAT_SKIP_INSTALL=${DF_UAT_SKIP_INSTALL:-}
+DF_UAT_LOG_DIR=${DF_UAT_LOG_DIR:-"$HOME/.factory/uat"}
+
+mkdir -p "$DF_UAT_LOG_DIR"
+SESSION_LOG="$DF_UAT_LOG_DIR/$(date +%Y%m%d-%H%M%S)-prep.log"
+touch "$SESSION_LOG"
+
+tee_log() {
+  tee -a "$SESSION_LOG"
+}
+
+info "DroidForge repo: $REPO_ROOT" | tee_log
+info "Target test repo: $DF_UAT_REPO" | tee_log
+
+# Step 1 – cleanup
+info "Cleaning previous test run..." | tee_log
+if [[ -x "$DF_UAT_CLEANUP" ]]; then
+  if ! "$DF_UAT_CLEANUP" | tee_log; then
+    warn "Cleanup script reported issues (continuing)." | tee_log
+  fi
+else
+  warn "Cleanup script not found at $DF_UAT_CLEANUP. Performing lightweight cleanup." | tee_log
+  rm -rf "$DF_UAT_REPO/.droidforge" "$DF_UAT_REPO/DroidForge_user_guide_en.md" \
+    "$DF_UAT_REPO/droids" "$DF_UAT_REPO/.factory" 2>/dev/null || true
+fi
+
+# Ensure test repo exists
+if [[ ! -d "$DF_UAT_REPO" ]]; then
+  error "Test repo $DF_UAT_REPO does not exist. Create it first." | tee_log
+  exit 1
+fi
+
+# Step 2 – optional install/link
+if [[ -n "$DF_UAT_SKIP_INSTALL" ]]; then
+  info "Skipping npm install (DF_UAT_SKIP_INSTALL=$DF_UAT_SKIP_INSTALL)." | tee_log
+else
+  info "Installing droidforge@latest globally..." | tee_log
+  if ! npm install -g droidforge@latest | tee_log; then
+    error "npm install failed." | tee_log
+    exit 1
+  fi
+fi
+
+# Step 3 – MCP registration
+info "Refreshing MCP registration..." | tee_log
+if ! droid mcp remove droidforge >/dev/null 2>&1; then
+  warn "No existing MCP entry to remove." | tee_log
+fi
+if ! droid mcp add droidforge droidforge-mcp-server --type stdio | tee_log; then
+  error "Failed to register droidforge MCP server." | tee_log
+  exit 1
+fi
+sleep 2
+
+# Step 4 – launch enhanced onboarding flow
+info "Launching enhanced droid in $DF_UAT_REPO." | tee_log
+cd "$DF_UAT_REPO"
+echo "======================================================================"
+echo "DroidForge UAT shell ready with enhanced vision comprehension."
+echo "Run /forge-start to test improved onboarding flow."
+echo "Logs written to $SESSION_LOG"
+echo "======================================================================"
+echo "For automated testing, run: node test-vision-comprehension.mjs"
+exec droid

@@ -1,0 +1,210 @@
+name: ChatGPT Code Reviewer
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [ main, develop ]
+
+jobs:
+  code-review:
+    name: ChatGPT Code Review
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Build project
+      run: npm run build
+
+    - name: Get changed files
+      id: changed-files
+      uses: tj-actions/changed-files@v44
+      with:
+        files: |
+          src/**/*.ts
+          docs/**/*.md
+          package.json
+          tsconfig.json
+          .github/workflows/*.yml
+
+    - name: Generate diff
+      if: steps.changed-files.outputs.any_changed == 'true'
+      id: diff
+      run: |
+        # Get the base branch for comparison
+        BASE_BRANCH=${{ github.base_ref }}
+        if [ -z "$BASE_BRANCH" ]; then
+          BASE_BRANCH="main"
+        fi
+        
+        # Generate diff of changed files
+        git diff --no-color --minimal $BASE_BRANCH...HEAD > changes.diff
+        
+        # Limit diff size to avoid token limits
+        if [ $(wc -c < changes.diff) -gt 20000 ]; then
+          echo "Diff too large, truncating..."
+          head -c 20000 changes.diff > changes.truncated.diff
+          mv changes.truncated.diff changes.diff
+          echo "truncated=true" >> $GITHUB_OUTPUT
+        else
+          echo "truncated=false" >> $GITHUB_OUTPUT
+        fi
+        
+        # Store diff in environment variable (base64 encoded to handle newlines)
+        DIFF_CONTENT=$(cat changes.diff | base64 -w 0)
+        echo "diff=$DIFF_CONTENT" >> $GITHUB_OUTPUT
+
+    - name: Review with ChatGPT
+      if: steps.changed-files.outputs.any_changed == 'true'
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        DIFF: ${{ steps.diff.outputs.diff }}
+        TRUNCATED: ${{ steps.diff.outputs.truncated }}
+        PR_NUMBER: ${{ github.event.pull_request.number }}
+        PR_TITLE: ${{ github.event.pull_request.title }}
+        PR_BODY: ${{ github.event.pull_request.body }}
+      run: |
+        # Check if OpenAI API key is available
+        if [ -z "$OPENAI_API_KEY" ]; then
+          echo "OPENAI_API_KEY not found, skipping code review"
+          exit 0
+        fi
+        
+        # Decode the diff
+        DIFF_CONTENT=$(echo "$DIFF" | base64 -d)
+        
+        # Prepare the review prompt
+        TRUNCATION_NOTE=""
+        if [ "$TRUNCATED" = "true" ]; then
+          TRUNCATION_NOTE="
+
+        NOTE: The diff was truncated due to size limits. The review may not cover all changes."
+        fi
+        
+        PROMPT="Please review this pull request for DroidForge, a TypeScript project that creates custom AI development teams.
+
+        PR Title: $PR_TITLE
+        PR Number: $PR_NUMBER
+        PR Description: $PR_BODY
+
+        Please analyze the following code changes and provide:
+        1. Security concerns
+        2. Performance implications
+        3. Code quality issues
+        4. TypeScript type safety
+        5. Best practices adherence
+        6. Potential bugs or edge cases
+        7. Suggestions for improvements
+
+        Focus on critical issues that should be addressed before merging. Be concise but thorough.
+
+        Diff:
+        $DIFF_CONTENT
+        $TRUNCATION_NOTE"
+
+        # Call OpenAI API
+        RESPONSE=$(curl -s -X POST https://api.openai.com/v1/chat/completions \
+          -H "Content-Type: application/json" \
+          -H "Authorization: Bearer $OPENAI_API_KEY" \
+          -d '{
+            "model": "gpt-4",
+            "messages": [
+              {
+                "role": "system",
+                "content": "You are a senior TypeScript developer reviewing code for a production project. Provide constructive, actionable feedback. Focus on security, performance, and maintainability."
+              },
+              {
+                "role": "user",
+                "content": '"$(echo "$PROMPT" | jq -Rs .)"'
+              }
+            ],
+            "max_tokens": 2000,
+            "temperature": 0.3
+          }')
+
+        # Extract the review content
+        REVIEW=$(echo "$RESPONSE" | jq -r '.choices[0].message.content')
+        
+        # Check for API errors
+        if [ "$REVIEW" = "null" ]; then
+          echo "Error calling OpenAI API:"
+          echo "$RESPONSE" | jq .
+          exit 1
+        fi
+
+        # Save review to file
+        echo "$REVIEW" > review.md
+        
+        # Add summary header
+        cat > review_with_header.md << EOF
+        ## 🤖 ChatGPT Code Review
+        
+        $REVIEW
+        
+        ---
+        
+        *This review was generated automatically using ChatGPT. Please consider the suggestions but use your own judgment.*
+        EOF
+
+    - name: Post review comment
+      if: steps.changed-files.outputs.any_changed == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          
+          try {
+            const reviewContent = fs.readFileSync('review_with_header.md', 'utf8');
+            
+            // Find existing bot comments
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('🤖 ChatGPT Code Review')
+            );
+            
+            if (botComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: reviewContent
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: reviewContent
+              });
+            }
+          } catch (error) {
+            console.error('Error posting review comment:', error);
+          }
+
+    - name: Cleanup
+      if: always()
+      run: |
+        rm -f changes.diff changes.truncated.diff review.md review_with_header.md

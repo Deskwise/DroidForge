@@ -164,7 +164,7 @@ async function run(): Promise<void> {
 
   // Assertions
   const followUps = inputOrder.filter(id => id.startsWith('vision-') && id !== 'vision-confirm' && id !== 'project-vision');
-  assert.equal(followUps.length, 2, `Expected exactly two tailored vision follow-ups, saw ${followUps.length}. Sequence: ${followUps.join(', ')}`);
+  assert.equal(followUps.length, 3, `Expected three tailored vision follow-ups (enhanced flow), saw ${followUps.length}. Sequence: ${followUps.join(', ')}`);
 
   const confirmIndex = inputOrder.indexOf('vision-confirm');
   followUps.forEach(id => {

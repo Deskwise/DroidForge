@@ -197,9 +197,33 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       speaker: 'assistant',
       text: {
         concat: [
-          literal("Here's what I heard:\n"),
+          literal("I want to make sure I truly understand what you're building. Let me reflect this back:\n\n"),
+          literal('• Core Vision: '),
+          { fromInput: 'project-vision' },
+          literal('\n\nWhat I am hearing is this isn\'t just about '),
+          { fromInput: 'project-vision' },
+          literal(' - it\'s about creating something that matters to you. Before we dive into the details, help me understand:'),
+          literal('\n\nWhat\'s the most important outcome here? What would make this project feel like a success to you personally?')
+        ]
+      }
+    },
+    {
+      kind: 'input',
+      id: 'vision-deep-dive',
+      label: 'What makes this project meaningful to you?',
+      placeholder: 'Example: Creating memories with my wife, learning a new skill, solving a real problem'
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal("Thank you for sharing that. Now I understand what's really driving this.\n\n"),
+          literal('Here\'s my complete understanding:\n'),
           literal('• Vision: '),
           { fromInput: 'project-vision' },
+          literal('\n• What matters most: '),
+          { fromInput: 'vision-deep-dive' },
           literal('\n• '),
           literal(followUpA.label),
           literal(': '),
@@ -208,15 +232,15 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
           literal(followUpB.label),
           literal(': '),
           { fromInput: followUpB.id },
-          literal('\nDid I miss anything big? Add it here or say "Looks good" and we\'ll keep going.')
+          literal('\n\nDoes this capture what you\'re trying to achieve? Add anything I missed or say "Perfect, let\'s move on" when I get it right.')
         ]
       }
     },
     {
       kind: 'input',
       id: 'vision-confirm',
-      label: 'Anything major to add or clarify?',
-      placeholder: 'Example: Need to mention beta testers in EU with GDPR constraints'
+      label: 'Did I understand your vision correctly?',
+      placeholder: 'Add anything I missed or say "Perfect, let\'s move on"'
     },
 
     // Phase 2: Core six items with dynamic checklist

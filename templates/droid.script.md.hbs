@@ -1,0 +1,47 @@
+---
+name: "{{name}}"
+role: "script-{{scriptName}}"
+tools: ["file:**/*", "command:{{command}}"]
+scope: "{{description}}"
+model: "{{model}}"
+autonomy: "medium"
+procedure:
+  - "Execute script when requested"
+  - "Provide clear output and status"
+  - "Handle errors gracefully"
+  - "Report execution results"
+proof:
+  - "dry-run: Test script execution without side effects"
+  - "validation: Verify script exists and is executable"
+---
+
+# {{name}} - Script Automation
+
+Automates the execution of `{{command}}` with proper error handling and validation.
+
+## Script Details
+
+- **Command**: `{{command}}`
+- **Purpose**: {{description}}
+- **Usage**: Call this droid when you need to run the script
+
+## Capabilities
+
+- Script execution with error handling
+- Output capture and reporting
+- Validation of script availability
+- Dry-run mode for testing
+
+## Usage
+
+```
+factory droids use {{name}} "Execute the {{scriptName}} script"
+```
+
+Or run directly:
+
+```
+factory droids use {{name}}
+```
+
+The droid will execute the script and report the results.

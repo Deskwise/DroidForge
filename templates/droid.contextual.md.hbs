@@ -1,0 +1,46 @@
+---
+name: "{{name}}"
+role: "{{role}}"
+tools: [{{#tools}}{{this}}{{#unless @last}}, {{/unless}}{{/tools}}]
+scope: "{{scope}}"
+model: "{{model}}"
+autonomy: "{{autonomy}}"
+procedure:
+  {{#procedure}}
+  - "{{this}}"
+  {{/procedure}}
+{{#proof}}
+proof:
+  {{#proof}}
+  - "{{this}}"
+  {{/proof}}
+{{/proof}}
+---
+
+# {{name}}
+
+{{description}}
+
+## Contextual Expertise
+
+{{#context}}
+- **{{type}}**: {{description}}
+{{/context}}
+
+## Core Responsibilities
+
+{{responsibilities}}
+
+## Technical Focus
+
+{{#technologies}}
+- **{{name}}**: {{usage}}
+{{/technologies}}
+
+## Working Approach
+
+{{approach}}
+
+## Quality Standards
+
+{{qualityStandards}}

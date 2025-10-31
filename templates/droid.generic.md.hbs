@@ -1,0 +1,40 @@
+---
+name: "{{name}}"
+role: "{{role}}"
+tools: [{{#tools}}{{this}}{{#unless @last}}, {{/unless}}{{/tools}}]
+scope: "{{scope}}"
+model: "{{model}}"
+autonomy: "{{autonomy}}"
+procedure:
+  {{#procedure}}
+  - "{{this}}"
+  {{/procedure}}
+{{#proof}}
+proof:
+  {{#proof}}
+  - "{{this}}"
+  {{/proof}}
+{{/proof}}
+---
+
+# {{name}}
+
+{{description}}
+
+## Role and Responsibilities
+
+{{responsibilities}}
+
+## Tools and Permissions
+
+{{#tools}}
+- `{{this}}`
+{{/tools}}
+
+## Scope
+
+{{scope}}
+
+## Working Style
+
+{{workingStyle}}

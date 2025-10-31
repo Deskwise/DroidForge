@@ -1,4 +1,4 @@
-import { describe, it, beforeEach, afterEach } from 'node:test';
+import { describe, it, beforeEach, afterEach, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -71,9 +71,19 @@ describe('E2E: Full Onboarding Flow', () => {
     if (repoRoot) {
       rmSync(repoRoot, { recursive: true, force: true });
     }
+    
+    // Kill any hanging Node processes that might have been spawned
+    // This prevents runaway processes from accumulating
+    try {
+      const { spawn } = require('child_process');
+      spawn('pkill', ['-f', 'node.*test'], { stdio: 'ignore' });
+      spawn('pkill', ['-f', 'tsx.*test'], { stdio: 'ignore' });
+    } catch (error) {
+      // Ignore cleanup errors
+    }
   });
 
-  it('completes full onboarding: scan → goal → methodology → recommend → forge → guide', async () => {
+  it('completes full onboarding: scan → goal → methodology → recommend → forge → guide', { timeout: TEST_TIMEOUT }, async () => {
     const deps = { sessionStore, executionManager };
 
     // Step 1: Smart Scan
@@ -89,7 +99,7 @@ describe('E2E: Full Onboarding Flow', () => {
     // Verify session was created
     const session1 = await sessionStore.load(repoRoot, sessionId);
     assert.ok(session1, 'Session should be created');
-    assert.equal(session1?.state, 'collecting-goal', 'Session should be in collecting-goal state');
+    assert.equal(session1?.state, 'collecting-goal', 'Session should begin in collecting-goal state (vision phase)');
 
     // Step 2: Record Project Goal
     const recordGoalTool = createRecordProjectGoalTool(deps);
@@ -100,7 +110,8 @@ describe('E2E: Full Onboarding Flow', () => {
     });
 
     const session2 = await sessionStore.load(repoRoot, sessionId);
-    assert.equal(session2?.state, 'methodology', 'Session should move to methodology state');
+    // Enhanced onboarding now transitions through full vision comprehension before methodology
+    assert.equal(session2?.state, 'methodology', 'Session should move to methodology state after full vision comprehension');
     assert.equal(session2?.description, 'Build a scalable web application with React and TypeScript');
 
     // Step 3: Select Methodology
@@ -242,7 +253,7 @@ describe('E2E: Full Onboarding Flow', () => {
     await smartScanTool.handler({ repoRoot, sessionId: sessionId2 });
 
     const session2 = await sessionStore.load(repoRoot, sessionId2);
-    assert.equal(session2?.state, 'collecting-goal', 'New session should start fresh');
+    assert.equal(session2?.state, 'collecting-goal', 'New session should start fresh (vision phase)');
 
     await recordGoalTool.handler({ 
       repoRoot, 
