@@ -2,11 +2,13 @@
 
 There is now **one** supported path for spinning up a clean manual test session:
 
+The `uat` helper ships as a global binary when you install DroidForge. Just run:
+
 ```
-~/code/DroidForge/scripts/uat
+uat
 ```
 
-(An alias named `uat` points at that script, so you can just type `uat` from any shell.)
+If you are developing locally, make sure you've run `npm run build && npm link` or `npm install -g` so the binary resolves.
 
 The script performs the exact prep that lived across the old Expect/bash fragments:
 
@@ -29,6 +31,28 @@ DF_UAT_REPO=~/code/another-playground uat
 ```
 
 Logs from the pre-flight steps are captured under `~/.factory/uat/<timestamp>-prep.log` in case you need to check what happened before `droid` launched.
+
+### Where telemetry lives now
+
+While the session is running, DroidForge buffers tool timings. When you exit `droid`, those entries flush to a repo-specific file under:
+
+```
+~/.factory/droidforge/logs/<repo-slug>.events.jsonl
+```
+
+Example for the default sandbox:
+
+```
+~/.factory/droidforge/logs/home-richard-code-droidtest.events.jsonl
+```
+
+You can inspect that JSONL directly or summarize it with:
+
+```bash
+npm run analyze ~/.factory/droidforge/logs
+```
+
+This replaces the old `.droidforge/logs/events.jsonl` path, so rerunning `uat` no longer wipes previous telemetry.
 
 ## Optional: Automated Guard Rail
 

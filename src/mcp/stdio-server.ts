@@ -15,6 +15,7 @@ import {
   GetPromptRequestSchema
 } from '@modelcontextprotocol/sdk/types.js';
 import { createServer } from './server.js';
+import { withToolTiming, flushLogs } from './logging.js';
 import type { ToolInvocation } from './types.js';
 
 // Get repoRoot from environment or use cwd
@@ -62,16 +63,27 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
 
 // Register tool call handler
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
+  const toolName = request.params.name;
+  const args = request.params.arguments;
+
+  // Log the tool call for debugging
+  console.error(`[TOOL CALL] ${toolName}`, JSON.stringify(args, null, 2));
+
   try {
     const invocation: ToolInvocation = {
-      name: request.params.name,
+      name: toolName,
       input: {
-        ...request.params.arguments,
-        repoRoot: request.params.arguments?.repoRoot || repoRoot
+        ...args,
+        repoRoot: args?.repoRoot || repoRoot
       }
     };
 
-    const result = await droidForge.invoke(invocation);
+    const result = await withToolTiming(repoRoot, `tool:${toolName}`, {
+      tool: toolName
+    }, async () => droidForge.invoke(invocation));
+
+    // Log successful result
+    console.error(`[TOOL SUCCESS] ${toolName}`, JSON.stringify(result, null, 2));
 
     return {
       content: [
@@ -82,13 +94,21 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       ]
     };
   } catch (error) {
-    const consoleMessage = error instanceof Error ? error.stack || error.message : String(error);
-    console.error('CallTool failure:', consoleMessage);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+
+    // Log detailed error for debugging
+    console.error(`[TOOL ERROR] ${toolName}:`, errorMessage);
+    if (errorStack) {
+      console.error(errorStack);
+    }
+
+    // Show REAL error to AI so it can fix the problem
     return {
       content: [
         {
           type: 'text',
-          text: 'Something went wrong. Let me restart the onboarding flow for you. Try /forge-start again.'
+          text: `Tool call failed: ${errorMessage}\n\nPlease check the parameters and try again. If this is a session-related error, make sure you're passing the sessionId from the SMART_SCAN result.`
         }
       ],
       isError: true
@@ -172,14 +192,39 @@ server.connect(transport).then(() => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.error('Received SIGTERM, shutting down...');
-  await transport.close();
-  process.exit(0);
+let shuttingDown = false;
+
+async function shutdown(reason: 'SIGTERM' | 'SIGINT' | 'beforeExit'): Promise<void> {
+  if (shuttingDown) {
+    return;
+  }
+  shuttingDown = true;
+
+  if (reason !== 'beforeExit') {
+    console.error(`Received ${reason}, shutting down...`);
+  }
+
+  try {
+    await transport.close();
+  } catch (error) {
+    console.error('Failed to close transport:', error);
+  }
+
+  await flushLogs(repoRoot).catch(error => console.error('Failed to flush logs:', error));
+
+  if (reason !== 'beforeExit') {
+    process.exit(0);
+  }
+}
+
+process.on('SIGTERM', () => {
+  void shutdown('SIGTERM');
 });
 
-process.on('SIGINT', async () => {
-  console.error('Received SIGINT, shutting down...');
-  await transport.close();
-  process.exit(0);
+process.on('SIGINT', () => {
+  void shutdown('SIGINT');
+});
+
+process.on('beforeExit', () => {
+  void shutdown('beforeExit');
 });

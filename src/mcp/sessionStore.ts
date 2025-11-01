@@ -32,7 +32,19 @@ export class SessionStore {
     const dir = path.join(repoRoot, SESSION_DIRNAME);
     await ensureDir(dir);
     const target = sessionPath(repoRoot, session.sessionId);
-    const payload = JSON.stringify(session, null, 2);
+
+    // Load existing session to merge unknown fields we don't want to lose
+    let existing: OnboardingSession | null = null;
+    try {
+      const raw = await fs.readFile(target, 'utf8');
+      existing = JSON.parse(raw) as OnboardingSession;
+    } catch {
+      // File doesn't exist yet; proceed with new session
+    }
+
+    // Preserve any fields not in the strict type (e.g., methodologyConfirmed)
+    const merged = existing ? { ...existing, ...session } : session;
+    const payload = JSON.stringify(merged, null, 2);
     const tmp = `${target}.tmp`;
     await fs.writeFile(tmp, payload, 'utf8');
     await fs.rename(tmp, target);

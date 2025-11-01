@@ -14,6 +14,7 @@ import { createRestoreSnapshotTool } from './restoreSnapshot.js';
 import { createFetchLogsTool } from './fetchLogs.js';
 import { createGetStatusTool } from './getStatus.js';
 import { createAddCustomDroidTool } from './addCustomDroid.js';
+import { createConfirmMethodologyTool } from './confirmMethodology.js';
 import { createRecordOnboardingDataTool } from './recordOnboardingData.js';
 import { createListSnapshotsTool } from './listSnapshots.js';
 import { createGetOnboardingProgressTool } from './getOnboardingProgress.js';
@@ -46,6 +47,7 @@ export function createToolRegistry(deps: ToolFactoryDeps): Map<string, ToolDefin
     createSmartScanTool(deps),
     createRecordProjectGoalTool(deps),
     createRecordOnboardingDataTool(deps),
+    createConfirmMethodologyTool(deps),
     createSelectMethodologyTool(deps),
     createRecommendDroidsTool(deps),
     createForgeRosterTool(deps),

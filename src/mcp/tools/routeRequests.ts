@@ -44,13 +44,16 @@ function buildRouteTool(name: string, defaultDroid: string, deps: RouteDeps): To
     name,
     description: 'Proxy user instructions to the orchestrator or a specialist.',
     handler: async input => {
+      if (!input.request || input.request.trim().length === 0) {
+        throw new Error('Please provide a request or instruction for the droid.');
+      }
       const routedTo = input.droidId ?? defaultDroid;
       const executionId = await ensureExecution(deps, input, routedTo);
       await appendLog(input.repoRoot, {
         timestamp: new Date().toISOString(),
         event: name,
         status: 'ok',
-        payload: { routedTo, executionId, snippet: (input.request || '').slice(0, 120) }
+        payload: { routedTo, executionId, snippet: input.request.slice(0, 120) }
       });
       return {
         acknowledged: true,
