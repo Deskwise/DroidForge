@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+# EXPERIMENTAL: Wrapper for experimental automation (archived)
+echo "This wrapper is archived. Use MCP e2e tests instead: npm test -- src/mcp/__tests__/e2e/onboarding.e2e.test.ts"

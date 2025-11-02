@@ -24,3 +24,23 @@ node_modules/
 # Task files
 # tasks.json
 # tasks/ 
+
+# Python virtual envs
+.venv/
+
+# Build / distribution artifacts
+dist/
+*.tgz
+
+# Local docker/code-server data
+docker-data/
+
+# Local workstation/editor state
+.windsurf/
+
+# Persistent local sessions and generated data
+.droidforge/
+.taskmaster/
+
+# OS / misc
+.DS_Store
