@@ -109,15 +109,9 @@ export function createIntelligentOnboardingScript(sessionId: string, repoRoot: s
         kind: 'input',
         id: 'project-overview',
         label: 'Project Description & Context',
-        placeholder: 'Tell me everything about your project, audience, timeline, and situation...'
-      },
-      {
-        kind: 'tool',
-        name: 'record_project_goal',
-        input: { 
-          repoRoot: { literal: repoRoot }, 
-          description: { fromInput: 'project-overview' } 
-        }
+        placeholder: 'Tell me everything about your project, audience, timeline, and situation...',
+        required: true,
+        emptyMessage: 'Please describe what you are building before we continue.'
       },
       {
         kind: 'say',
@@ -129,7 +123,9 @@ export function createIntelligentOnboardingScript(sessionId: string, repoRoot: s
       {
         kind: 'input',
         id: 'vision-audience',
-        label: 'Audience & match style'
+        label: 'Audience & match style',
+        required: true,
+        emptyMessage: 'Who is this for and how should the experience feel? Please share the audience/style.'
       },
       {
         kind: 'tool',
@@ -146,7 +142,9 @@ export function createIntelligentOnboardingScript(sessionId: string, repoRoot: s
       {
         kind: 'input',
         id: 'vision-success',
-        label: 'Success signal'
+        label: 'Success signal',
+        required: true,
+        emptyMessage: 'Describe what success looks like so we can aim for it before continuing.'
       },
       {
         kind: 'tool',
@@ -157,6 +155,57 @@ export function createIntelligentOnboardingScript(sessionId: string, repoRoot: s
         kind: 'say',
         speaker: 'assistant',
         text: `Got it. I'll keep that front and center. If anything sounds off as we go, jump in and correct me.`
+      },
+      {
+        kind: 'say',
+        speaker: 'assistant',
+        text: `Let me replay what I heard to make sure I'm aligned.`
+      },
+      {
+        kind: 'say',
+        speaker: 'assistant',
+        text: {
+          concat: [
+            { literal: '• Project: ' },
+            { fromInput: 'project-overview' },
+            { literal: '\n• Audience & match style: ' },
+            { fromInput: 'vision-audience' },
+            { literal: '\n• Success signal: ' },
+            { fromInput: 'vision-success' }
+          ]
+        }
+      },
+      {
+        kind: 'input',
+        id: 'vision-confirm',
+        label: 'Confirm or correct my understanding',
+        placeholder: 'Looks good, or add anything I missed',
+        required: true,
+        emptyMessage: 'Let me know if that summary is correct or what to adjust.'
+      },
+      {
+        kind: 'tool',
+        name: 'record_project_goal',
+        input: {
+          repoRoot: { literal: repoRoot },
+          description: { fromInput: 'project-overview' }
+        }
+      },
+      {
+        kind: 'tool',
+        name: 'record_onboarding_data',
+        input: {
+          repoRoot: { literal: repoRoot },
+          projectVision: { fromInput: 'project-overview' }
+        }
+      },
+      {
+        kind: 'tool',
+        name: 'record_onboarding_data',
+        input: {
+          repoRoot: { literal: repoRoot },
+          targetAudience: { fromInput: 'vision-audience' }
+        }
       },
 
       // PHASE 3: Intelligent Follow-up Questions (collect all 10 items)

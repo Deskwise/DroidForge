@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Wrapper for automated UAT execution with PTY allocation
+# Uses pexpect-based automation to drive onboarding flow
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") <scenario> [test-repo-path]
+
+Run automated UAT onboarding with PTY allocation.
+
+Scenarios:
+  saas   - SaaS Analytics Dashboard (Agile)
+  mobile - Mobile Wellness Companion (Rapid)
+  iot    - Embedded IoT Firmware (TDD)
+
+Arguments:
+  scenario         UAT scenario to execute (required)
+  test-repo-path   Path to test repository (default: ~/code/droidtest)
+
+Examples:
+  $(basename "$0") saas
+  $(basename "$0") iot ~/my-test-repo
+
+Environment:
+  LOG_DIR         Override log directory (default: ~/.factory/uat)
+  TIMEOUT         Timeout in seconds (default: 600)
+
+The script will:
+1. Create a clean test repository if needed
+2. Run droid with PTY allocation via pexpect
+3. Automate all onboarding prompts
+4. Capture full transcript to ~/.factory/uat/
+5. Report session file location
+
+After completion, analyze logs with:
+  grep 'confirm_methodology' ~/.factory/logs/droid-log-single.log
+  cat ~/.factory/uat/uat-<scenario>-<timestamp>.log
+EOF
+  exit 1
+}
+
+check_dependencies() {
+  if ! command -v python3 &>/dev/null; then
+    echo "ERROR: python3 not found" >&2
+    exit 1
+  fi
+  
+  if ! python3 -c "import pexpect" 2>/dev/null; then
+    echo "ERROR: pexpect not installed" >&2
+    echo "Install with: pip install pexpect" >&2
+    exit 1
+  fi
+  
+  if ! command -v droid &>/dev/null; then
+    echo "ERROR: droid not found in PATH" >&2
+    echo "Run 'scripts/dev-link.sh' to link the dev build" >&2
+    exit 1
+  fi
+}
+
+setup_test_repo() {
+  local repo_path="$1"
+  
+  if [[ ! -d "$repo_path" ]]; then
+    echo "Creating test repository: $repo_path"
+    mkdir -p "$repo_path"
+    cd "$repo_path"
+    git init -q
+    echo "# Test Project" > README.md
+    git add README.md
+    git commit -q -m "Initial commit"
+    cd - >/dev/null
+  fi
+  
+  # Clean previous session state
+  if [[ -d "$repo_path/.droidforge" ]]; then
+    echo "Cleaning previous session state..."
+    rm -rf "$repo_path/.droidforge"
+  fi
+}
+
+main() {
+  if [[ $# -lt 1 ]]; then
+    usage
+  fi
+  
+  local scenario="$1"
+  local test_repo="${2:-$HOME/code/droidtest}"
+  local log_dir="${LOG_DIR:-$HOME/.factory/uat}"
+  local timeout="${TIMEOUT:-600}"
+  
+  # Validate scenario
+  case "$scenario" in
+    saas|mobile|iot)
+      ;;
+    *)
+      echo "ERROR: Invalid scenario '$scenario'" >&2
+      echo "Choose from: saas, mobile, iot" >&2
+      exit 1
+      ;;
+  esac
+  
+  echo "DroidForge Automated UAT"
+  echo "========================"
+  echo "Scenario:  $scenario"
+  echo "Test Repo: $test_repo"
+  echo "Log Dir:   $log_dir"
+  echo "Timeout:   ${timeout}s"
+  echo ""
+  
+  check_dependencies
+  setup_test_repo "$test_repo"
+  
+  # Run automation
+  python3 "$SCRIPT_DIR/automate-uat.py" \
+    "$scenario" \
+    "$test_repo" \
+    --log-dir "$log_dir" \
+    --timeout "$timeout"
+  
+  exit_code=$?
+  
+  if [[ $exit_code -eq 0 ]]; then
+    echo ""
+    echo "✓ UAT completed successfully"
+    echo ""
+    echo "Next steps:"
+    echo "  1. Check session file: ls -lt $test_repo/.droidforge/session/"
+    echo "  2. Verify methodologyConfirmed: grep 'methodologyConfirmed.*true' $test_repo/.droidforge/session/*.json"
+    echo "  3. Review logs: grep 'confirm_methodology_session_state' ~/.factory/logs/droid-log-single.log | tail -20"
+  else
+    echo ""
+    echo "✗ UAT failed with exit code: $exit_code"
+    echo "Check transcript: ls -t $log_dir/uat-$scenario-*.log | head -1"
+  fi
+  
+  exit $exit_code
+}
+
+main "$@"

@@ -129,7 +129,7 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
     {
       kind: 'say',
       speaker: 'assistant',
-      text: `Here are a few things that jumped out: ${contextGuesses.map(line => `\n• ${line}`).join('')}`
+      text: `Based on the SmartScan, here are a few things that jumped out: ${contextGuesses.map(line => `\n• ${line}`).join('')}`
     },
     {
       kind: 'say',
@@ -140,7 +140,81 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       kind: 'input',
       id: 'project-vision',
       label: 'Project story, audience, and current situation',
-      placeholder: 'Lay out the big picture in one message'
+      placeholder: 'Lay out the big picture in one message',
+      required: true,
+      emptyMessage: 'Please share your project vision before we continue.'
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal("I see what you're building. Let me make sure I understand the core of what matters here.\n\n"),
+          literal("Based on your vision: "),
+          { fromInput: 'project-vision' },
+          literal('\n\nThis tells me you\'re focused on '),
+          { fromInput: 'project-vision' },
+          literal('. Let me ask a couple of quick clarifiers to make sure we build the right team.')
+        ]
+      }
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal("What\'s the most critical challenge or constraint that could make or break this project? "),
+          literal("Think about timeline, budget, technical complexity, or team dynamics.")
+        ]
+      }
+    },
+    {
+      kind: 'input',
+      id: 'vision-challenge',
+      label: 'Biggest challenge or constraint',
+      placeholder: 'What keeps you up at night about this project?',
+      required: true,
+      emptyMessage: 'What feels riskiest or most unknown? Share the biggest challenge.'
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal("And what does success look like for you specifically? "),
+          literal("Is it about hitting a launch date, achieving certain metrics, learning something new, or something else?")
+        ]
+      }
+    },
+    {
+      kind: 'input',
+      id: 'vision-success',
+      label: 'What success looks like',
+      placeholder: 'How will you know this project succeeded?',
+      required: true,
+      emptyMessage: 'How will you know this project succeeded? Describe what success looks like.'
+    },
+    {
+      kind: 'say',
+      speaker: 'assistant',
+      text: {
+        concat: [
+          literal("Let me make sure I\'ve got this right:\n\n"),
+          literal("• Project: "),
+          { fromInput: 'project-vision' },
+          literal('\n• Critical challenge: '),
+          { fromInput: 'vision-challenge' },
+          literal('\n• Success definition: '),
+          { fromInput: 'vision-success' },
+          literal('\n\nDid I miss anything big about your vision or situation?')
+        ]
+      }
+    },
+    {
+      kind: 'input',
+      id: 'vision-confirm',
+      label: 'Confirm or correct my understanding',
+      placeholder: 'Looks good, or add anything I missed'
     },
     {
       kind: 'tool',
@@ -157,90 +231,10 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       speaker: 'assistant',
       text: {
         concat: [
-          literal('Love that context. Let me zoom in a bit more so we can get the roster thinking ahead.\n\n'),
-          literal(followUpA.prompt),
-          literal('\nExamples:\n- '),
-          literal(followUpA.examples[0]),
-          literal('\n- '),
-          literal(followUpA.examples[1])
+          literal("Great! I've got a clear picture of what you're building. Now let's capture the key details that will help me recommend the perfect development approach.\n\n"),
+          literal("I'll ask about your target audience, timeline, quality preferences, and team setup. These help me understand your constraints and priorities.")
         ]
       }
-    },
-    {
-      kind: 'input',
-      id: followUpA.id,
-      label: followUpA.label,
-      placeholder: followUpA.examples[0]
-    },
-    {
-      kind: 'say',
-      speaker: 'assistant',
-      text: {
-        concat: [
-          literal('Perfect. One more quick angle before we get tactical.\n\n'),
-          literal(followUpB.prompt),
-          literal('\nExamples:\n- '),
-          literal(followUpB.examples[0]),
-          literal('\n- '),
-          literal(followUpB.examples[1])
-        ]
-      }
-    },
-    {
-      kind: 'input',
-      id: followUpB.id,
-      label: followUpB.label,
-      placeholder: followUpB.examples[0]
-    },
-    {
-      kind: 'say',
-      speaker: 'assistant',
-      text: {
-        concat: [
-          literal("I want to make sure I truly understand what you're building. Let me reflect this back:\n\n"),
-          literal('• Core Vision: '),
-          { fromInput: 'project-vision' },
-          literal('\n\nWhat I am hearing is this isn\'t just about '),
-          { fromInput: 'project-vision' },
-          literal(' - it\'s about creating something that matters to you. Before we dive into the details, help me understand:'),
-          literal('\n\nWhat\'s the most important outcome here? What would make this project feel like a success to you personally?')
-        ]
-      }
-    },
-    {
-      kind: 'input',
-      id: 'vision-deep-dive',
-      label: 'What makes this project meaningful to you?',
-      placeholder: 'Example: Creating memories with my wife, learning a new skill, solving a real problem'
-    },
-    {
-      kind: 'say',
-      speaker: 'assistant',
-      text: {
-        concat: [
-          literal("Thank you for sharing that. Now I understand what's really driving this.\n\n"),
-          literal('Here\'s my complete understanding:\n'),
-          literal('• Vision: '),
-          { fromInput: 'project-vision' },
-          literal('\n• What matters most: '),
-          { fromInput: 'vision-deep-dive' },
-          literal('\n• '),
-          literal(followUpA.label),
-          literal(': '),
-          { fromInput: followUpA.id },
-          literal('\n• '),
-          literal(followUpB.label),
-          literal(': '),
-          { fromInput: followUpB.id },
-          literal('\n\nDoes this capture what you\'re trying to achieve? Add anything I missed or say "Perfect, let\'s move on" when I get it right.')
-        ]
-      }
-    },
-    {
-      kind: 'input',
-      id: 'vision-confirm',
-      label: 'Did I understand your vision correctly?',
-      placeholder: 'Add anything I missed or say "Perfect, let\'s move on"'
     },
 
     // Phase 2: Core six items with dynamic checklist
@@ -263,7 +257,9 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       kind: 'input',
       id: 'core-target',
       label: 'Target audience',
-      placeholder: 'Describe the people or teams this is for'
+      placeholder: 'Describe the people or teams this is for',
+      required: true,
+      emptyMessage: 'Who is this for? Please describe the target audience.'
     },
     {
       kind: 'tool',
@@ -289,7 +285,9 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       kind: 'input',
       id: 'core-timeline',
       label: 'Timeline constraints',
-      placeholder: 'Deadlines or timing pressure?'
+      placeholder: 'Deadlines or timing pressure?',
+      required: true,
+      emptyMessage: 'What timeline are we working with? Share any deadlines or timing pressure.'
     },
     {
       kind: 'tool',
@@ -315,7 +313,9 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       kind: 'input',
       id: 'core-quality',
       label: 'Quality vs speed preference',
-      placeholder: 'Where do you sit on the spectrum?'
+      placeholder: 'Where do you sit on the spectrum?',
+      required: true,
+      emptyMessage: 'How do you balance speed versus quality? Please share your preference.'
     },
     {
       kind: 'tool',
@@ -341,7 +341,9 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       kind: 'input',
       id: 'core-team',
       label: 'Team size and setup',
-      placeholder: 'How big is the crew and how do you split work?'
+      placeholder: 'How big is the crew and how do you split work?',
+      required: true,
+      emptyMessage: 'Who is working on this? Please describe the team size and setup.'
     },
     {
       kind: 'tool',
@@ -367,7 +369,9 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       kind: 'input',
       id: 'core-experience',
       label: 'Experience level',
-      placeholder: 'Share your comfort level'
+      placeholder: 'Share your comfort level',
+      required: true,
+      emptyMessage: 'How comfortable are you with this stack? Please share your experience level.'
     },
     {
       kind: 'tool',
@@ -475,7 +479,9 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       kind: 'input',
       id: 'delivery-budget',
       label: 'Budget constraints',
-      placeholder: 'Share spend limits or funding context'
+      placeholder: 'Share spend limits or funding context',
+      required: true,
+      emptyMessage: 'What is the budget or resourcing picture? Please share any constraints.'
     },
     {
       kind: 'tool',
@@ -501,7 +507,9 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       kind: 'input',
       id: 'delivery-deployment',
       label: 'Deployment & scale',
-      placeholder: 'Hosting, environments, and load expectations'
+      placeholder: 'Hosting, environments, and load expectations',
+      required: true,
+      emptyMessage: 'Where will this live and how should it scale? Please describe deployment and scale needs.'
     },
     {
       kind: 'tool',
@@ -527,7 +535,9 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       kind: 'input',
       id: 'delivery-security',
       label: 'Security & compliance',
-      placeholder: 'Regulations, data sensitivity, audit needs'
+      placeholder: 'Regulations, data sensitivity, audit needs',
+      required: true,
+      emptyMessage: 'Any security, privacy, or compliance guardrails? Please describe requirements.'
     },
     {
       kind: 'tool',
@@ -553,7 +563,9 @@ export function createOnboardingScript(sessionId: string, repoRoot: string): Pro
       kind: 'input',
       id: 'delivery-scale',
       label: 'Scalability needs',
-      placeholder: 'Expected usage and growth horizon'
+      placeholder: 'Expected usage and growth horizon',
+      required: true,
+      emptyMessage: 'How much scale do we plan for? Please describe expected usage and growth.'
     },
     {
       kind: 'tool',

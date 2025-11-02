@@ -3,7 +3,8 @@
  * Exposes MCP tools via HTTP/HTTPS for Factory.ai Streamable HTTP transport
  */
 
-import express, { Request, Response, NextFunction } from 'express';
+import express, { Request, Response } from 'express';
+import type { NextFunction } from 'express-serve-static-core';
 import cors from 'cors';
 import { createServer } from './server.js';
 import type { ToolInvocation } from './types.js';
@@ -47,7 +48,7 @@ function authMiddleware(req: Request, res: Response, next: NextFunction) {
 }
 
 // Health check endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (req: Request, res: Response) => {
   res.json({
     status: 'ok',
     service: 'droidforge-mcp-server',

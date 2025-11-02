@@ -12,6 +12,7 @@ import { createRecommendDroidsTool } from '../../tools/recommendDroids.js';
 import { createForgeRosterTool } from '../../tools/forgeRoster.js';
 import { createRecordProjectGoalTool } from '../../tools/recordProjectGoal.js';
 import { createSelectMethodologyTool } from '../../tools/selectMethodology.js';
+import { createConfirmMethodologyTool } from '../../tools/confirmMethodology.js';
 import { createCleanupRepoTool } from '../../tools/cleanupRepo.js';
 import { ensureDir } from '../../fs.js';
 import type { DroidDefinition } from '../../../types.js';
@@ -54,6 +55,24 @@ describe('E2E: Safe Cleanup Flow', () => {
       sessionId, 
       description: 'Test cleanup flow' 
     });
+
+    // Populate required discovery fields
+    const session = await sessionStore.load(repoRoot, sessionId);
+    if (session) {
+      session.targetAudience = 'Test users';
+      session.timelineConstraints = '3 months';
+      session.qualityVsSpeed = 'Balanced';
+      session.teamSize = '3';
+      session.experienceLevel = 'Mid-level';
+      session.budgetConstraints = '$50k';
+      session.deploymentRequirements = 'Cloud';
+      session.securityRequirements = 'Standard';
+      session.scalabilityNeeds = 'Medium';
+      await sessionStore.save(repoRoot, session);
+    }
+
+    const confirmTool = createConfirmMethodologyTool(deps);
+    await confirmTool.handler({ repoRoot, sessionId, methodology: 'agile' });
 
     const selectMethodologyTool = createSelectMethodologyTool(deps);
     await selectMethodologyTool.handler({

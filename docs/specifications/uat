@@ -4,6 +4,10 @@
 # Prepares a clean test repo, ensures the CLI + MCP registration, then
 # drops the user into `droid` ready to run /forge-start by hand.
 #
+# The script launches Droid exactly once per run so the user can drive the
+# session manually. Assistants must never invoke Droid outside this flow—after
+# the process exits, they inspect the session logs only.
+#
 # SETUP: Add this alias to your ~/.bashrc or ~/.zshrc:
 # alias uat='~/code/DroidForge/scripts/uat'
 # Then run: source ~/.bashrc (or ~/.zshrc)
@@ -131,18 +135,14 @@ else
     else
       info "Local dist is up to date; skipping rebuild." | tee_log
     fi
-    # Verify link points to our repo (requires jq)
-    if command -v jq >/dev/null 2>&1; then
-      LINKED_TARGET=$(npm list -g --depth=0 --json 2>/dev/null | jq -r '.dependencies.droidforge' 2>/dev/null || echo "")
-      if [[ "$LINKED_TARGET" != "$REPO_ROOT" ]]; then
-        warn "Linked droidforge does not point to repo root ($LINKED_TARGET). Re-linking..." | tee_log
-        if ! (cd "$REPO_ROOT" && npm link) | tee_log; then
-          error "npm link failed." | tee_log
-          exit 5
-        fi
+    # Verify link points to our repo
+    LINKED_TARGET=$(npm list -g --depth=0 --json 2>/dev/null | jq -r '.dependencies.droidforge' 2>/dev/null || echo "")
+    if [[ "$LINKED_TARGET" != "$REPO_ROOT" ]]; then
+      warn "Linked droidforge does not point to repo root ($LINKED_TARGET). Re-linking..." | tee_log
+      if ! (cd "$REPO_ROOT" && npm link) | tee_log; then
+        error "npm link failed." | tee_log
+        exit 5
       fi
-    else
-      warn "jq not found; skipping npm link verification." | tee_log
     fi
   else
     # Default: install latest if nothing exists
@@ -163,22 +163,8 @@ info "Refreshing MCP registration..." | tee_log
 if ! droid mcp remove droidforge >/dev/null 2>&1; then
   warn "No existing MCP entry to remove." | tee_log
 fi
-
-# Update MCP config with node + absolute path to avoid PATH issues
-MCP_CONFIG="$HOME/.factory/mcp.json"
-STDIO_PATH="$REPO_ROOT/dist/mcp/stdio-server.js"
-
-if [ ! -f "$STDIO_PATH" ]; then
-  error "MCP server not found at $STDIO_PATH. Build may have failed." | tee_log
-  exit 7
-fi
-
-if command -v jq >/dev/null 2>&1; then
-  # Use jq to update only droidforge entry, preserving other servers
-  jq --arg path "$STDIO_PATH" '.mcpServers.droidforge = {"type": "stdio", "command": "node", "args": [$path], "disabled": false}' "$MCP_CONFIG" > "$MCP_CONFIG.tmp" && mv "$MCP_CONFIG.tmp" "$MCP_CONFIG"
-  info "Registered droidforge MCP server with explicit node path." | tee_log
-else
-  error "jq required for MCP registration. Install: sudo apt install jq" | tee_log
+if ! droid mcp add droidforge droidforge-mcp-server --type stdio | tee_log; then
+  error "Failed to register droidforge MCP server." | tee_log
   exit 7
 fi
 sleep 2
@@ -197,27 +183,7 @@ echo "Quick log commands:"
 echo "  tail -f ~/.factory/logs/droid-log-single.log"
 echo "  ls -la ~/.factory/sessions/ | head -5"
 echo "======================================================================"
-echo "Press Ctrl+C when you're done to capture the latest session log."
+echo "To resume this session later, run:"
+echo "  export DF_UAT_SKIP_INSTALL=1 && uat"
 echo "======================================================================"
-
-START_TS=$(date +%s)
-
-droid
-EXIT_CODE=$?
-
-END_TS=$(date +%s)
-
-LATEST_SESSION=$(find "$HOME/.factory/sessions" -maxdepth 1 -type f -name '*.jsonl' -newermt "@$START_TS" -printf '%T@ %p\n' 2>/dev/null | sort -nr | head -n1 | awk '{print $2}')
-
-echo "======================================================================"
-echo "Droid exited with code $EXIT_CODE"
-if [[ -n "$LATEST_SESSION" ]]; then
-  echo "Latest session log: $LATEST_SESSION"
-  echo "Tail it with: tail -f $LATEST_SESSION"
-else
-  echo "No new session log detected between $START_TS and $END_TS."
-fi
-echo "Resume quickly with: export DF_UAT_SKIP_INSTALL=1 && uat"
-echo "======================================================================"
-
-exit $EXIT_CODE
+exec droid

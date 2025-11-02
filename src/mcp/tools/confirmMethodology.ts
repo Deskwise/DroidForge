@@ -54,17 +54,41 @@ export function createConfirmMethodologyTool(
         throw new Error(`Methodology cannot be confirmed while state is '${session.state}'. Resume onboarding with /forge-start.`);
       }
 
+      await appendLog(repoRoot, {
+        timestamp: new Date().toISOString(),
+        event: 'confirm_methodology_session_state_before',
+        status: 'ok',
+        payload: {
+          sessionId: session.sessionId,
+          methodologyConfirmed: session.methodologyConfirmed ?? false,
+          methodology: session.methodology ?? null,
+          state: session.state
+        }
+      });
+
       // Mark methodology as confirmed
       session.methodologyConfirmed = true;
       await deps.sessionStore.save(repoRoot, session);
-      
+
+      await appendLog(repoRoot, {
+        timestamp: new Date().toISOString(),
+        event: 'confirm_methodology_session_state_after',
+        status: 'ok',
+        payload: {
+          sessionId: session.sessionId,
+          methodologyConfirmed: session.methodologyConfirmed ?? false,
+          methodology: session.methodology ?? null,
+          state: session.state
+        }
+      });
+
       await appendLog(repoRoot, {
         timestamp: new Date().toISOString(),
         event: 'confirm_methodology',
         status: 'ok',
-        payload: { 
-          sessionId: session.sessionId, 
-          methodology: cleanMethodology 
+        payload: {
+          sessionId: session.sessionId,
+          methodology: cleanMethodology
         }
       });
       

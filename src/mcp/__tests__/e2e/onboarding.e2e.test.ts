@@ -13,6 +13,7 @@ import { createForgeRosterTool } from '../../tools/forgeRoster.js';
 import { createGenerateUserGuideTool } from '../../tools/generateUserGuide.js';
 import { createRecordProjectGoalTool } from '../../tools/recordProjectGoal.js';
 import { createSelectMethodologyTool } from '../../tools/selectMethodology.js';
+import { createConfirmMethodologyTool } from '../../tools/confirmMethodology.js';
 import { ensureDir } from '../../fs.js';
 import type { DroidDefinition } from '../../../types.js';
 
@@ -83,7 +84,7 @@ describe('E2E: Full Onboarding Flow', () => {
     }
   });
 
-  it('completes full onboarding: scan → goal → methodology → recommend → forge → guide', { timeout: TEST_TIMEOUT }, async () => {
+  it('completes full onboarding: scan → goal → methodology → recommend → forge → guide', async () => {
     const deps = { sessionStore, executionManager };
 
     // Step 1: Smart Scan
@@ -402,5 +403,92 @@ describe('E2E: Full Onboarding Flow', () => {
     }
     
     assert.ok(customCount >= 2, 'Should create at least 2 custom droids');
+  });
+
+  it('verifies methodologyConfirmed flag persists correctly', async () => {
+    const deps = { sessionStore, executionManager };
+
+    // Complete onboarding flow
+    const smartScanTool = createSmartScanTool(deps);
+    await smartScanTool.handler({ repoRoot, sessionId });
+
+    const recordGoalTool = createRecordProjectGoalTool(deps);
+    await recordGoalTool.handler({ 
+      repoRoot, 
+      sessionId, 
+      description: 'Build a multi-tenant analytics dashboard for marketing teams to track campaign performance in real time.' 
+    });
+
+    // Populate core discovery fields (required by selectMethodology)
+    const session = await sessionStore.load(repoRoot, sessionId);
+    assert.ok(session, 'Session should exist after recording goal');
+    session.targetAudience = 'Marketing teams at mid-sized companies';
+    session.timelineConstraints = '6 months to MVP';
+    session.qualityVsSpeed = 'Balanced approach';
+    session.teamSize = '4 developers';
+    session.experienceLevel = 'Senior level';
+    // Populate delivery fields (required by forgeRoster)
+    session.budgetConstraints = '$100k-$500k';
+    session.deploymentRequirements = 'Cloud (AWS/Azure)';
+    session.securityRequirements = 'SOC2 compliant';
+    session.scalabilityNeeds = 'Handle 10k concurrent users';
+    await sessionStore.save(repoRoot, session);
+
+    // Confirm methodology (required before selectMethodology)
+    const confirmTool = createConfirmMethodologyTool(deps);
+    await confirmTool.handler({ repoRoot, sessionId, methodology: 'agile' });
+
+    // Verify methodologyConfirmed flag is set
+    const sessionAfterConfirm = await sessionStore.load(repoRoot, sessionId);
+    assert.ok(sessionAfterConfirm, 'Session should exist after confirmation');
+    assert.equal(sessionAfterConfirm?.methodologyConfirmed, true, 'methodologyConfirmed should be true');
+
+    // Select methodology
+    const selectMethodologyTool = createSelectMethodologyTool(deps);
+    await selectMethodologyTool.handler({
+      repoRoot,
+      sessionId,
+      choice: 'agile'
+    });
+
+    // Verify methodology persists after selection
+    const sessionAfterSelection = await sessionStore.load(repoRoot, sessionId);
+    assert.ok(sessionAfterSelection, 'Session should exist after methodology selection');
+    assert.equal(sessionAfterSelection?.methodology, 'agile', 'Methodology should be agile');
+    assert.equal(sessionAfterSelection?.methodologyConfirmed, true, 'methodologyConfirmed should still be true');
+    
+    // Forge roster
+    const recommendTool = createRecommendDroidsTool(deps);
+    const recommendations = await recommendTool.handler({ repoRoot, sessionId });
+    
+    const forgeTool = createForgeRosterTool(deps);
+    await forgeTool.handler({ 
+      repoRoot, 
+      sessionId,
+      selected: recommendations.suggestions.slice(0, 3).map(s => ({
+        id: s.id,
+        label: s.label || s.id,
+        abilities: [],
+        goal: s.summary
+      }))
+    });
+
+    // Reload session and verify state + methodologyConfirmed persistence
+    const finalSession = await sessionStore.load(repoRoot, sessionId);
+    assert.ok(finalSession, 'Final session should exist');
+    assert.equal(finalSession?.state, 'complete', 'Session should be complete');
+    assert.equal(finalSession?.methodology, 'agile', 'Methodology should still be agile');
+    assert.equal(finalSession?.methodologyConfirmed, true, 'methodologyConfirmed should persist through entire flow');
+    
+    // Verify session JSON file directly contains methodologyConfirmed
+    const sessionJsonPath = join(repoRoot, '.droidforge', 'session', `${sessionId}.json`);
+    const sessionJsonExists = await fs.stat(sessionJsonPath).then(() => true).catch(() => false);
+    assert.ok(sessionJsonExists, 'Session JSON file should exist');
+    
+    const sessionJsonContent = await fs.readFile(sessionJsonPath, 'utf8');
+    const sessionData = JSON.parse(sessionJsonContent);
+    assert.equal(sessionData.methodology, 'agile', 'Session JSON should contain methodology');
+    assert.equal(sessionData.state, 'complete', 'Session JSON should show complete state');
+    assert.equal(sessionData.methodologyConfirmed, true, 'Session JSON should contain methodologyConfirmed=true');
   });
 });

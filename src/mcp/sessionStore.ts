@@ -42,8 +42,12 @@ export class SessionStore {
       // File doesn't exist yet; proceed with new session
     }
 
-    // Preserve any fields not in the strict type (e.g., methodologyConfirmed)
-    const merged = existing ? { ...existing, ...session } : session;
+    // Preserve any previously stored fields unless the new payload provides an explicit value.
+    // Undefined entries should not clobber existing state (e.g., methodologyConfirmed flipping back to false/undefined).
+    const sanitized = Object.fromEntries(
+      Object.entries(session).filter(([, value]) => value !== undefined)
+    ) as OnboardingSession;
+    const merged = existing ? { ...existing, ...sanitized } : sanitized;
     const payload = JSON.stringify(merged, null, 2);
     const tmp = `${target}.tmp`;
     await fs.writeFile(tmp, payload, 'utf8');

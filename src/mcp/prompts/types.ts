@@ -20,6 +20,8 @@ export interface InputSegment {
   label: string;
   placeholder?: string;
   helper?: string;
+  required?: boolean;
+  emptyMessage?: string;
 }
 
 export interface ChoiceOption {

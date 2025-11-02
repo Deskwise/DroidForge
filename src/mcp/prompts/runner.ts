@@ -78,6 +78,13 @@ export class PromptRunner {
 
   submitInput(id: string, value: InputValue): void {
     this.ensureAwaiting('input', id);
+    if (!this.awaiting?.segment) {
+      throw new Error(`PromptRunner is not awaiting input for '${id}'.`);
+    }
+    const segment = this.awaiting.segment as InputSegment;
+    if (segment.required && (!value || value.trim() === '')) {
+      throw new Error(segment.emptyMessage || `Input for '${segment.label}' is required.`);
+    }
     this.inputValues.set(id, value);
     this.awaiting = null;
   }

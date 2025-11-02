@@ -12,7 +12,7 @@ interface Deps {
 export function createRecordProjectGoalTool(deps: Deps): ToolDefinition<RecordProjectGoalInput, RecordProjectGoalOutput> {
   return {
     name: 'record_project_goal',
-    description: 'Persist the user\'s goal description gathered during onboarding.',
+    description: 'Persist the user\'s goal description gathered during onboarding. ONLY call this after collecting the project vision through the onboarding flow, never before.',
     handler: async input => {
       const { repoRoot, sessionId } = input;
       // Sanitize description for common terminal paste artifacts (bracketed paste, ANSI)
@@ -64,7 +64,7 @@ export function createRecordProjectGoalTool(deps: Deps): ToolDefinition<RecordPr
       
       // Require a non-empty project vision before proceeding
       if (!description || description.trim().length === 0) {
-        throw new Error('Project vision is required before we proceed. Please describe what you are building (one or two sentences is fine).');
+        throw new Error('Project vision is required. Please ask the user to describe what they are building first, then call this tool with their description. Do not call this tool with an empty description.');
       }
 
       // Try to load by sessionId first (if provided), otherwise load the active session

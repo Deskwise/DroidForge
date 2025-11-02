@@ -26,6 +26,10 @@ export interface OnboardingSession {
   createdAt: string;
   state: OnboardingState;
   scan?: ScanSnapshot;
+  scanComputedAt?: string;
+  scanSignals?: string[];
+  scanHints?: string[];
+  scanPrimaryLanguage?: string | null;
   description?: string;
   // Extended onboarding data per spec
   projectVision?: string;
@@ -41,6 +45,7 @@ export interface OnboardingSession {
   aiRecommendations?: string[];
   inferredData?: Record<string, string>;
   methodology?: string;
+  methodologyConfirmed?: boolean;
   selectedDroids?: string[];
   customDroids?: CustomDroidSeed[];
 }
@@ -50,7 +55,9 @@ export interface ToolContext {
   repoRoot: string;
 }
 
-export interface SmartScanInput extends ToolContext {}
+export interface SmartScanInput extends ToolContext {
+  forceRescan?: boolean;
+}
 
 export interface SmartScanOutput {
   sessionId: string;

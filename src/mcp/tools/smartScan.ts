@@ -61,9 +61,35 @@ export function createSmartScanTool(deps: SmartScanDeps): ToolDefinition<SmartSc
     name: 'smart_scan',
     description: 'Analyze repository footprints to seed onboarding context. Generates sessionId if not provided.',
     handler: async input => {
-      const { repoRoot, sessionId } = input;
-      // Generate a sessionId if not provided
-      const finalSessionId = sessionId || randomUUID();
+      const { repoRoot, sessionId, forceRescan } = input;
+
+      let session: OnboardingSession | null = null;
+      if (sessionId) {
+        session = await deps.sessionStore.load(repoRoot, sessionId);
+      }
+      if (!session) {
+        session = await deps.sessionStore.loadActive(repoRoot);
+        if (session && session.repoRoot !== repoRoot) {
+          session = null;
+        }
+      }
+
+      const hasFreshScan = !forceRescan && !!session?.scan && !!session?.scanComputedAt;
+      if (session && hasFreshScan) {
+        console.error('[SMART_SCAN] Cache HIT - reusing scan from', session.scanComputedAt);
+        return {
+          sessionId: session.sessionId,
+          summary: session.scan!.summary,
+          signals: session.scanSignals ?? [],
+          primaryLanguage: session.scanPrimaryLanguage ?? null,
+          hints: session.scanHints ?? [],
+          prdFiles: session.scan!.prdPaths
+        };
+      }
+
+      console.error('[SMART_SCAN] Cache MISS - performing full scan');
+
+      const finalSessionId = session?.sessionId ?? sessionId ?? randomUUID();
       const [repoSignals, scripts] = await Promise.all([
         scanRepo(repoRoot),
         scanScripts(repoRoot)
@@ -89,28 +115,40 @@ export function createSmartScanTool(deps: SmartScanDeps): ToolDefinition<SmartSc
         hints.push('Testing frameworks configured.');
       }
 
-      const session: OnboardingSession = {
-        sessionId: finalSessionId,
-        repoRoot,
-        createdAt: new Date().toISOString(),
-        state: 'collecting-goal',
-        scan: {
-          summary,
-          frameworks: repoSignals.frameworks,
-          testConfigs: repoSignals.testConfigs,
-          prdPaths: repoSignals.prdPaths,
-          scripts: [...scripts.files, ...scripts.npmScripts.map(s => s.path)],
-          prdContent: repoSignals.prdContent ?? null
-        }
-      };
+      const now = new Date().toISOString();
+      const nextSession: OnboardingSession = session
+        ? { ...session }
+        : {
+            sessionId: finalSessionId,
+            repoRoot,
+            createdAt: now,
+            state: 'collecting-goal'
+          };
 
-      await deps.sessionStore.save(repoRoot, session);
+      if (!nextSession.createdAt) {
+        nextSession.createdAt = now;
+      }
+
+      nextSession.scan = {
+        summary,
+        frameworks: repoSignals.frameworks,
+        testConfigs: repoSignals.testConfigs,
+        prdPaths: repoSignals.prdPaths,
+        scripts: [...scripts.files, ...scripts.npmScripts.map(s => s.path)],
+        prdContent: repoSignals.prdContent ?? null
+      };
+      nextSession.scanComputedAt = now;
+      nextSession.scanSignals = signals;
+      nextSession.scanHints = hints;
+      nextSession.scanPrimaryLanguage = nextSession.scanPrimaryLanguage ?? null;
+
+      await deps.sessionStore.save(repoRoot, nextSession);
 
       return {
-        sessionId: finalSessionId,
+        sessionId: nextSession.sessionId,
         summary,
         signals,
-        primaryLanguage: null,
+        primaryLanguage: nextSession.scanPrimaryLanguage ?? null,
         hints,
         prdFiles: repoSignals.prdPaths
       };

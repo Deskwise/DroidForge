@@ -13,6 +13,20 @@ const sanitize = (s?: string) => (s ?? '')
   .replace(/\r/g, '')
   .trim();
 
+const CANONICAL_FIELDS: Array<keyof RecordOnboardingDataInput> = [
+  'projectVision',
+  'targetAudience',
+  'timelineConstraints',
+  'qualityVsSpeed',
+  'teamSize',
+  'experienceLevel',
+  'budgetConstraints',
+  'deploymentRequirements',
+  'securityRequirements',
+  'scalabilityNeeds',
+  'inferred'
+];
+
 export function createRecordOnboardingDataTool(deps: Deps): ToolDefinition<RecordOnboardingDataInput, RecordOnboardingDataOutput> {
   return {
     name: 'record_onboarding_data',
@@ -31,9 +45,22 @@ export function createRecordOnboardingDataTool(deps: Deps): ToolDefinition<Recor
         throw new Error('No active onboarding session found. Please run /forge-start first.');
       }
 
-      // Enforce state: only during collecting-goal phase
-      if (session.state !== 'collecting-goal') {
-        throw new Error(`Cannot record onboarding data while state is '${session.state}'. Please continue with /forge-start to resume the correct step.`);
+      // Permit updates in any active state; block only after completion or abort
+      if (session.state === 'complete' || session.state === 'aborted') {
+        throw new Error(`Cannot record onboarding data - onboarding is already ${session.state}.`);
+      }
+
+      const payloadKeys = Object.keys(input).filter(key => key !== 'repoRoot' && key !== 'sessionId');
+      const unknownKeys = payloadKeys.filter(key => !CANONICAL_FIELDS.includes(key as keyof RecordOnboardingDataInput));
+      if (unknownKeys.length > 0) {
+        throw new Error(
+          `record_onboarding_data accepts only the canonical onboarding fields (${CANONICAL_FIELDS.join(', ')}). ` +
+          `Remove unknown field(s): ${unknownKeys.join(', ')}.`
+        );
+      }
+
+      if (!session.projectVision && payloadKeys.some(key => key !== 'projectVision')) {
+        throw new Error('Capture projectVision first before recording other onboarding data.');
       }
 
       const saved: (keyof RecordOnboardingDataInput)[] = [];

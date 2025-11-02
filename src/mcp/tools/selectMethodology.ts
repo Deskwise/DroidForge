@@ -121,6 +121,20 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
         throw new Error('No active onboarding session found. Please run /forge-start first.');
       }
 
+      await appendLog(repoRoot, {
+        timestamp: new Date().toISOString(),
+        event: 'select_methodology_session_loaded',
+        status: 'ok',
+        payload: {
+          sessionId: session.sessionId,
+          methodologyConfirmed: session.methodologyConfirmed ?? false,
+          methodology: session.methodology ?? null,
+          state: session.state,
+          choice: mappedChoice,
+          otherText: otherText || null
+        }
+      });
+
       const coreMissing = CORE_FIELDS.filter(fieldName => {
         const value = (session as any)[fieldName];
         return typeof value !== 'string' || value.trim().length === 0;
@@ -131,6 +145,27 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
 
       if (session.state !== 'collecting-goal') {
         throw new Error(`Methodology cannot be selected while state is '${session.state}'. Resume onboarding with /forge-start.`);
+      }
+
+      if (!session.methodologyConfirmed) {
+        await appendLog(repoRoot, {
+          timestamp: new Date().toISOString(),
+          event: 'select_methodology_missing_confirmation',
+          status: 'error',
+          payload: {
+            sessionId: session.sessionId,
+            methodologyConfirmed: session.methodologyConfirmed ?? false,
+            methodology: session.methodology ?? null,
+            state: session.state,
+            choice: mappedChoice,
+            otherText: otherText || null
+          }
+        });
+        throw new Error(
+          'Please confirm the methodology before I record it. ' +
+          'Use the confirm_methodology tool first after asking the user: "Would you like to proceed with [methodology]?" ' +
+          'and wait for explicit confirmation (yes/proceed/confirmed/etc.).'
+        );
       }
 
       const deliveryMissing = collectMissingDelivery(session);
