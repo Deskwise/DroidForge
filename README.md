@@ -1,12 +1,15 @@
 # DroidForge
 
-**Your codebase analyzes itself, builds its own expert development team, then coordinates them to work in parallel—safely.**
+**Phase 1:** DroidForge forges a custom AI team that knows your repo and gives you a single orchestration “quarterback” for serial hand-offs.
 
-DroidForge doesn't give you a generic AI assistant. It **deeply understands YOUR codebase** - your specific frameworks, patterns, and conventions - then **forges a custom team of specialized AI agents** who are experts in YOUR tech stack. The orchestrator identifies work that can happen simultaneously, assigns the right specialist to each task, and coordinates safe parallel execution with intelligent locking, isolated workspaces, and atomic merging.
+**Phase 2 (in development):** The same architecture grows into safe parallel execution using isolated worktrees and resource locking.
 
-**Result:** Complex features that used to take hours now complete in minutes, with code that fits your project perfectly.
+DroidForge doesn't give you a generic AI assistant. It **deeply understands YOUR codebase**—your frameworks, patterns, and conventions—then **forges a custom roster of AI specialists** you can coordinate through one orchestrator prompt.
 
-> **PRODUCTION READY v0.5.0** - Comprehensive safety features, 41/41 E2E tests passing, security reviewed, and performance validated.
+> **Current Status**
+>
+> - ✅ Phase 1 (Onboarding + Serial Orchestrator) — production ready, security reviewed, 41/41 E2E tests passing
+> - 🚧 Phase 2 (Parallel Orchestration) — architecture scaffolded, integration hardening underway
 
 Built as a Model Context Protocol (MCP) server for Factory.ai's Droid CLI.
 

@@ -7,7 +7,12 @@
 
 ## Executive Summary
 
-This document outlines the complete implementation plan for the intelligent AI interview onboarding system specified in [`onboarding-spec.md`](onboarding-spec.md). The new system will replace the current scripted onboarding with an intelligent conversational AI that:
+This document outlines the complete implementation plan for the intelligent AI interview onboarding system specified in [`onboarding-spec.md`](onboarding-spec.md). The program now runs in two phases:
+
+- **Phase 1 (current focus):** Ship onboarding plus the serial orchestrator “quarterback” experience.
+- **Phase 2 (roadmap):** Harden the parallel orchestration stack (execution manager, resource locks, staging/merge) so multiple specialists can run simultaneously.
+
+Phase 1 replaces the current scripted onboarding with an intelligent conversational AI that:
 
 - Collects all 10 required data points efficiently (3-7 minutes)
 - Uses intelligent parsing to extract multiple pieces of information from single responses

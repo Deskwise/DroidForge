@@ -4,11 +4,11 @@ Get up and running with DroidForge in 5 minutes.
 
 ## What is DroidForge?
 
-**DroidForge doesn't give you generic AI assistants. It builds a custom development team specifically for YOUR codebase.**
+**Phase 1 (today):** DroidForge forges a custom development team for YOUR codebase and gives you a single orchestrator droid (“quarterback”) that routes work to specialists one at a time.
 
-It analyzes your repository - understanding your languages, frameworks, architecture, and patterns - then creates specialized AI agents (droids) who are experts in YOUR specific tech stack. Each droid knows your project intimately and produces code that fits naturally.
+It analyzes your repository—languages, frameworks, architecture, and patterns—then creates specialized droids who know your project intimately. You stay in one conversation with the orchestrator, who handles the serial hand-offs and merges results safely.
 
-Think of it as automatically assembling your ideal development team, where each member is a specialist in exactly what your project needs.
+**Phase 2 (in development):** The same architecture will grow into safe parallel orchestration using the existing staging + merge pipeline.
 
 ## Prerequisites
 
@@ -75,10 +75,10 @@ Use the orchestrator to coordinate your droid team:
 ```
 
 The `df` (DroidForge) command routes requests to `df-orchestrator`, who:
-- Creates an execution plan
-- Delegates tasks to appropriate specialists
-- Coordinates parallel work when safe
-- Reports progress and results
+- Keeps you in one conversation
+- Delegates the request to the right specialist (one at a time)
+- Uses staging worktrees and safe merge logic before reporting back
+- Logs every hand-off so you can review what happened
 
 ### Step 3: Monitor Progress
 
@@ -187,21 +187,12 @@ The manifest tracks:
 
 ## Advanced Features
 
-### Parallel Orchestration
+### Parallel Orchestration (Phase 2 roadmap)
 
-DroidForge can run multiple droids simultaneously on independent tasks:
-
-```
-/df Implement user authentication AND write API documentation
-```
-
-The orchestrator will:
-- Detect independent tasks
-- Assign to different droids
-- Coordinate via resource locking
-- Merge results safely
-
-Parallel execution deep dive is being refreshed (archived notes live under `docs/_archive_legacy/explanation/`).
+The execution and staging modules already support safe parallelism, but the integration hardening is still underway. Today the orchestrator runs tasks serially; once Phase 2 lands it will:
+- Detect independent tasks and schedule them concurrently
+- Use resource locking to prevent conflicts
+- Merge isolated worktrees atomically
 
 ### Snapshots
 
