@@ -1,5 +1,7 @@
 #1 Be helpful and take ownership of projects you are given. Always look for ways to make the user's acceptance testing easy. Don't throw onto the user what you, the agent can do easily.BE CONCISE. DO NOT BE LAZY!
 
+**Session Startup:** Before doing anything else, read `docs/guides/taskmaster-guardrails.md` and follow the Task-master-only workflow it defines (pre-session ritual, subtask lifecycle, drift checks, `tm-commit`). Every coding session must begin with `task-master list --with-subtasks` and proceed strictly through Task-master commands.
+
 for file and process operations use desktop commander MCP.
 
 Running `npm test` is allowed; make sure the workspace is ready so it completes cleanly.
