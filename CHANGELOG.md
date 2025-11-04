@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
+> **Current status (2025-11-03):** DroidForge is shipping Phase 1 — onboarding plus a serial orchestrator "quarterback." Entries that describe fully-parallel execution represent the Phase 2 roadmap and remain under active development.
+
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -69,32 +71,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.1.1] - 2025-10-25
 
-### 🚀 **INSTANT COMMAND AVAILABILITY - Perfect User Experience**
+### **INSTANT COMMAND AVAILABILITY - Perfect User Experience**
 
-#### ✨ Zero-Friction Installation
+#### **Zero-Friction Installation**
 **DroidForge commands are now available immediately after `npm install`!**
 
 No MCP configuration required first. No waiting for first access. Commands work instantly.
 
-#### 🎯 **New Installation Flow**
+#### **New Installation Flow**
 **Perfect User Experience**:
-1. `npm install -g droidforge` → ✅ Commands instantly available
-2. `/forge-start` → ✅ Works immediately in any directory
+1. `npm install -g droidforge` → **Commands instantly available**
+2. `/forge-start` → **Works immediately in any directory**
 3. MCP configuration happens during onboarding (guided)
 
-#### 🔧 **Technical Implementation**
+#### **Technical Implementation**
 - **postinstall script**: Automatically runs after `npm install -g droidforge`
 - **Immediate installation**: Creates `~/.factory/commands/` during package installation
 - **Smart detection**: Only installs if commands don't already exist
 - **Graceful fallback**: Falls back to auto-installation on first MCP access if postinstall fails
 
-#### 🎁 **What This Means**
+#### **What This Means**
 - **Zero friction**: Install and immediately start using
 - **No prerequisites**: No MCP configuration needed before first use
 - **Universal access**: Commands work in any directory instantly
 - **Guided setup**: MCP configuration happens when needed, with guidance
 
-#### 📍 **File Installation**
+#### **File Installation**
 Commands installed immediately to `~/.factory/commands/`:
 - `/forge-start` - Begin onboarding or show status  
 - `/forge-status` - Check your team and activity
@@ -102,84 +104,84 @@ Commands installed immediately to `~/.factory/commands/`:
 - `/forge-removeall` - Clean removal when finished
 - `/df` - Your orchestrator for work coordination
 
-**Now truly zero-setup! Install and use immediately.** 🎉
+**Now truly zero-setup! Install and use immediately.** 
 
 ---
 
 ## [1.1.0] - 2025-10-25
 
-### 🎯 **GLOBAL COMMANDS - Complete Chicken-and-Egg Solution**
+### **GLOBAL COMMANDS - Complete Chicken-and-Egg Solution**
 
-#### ✨ Revolutionary Change
+#### **Revolutionary Change**
 **DroidForge commands are now globally available immediately after installation!**
 
 No more chicken-and-egg problem. No per-project setup required. Install once, use everywhere.
 
-#### 🌍 **Global Installation**
+#### **Global Installation**
 - **Global scope**: Commands installed to `~/.factory/commands/` (personal scope)
 - **Universal access**: `/forge-start`, `/forge-status`, `/forge-guide`, `/forge-removeall`, `/df` work in any directory
 - **Instant availability**: Available immediately after `npm install -g droidforge` + MCP configuration
 - **Zero setup**: No per-project initialization required
 
-#### 🚀 **New User Experience**
+#### **New User Experience**
 **Before (Broken)**:
 1. Install DroidForge → 2. Try `/forge-start` → 3. ❌ Command not found
 
 **After (Perfect)**:  
 1. Install DroidForge → 2. `/forge-start` → 3. ✅ Onboarding starts immediately
 
-#### 🔧 **Technical Implementation**
+#### **Technical Implementation**
 - **Auto-installation**: Global commands installed when DroidForge MCP tools are first accessed
 - **New MCP tool**: `install_global_commands` for explicit global installation  
 - **Factory CLI compatible**: Uses standard `~/.factory/commands/` directory structure
 - **Smart detection**: Only installs if commands don't already exist
 
-#### 🎁 **What This Means**
+#### **What This Means**
 - **For new users**: Seamless onboarding experience, no setup frustration
 - **For existing users**: Commands upgrade automatically to global scope
 - **For teams**: Share DroidForge across projects with zero per-project overhead  
 - **For developers**: Clean architecture following Factory CLI conventions
 
-#### 📍 **File Locations**
+#### **File Locations**
 - **Global commands**: `~/.factory/commands/` (forge management commands)
 - **Project droids**: `<repo>/.factory/droids/` (specialist AI droids)
 - **Project manifest**: `<repo>/.factory/droids-manifest.json`
 
-**The chicken-and-egg problem is completely solved!** 🎉
+**The chicken-and-egg problem is completely solved!** 
 
 ---
 
 ## [1.0.2] - 2025-10-25
 
-### 🔧 **AUTO-INSTALLATION FIX - Chicken-and-Egg Solution**
+### **AUTO-INSTALLATION FIX - Chicken-and-Egg Solution**
 
-#### ✅ Problem Solved
+#### **Problem Solved**
 **Issue**: Users needed `/forge-start` command to begin onboarding, but forge commands were only installed AFTER onboarding completed. This created an impossible situation for first-time users.
 
 **Solution**: DroidForge now automatically installs all forge commands the first time it's accessed in any repository.
 
-#### 🚀 **New Auto-Installation Behavior**
+#### **New Auto-Installation Behavior**
 - **Instant Availability**: `/forge-start`, `/forge-status`, `/forge-guide`, `/forge-removeall` commands are now automatically created
 - **First Access**: Commands are installed the moment DroidForge's `get_status` tool is called
 - **Proper Format**: Commands created in `.factory/commands/` with correct Markdown and YAML frontmatter  
 - **Droid CLI Compatible**: Works seamlessly with Droid CLI's slash command system
 - **Zero Configuration**: No user action required - commands just appear
 
-#### 🔄 Updated File Paths  
+#### **Updated File Paths**  
 - **Fixed manifest location**: Now correctly uses `.factory/droids-manifest.json` (was using outdated `.droidforge/` path)
 - **Consistent structure**: All DroidForge files now properly use `.factory/` directory
 
-#### 🛡️ **Enhanced Reliability**
+#### **Enhanced Reliability**
 - **Comprehensive error handling**: Graceful failure with detailed logging
 - **Smart detection**: Only installs commands if they don't already exist  
 - **Atomic operations**: Commands installed safely with proper file locking
 - **Audit logging**: All auto-installation events logged for troubleshooting
 
-#### 🎯 **User Experience**
+#### **User Experience**
 **Before**: Users confused by missing `/forge-start` command
 **After**: Commands immediately available, onboarding flow works seamlessly
 
-#### Technical Details
+#### **Technical Details**
 - Modified `get_status` tool to check for forge commands existence
 - Auto-installs complete command suite if missing
 - Uses same `buildDefaultCommands()` logic as normal onboarding
@@ -187,7 +189,7 @@ No more chicken-and-egg problem. No per-project setup required. Install once, us
 
 ## [1.0.1] - 2025-10-25
 
-### 🐛 **CRITICAL FIX**
+### **CRITICAL FIX**
 - **Fixed bin paths** - Removed leading `./` that caused npm to reject binary commands
 - v1.0.0 published but commands were broken - **use v1.0.1 instead**
 
@@ -195,9 +197,9 @@ No more chicken-and-egg problem. No per-project setup required. Install once, us
 
 ## [1.0.0] - 2025-10-25 [BROKEN - USE 1.0.1]
 
-### 🎯 **BREAKING CHANGE - Professional Naming Convention**
+### **BREAKING CHANGE - Professional Naming Convention**
 
-#### Command Names Updated
+#### **Command Names Updated**
 To align with professional MCP server conventions (GitHub, Slack, etc.), the binary command names have been updated for clarity:
 
 **BEFORE:**
@@ -210,12 +212,12 @@ To align with professional MCP server conventions (GitHub, Slack, etc.), the bin
 - `droidforge-mcp-server-http` → HTTP mode
 - Configuration: `/mcp add droidforge droidforge-mcp-server` ← Clear distinction!
 
-#### 📦 Installation (UNCHANGED)
+#### **Installation (UNCHANGED)**
 **Package name remains simple:** `npm install -g droidforge`
 
 The package name stays as `droidforge` for easy installation. Only the executable command names changed to match professional MCP naming patterns used by other servers.
 
-#### 🔄 Migration Guide
+#### **Migration Guide**
 
 **If you already configured DroidForge:**
 1. Remove old configuration: `/mcp remove droidforge`
@@ -232,12 +234,12 @@ The package name stays as `droidforge` for easy installation. Only the executabl
 }
 ```
 
-#### Why This Change?
+#### **Why This Change?**
 - **Clarity:** Command name now distinct from identifier in `/mcp add` command
 - **Professional:** Matches naming conventions used by other MCP servers
 - **Consistency:** Aligns with industry-standard patterns
 
-#### Impact
+#### **Impact**
 - **Breaking:** Existing installations must update configuration
 - **One-time:** Simple migration, takes 30 seconds
 - **Future-proof:** Professional naming convention for long-term clarity
@@ -246,50 +248,50 @@ The package name stays as `droidforge` for easy installation. Only the executabl
 
 ## [0.6.0] - 2025-10-25
 
-### ✨ **NEW FEATURES - DUAL TRANSPORT SUPPORT**
+### **NEW FEATURES - DUAL TRANSPORT SUPPORT**
 
-#### 🚀 **CLI Commands**
+#### **CLI Commands**
 - **GLOBAL EXECUTABLES**: Install once, use anywhere with `npm install -g droidforge`
 - **stdio command**: `droidforge` - Auto-spawning by Droid CLI (primary mode)
 - **HTTP command**: `droidforge-http` - Manual server for Remote Workspaces
 - **NO BUILDING REQUIRED**: Users get pre-built executables, zero compilation
 
-#### 🔄 **stdio Transport (NEW)**
+#### **stdio Transport (NEW)**
 - **AUTO-SPAWNING**: Droid CLI manages process lifecycle automatically
 - **MCP SDK INTEGRATION**: Full protocol support via `@modelcontextprotocol/sdk`
 - **ZERO CONFIGURATION**: Just install and configure, no server management
 - **IDEAL FOR**: Local development workflows
 
-#### 🌐 **HTTP Transport (Enhanced)**
+#### **HTTP Transport (Enhanced)**
 - **STANDALONE SERVER**: Express server on port 3897
 - **PRODUCTION READY**: Suitable for cloud deployment
 - **REMOTE COMPATIBLE**: Works with Factory.ai Remote Workspaces
 - **FLEXIBLE HOSTING**: Deploy to Fly.io, Railway, AWS, etc.
 
-#### 📚 **Documentation Overhaul**
+#### **Documentation Overhaul**
 - **EXPLAIN-Install.md**: Complete zero-to-working walkthrough for new users
 - **IMPLEMENTATION_STATUS.md**: Full feature list and implementation verification
 - **LOCAL_SETUP.md**: Developer guide for contributors
 - **Updated README**: Clear installation for end users (no building required)
 
-### 🔧 **Technical Changes**
+### **Technical Changes**
 - **package.json**: Added `bin` field for CLI commands
 - **New dependency**: `@modelcontextprotocol/sdk` for stdio protocol handling
 - **prepublishOnly**: Automatic build during npm publish
 - **files field**: Ensures pre-built JavaScript included in package
 
-### 📦 **Distribution**
+### **Distribution**
 - **npm Package**: Ready for global installation
 - **Pre-built**: Users never see TypeScript or build tools
 - **Instant Ready**: `npm install -g droidforge` → works immediately
 
-### 🎯 **User Experience**
+### **User Experience**
 - **One-line install**: `npm install -g droidforge`
 - **Simple config**: Single JSON entry in `~/.factory/config.json`
 - **No manual builds**: Everything pre-compiled
 - **Works with empty repos**: Learns through conversation
 
-### ⬆️ **Upgrade Notes**
+### **Upgrade Notes**
 - **Backwards Compatible**: All 0.5.0 functionality preserved
 - **New transport options**: Choose stdio (local) or HTTP (remote)
 - **No breaking changes**: Existing setups continue to work
@@ -298,16 +300,16 @@ The package name stays as `droidforge` for easy installation. Only the executabl
 
 ## [0.5.0] - 2025-10-25
 
-### 🚀 **PRODUCTION RELEASE - COMPREHENSIVE SAFETY & TESTING**
+### **PRODUCTION RELEASE - COMPREHENSIVE SAFETY & TESTING**
 - **COMPLETE E2E TEST SUITE**: 41 comprehensive end-to-end tests (100% pass rate)
-- **PARALLEL EXECUTION SAFETY**: Full isolation, resource locking, conflict detection
+- **PARALLEL EXECUTION SAFETY (Phase 2 roadmap)**: Architecture for isolation, resource locking, and conflict detection laid out; integration hardening ongoing.
 - **UUID PERSISTENCE**: Reliable droid identification across sessions and reboots
 - **SAFE CLEANUP**: Atomic cleanup operations with confirmation requirements
 - **SNAPSHOT/RESTORE**: Complete state preservation and recovery system
 - **AUDIT LOGGING**: Comprehensive security and operation logging
 - **PERFORMANCE VALIDATION**: Stress testing with excellent scalability metrics
 
-### 🔒 **Security & Safety Features**
+### **Security & Safety Features**
 - **PATH TRAVERSAL PROTECTION**: Comprehensive path validation preventing directory escape
 - **INPUT SANITIZATION**: All user inputs validated and sanitized
 - **RESOURCE LIMITS**: Memory, CPU, and file system access controls

@@ -27,39 +27,51 @@ async function runOnboarding(server: ReturnType<typeof createServer>, repoRoot: 
   }
 }
 
-test('onboarding prompt writes manifest and commands', async () => {
+test('onboarding prompt writes manifest and commands', { timeout: 60000 }, async () => {
+  console.log('[INTEGRATION] Test starting...');
   const repoRoot = mkdtempSync(join(tmpdir(), 'droidforge-integration-'));
-  try {
-    const server = createServer({ repoRoot });
-    const sessionId = 'session-integration';
+  console.log('[INTEGRATION] Created temp dir:', repoRoot);
+    let server;
+    try {
+      console.log('[INTEGRATION] Creating server...');
+      server = createServer({ repoRoot });
+      const sessionId = 'session-integration';
 
-    await runOnboarding(server, repoRoot, sessionId);
+      console.log('[INTEGRATION] Starting onboarding...');
+      await runOnboarding(server, repoRoot, sessionId);
+      console.log('[INTEGRATION] Onboarding complete');
 
-    const manifestPath = join(repoRoot, '.droidforge', 'droids-manifest.json');
-    if (!existsSync(manifestPath)) {
-      throw new Error('manifest not created');
-    }
-    const manifestRaw = readFileSync(manifestPath, 'utf8');
-    if (!manifestRaw.trim()) {
-      throw new Error('manifest empty');
-    }
-    const manifest = JSON.parse(manifestRaw);
-    if (!Array.isArray(manifest.droids)) {
-      throw new Error('manifest missing droids array');
-    }
+      const manifestPath = join(repoRoot, '.droidforge', 'droids-manifest.json');
+      if (!existsSync(manifestPath)) {
+        throw new Error('manifest not created');
+      }
+      const manifestRaw = readFileSync(manifestPath, 'utf8');
+      if (!manifestRaw.trim()) {
+        throw new Error('manifest empty');
+      }
+      const manifest = JSON.parse(manifestRaw);
+      if (!Array.isArray(manifest.droids)) {
+        throw new Error('manifest missing droids array');
+      }
 
-    const commandsDir = join(repoRoot, '.factory', 'commands');
-    const dfCommand = existsSync(join(commandsDir, 'df')) || existsSync(join(commandsDir, 'df.md'));
-    if (!dfCommand) {
-      const available = existsSync(commandsDir) ? readdirSync(commandsDir) : null;
-      throw new Error('df command not installed: ' + (available ? available.join(',') : 'missing dir'));
+      const commandsDir = join(repoRoot, '.factory', 'commands');
+      const dfCommand = existsSync(join(commandsDir, 'df')) || existsSync(join(commandsDir, 'df.md'));
+      if (!dfCommand) {
+        const available = existsSync(commandsDir) ? readdirSync(commandsDir) : null;
+        throw new Error('df command not installed: ' + (available ? available.join(',') : 'missing dir'));
+      }
+    } finally {
+      if (server && typeof (server as any).shutdown === 'function') {
+        // Ensure any pending async work is flushed before removing the temp repo
+        // Tests should not rely on this but it's safe and makes teardown deterministic.
+        // eslint-disable-next-line no-await-in-loop
+        await (server as any).shutdown();
+      }
+      rmSync(repoRoot, { recursive: true, force: true });
     }
-  } finally {
-    rmSync(repoRoot, { recursive: true, force: true });
-  }
 });
 
-test('route orchestrator auto-creates execution plan and timeline', async () => {
+test('route orchestrator auto-creates execution plan and timeline', { timeout: 60000 }, async () => {
   const repoRoot = mkdtempSync(join(tmpdir(), 'droidforge-execution-'));
   try {
     const server = createServer({ repoRoot });

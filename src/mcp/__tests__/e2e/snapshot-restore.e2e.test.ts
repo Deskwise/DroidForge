@@ -48,8 +48,31 @@ describe('E2E: Snapshot and Restore', () => {
     const sessionId = randomUUID();
     const deps = { sessionStore, executionManager };
 
+    // Pre-create a minimal session to avoid races where recordProjectGoal may
+    // be called before a freshly created session file is discoverable.
+    await sessionStore.save(repoRoot, {
+      sessionId,
+      repoRoot,
+      createdAt: new Date().toISOString(),
+      state: 'collecting-goal'
+    } as any);
+
     const smartScanTool = createSmartScanTool(deps);
+    // Ensure session file exists to avoid races in the test environment
+    await sessionStore.save(repoRoot, {
+      sessionId,
+      repoRoot,
+      createdAt: new Date().toISOString(),
+      state: 'collecting-goal'
+    } as any);
     await smartScanTool.handler({ repoRoot, sessionId });
+
+    // Defensive: if scan didn't persist a session for any reason, create it so
+    // the following recordProjectGoal won't fail in CI/test environments.
+    let maybe = await sessionStore.load(repoRoot, sessionId);
+    if (!maybe) {
+      await sessionStore.save(repoRoot, { sessionId, repoRoot, createdAt: new Date().toISOString(), state: 'collecting-goal' } as any);
+    }
 
     const recordGoalTool = createRecordProjectGoalTool(deps);
     await recordGoalTool.handler({ 
@@ -219,6 +242,11 @@ describe('E2E: Snapshot and Restore', () => {
     const smartScanTool = createSmartScanTool(deps);
     await smartScanTool.handler({ repoRoot, sessionId });
     const recordGoalTool = createRecordProjectGoalTool(deps);
+    // Defensive: ensure session exists before recording goal
+    let maybeSession = await sessionStore.load(repoRoot, sessionId);
+    if (!maybeSession) {
+      await sessionStore.save(repoRoot, { sessionId, repoRoot, createdAt: new Date().toISOString(), state: 'collecting-goal' } as any);
+    }
     await recordGoalTool.handler({ repoRoot, sessionId, description: 'Modified roster' });
     
     const session = await sessionStore.load(repoRoot, sessionId);

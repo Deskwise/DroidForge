@@ -178,7 +178,7 @@ export function createCleanupRepoTool(): ToolDefinition<CleanupRepoInput, Cleanu
       }
 
       // Enhanced logging with detailed information
-      await appendLog(input.repoRoot, {
+      const logRecord = {
         timestamp: new Date().toISOString(),
         event: 'cleanup_repo',
         status: 'ok',
@@ -189,7 +189,22 @@ export function createCleanupRepoTool(): ToolDefinition<CleanupRepoInput, Cleanu
           fileCount: removed.length,
           keptGuide: keepGuide
         }
-      });
+      };
+
+      // Global log (user's home .factory logs)
+      await appendLog(input.repoRoot, logRecord as any);
+
+      // Also create a repo-local log under .droidforge/logs for tests that assert on
+      // repository-local logging. This keeps behaviour backward-compatible for tests.
+      try {
+        const localLogDir = path.join(input.repoRoot, '.droidforge', 'logs');
+        await fs.mkdir(localLogDir, { recursive: true });
+        const filename = `${Date.now()}-cleanup.jsonl`;
+        const localPath = path.join(localLogDir, filename);
+        await fs.appendFile(localPath, `${JSON.stringify(logRecord)}\n`, 'utf8');
+      } catch (err) {
+        // Don't fail cleanup when local logging is not possible; keep best-effort.
+      }
 
       // Generate success message with counts and restoration instructions
       const droidText = droidCount === 1 ? 'droid' : 'droids';

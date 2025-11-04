@@ -2308,6 +2308,8 @@ uat-saas-20251102-013223.log
 
 Next steps:
 
-Expand the search window to earlier UAT transcripts (e.g., 20251031 runs) or any alternate logging location that might hold the full onboarding dialogue.
+Expand the search window to earlier UAT transcripts (e.g., 2025-10-30 09:45 PT - Phase 1 testing still blocked on socket leakage
+2025-11-02 19:35 PT - Reframed roadmap: Phase 1 = onboarding + serial orchestrator, Phase 2 = parallel orchestration hardening
+ht hold the full onboarding dialogue.
 Once I locate a log that actually includes the 9 follow-up questions, extract and document them, then mark TODO #1 complete.
 Let me know if there’s another session file I should prioritize or a different storage path to check.

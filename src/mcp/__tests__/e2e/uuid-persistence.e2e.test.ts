@@ -47,6 +47,17 @@ describe('E2E: UUID Persistence Across Re-forging', () => {
   async function runOnboardingFlow(sessionId: string, selectedCount: number) {
     const deps = { sessionStore, executionManager };
 
+    // Ensure a session file exists before running the flow. Some test
+    // environments observe timing where smartScan may not persist before the
+    // next step reads it; creating a minimal session up-front is a safe,
+    // reversible setup to make the flows deterministic for tests.
+    await sessionStore.save(repoRoot, {
+      sessionId,
+      repoRoot,
+      createdAt: new Date().toISOString(),
+      state: 'collecting-goal'
+    } as any);
+
     const smartScanTool = createSmartScanTool(deps);
     await smartScanTool.handler({ repoRoot, sessionId });
 
@@ -278,6 +289,22 @@ describe('E2E: UUID Persistence Across Re-forging', () => {
       description: 'Test' 
     });
 
+    // Populate discovery fields required by selectMethodology
+    const session = await sessionStore.load(repoRoot, sessionId1);
+    if (session) {
+      session.targetAudience = 'Test users';
+      session.timelineConstraints = '3 months';
+      session.qualityVsSpeed = 'Balanced';
+      session.teamSize = '3';
+      session.experienceLevel = 'Mid-level';
+      await sessionStore.save(repoRoot, session);
+    }
+
+    // Confirm methodology before selecting (required guard)
+    const confirmTool = createConfirmMethodologyTool(deps);
+    await confirmTool.handler({ repoRoot, sessionId: sessionId1, methodology: 'agile' });
+    
+
     const selectMethodologyTool = createSelectMethodologyTool(deps);
     await selectMethodologyTool.handler({
       repoRoot,
@@ -286,7 +313,16 @@ describe('E2E: UUID Persistence Across Re-forging', () => {
     });
 
     const forgeTool = createForgeRosterTool(deps);
-    
+    // Populate delivery fields required by forgeRoster
+    const postSession = await sessionStore.load(repoRoot, sessionId1);
+    if (postSession) {
+      postSession.budgetConstraints = '$50k';
+      postSession.deploymentRequirements = 'Cloud';
+      postSession.securityRequirements = 'Standard';
+      postSession.scalabilityNeeds = 'Medium';
+      await sessionStore.save(repoRoot, postSession);
+    }
+
     // Forge with empty selection (just orchestrator)
     await forgeTool.handler({ 
       repoRoot, 

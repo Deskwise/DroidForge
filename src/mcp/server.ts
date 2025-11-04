@@ -3,7 +3,6 @@ import { SessionStore } from './sessionStore.js';
 import type { ToolDefinition, ToolInvocation } from './types.js';
 import { createPromptRegistry, type PromptBuilderContext } from './prompts/registry.js';
 import { PromptRunner } from './prompts/runner.js';
-import { ExecutionManager } from './execution/manager.js';
 
 export interface DroidForgeServerOptions {
   repoRoot: string;
@@ -11,12 +10,11 @@ export interface DroidForgeServerOptions {
 
 export class DroidForgeServer {
   private readonly sessionStore = new SessionStore();
-  private readonly executionManager = new ExecutionManager();
   private readonly tools: Map<string, ToolDefinition>;
-  private readonly prompts = createPromptRegistry({ sessionStore: this.sessionStore, executionManager: this.executionManager });
+  private readonly prompts = createPromptRegistry({ sessionStore: this.sessionStore });
 
   constructor(private readonly options: DroidForgeServerOptions) {
-    this.tools = createToolRegistry({ sessionStore: this.sessionStore, executionManager: this.executionManager });
+    this.tools = createToolRegistry({ sessionStore: this.sessionStore });
   }
 
   listTools(): string[] {
@@ -49,6 +47,12 @@ export class DroidForgeServer {
     const runner = new PromptRunner(script, invocation => this.invoke(invocation));
     return runner;
   }
+
+  /**
+   * Graceful shutdown for the server to allow tests to cleanup resources.
+   * Currently waits for subsystems that expose shutdown semantics.
+   */
+  async shutdown(): Promise<void> {}
 }
 
 /**

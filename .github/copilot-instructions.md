@@ -1,6 +1,12 @@
 ## DroidForge — Copilot instructions
 
-This file provides concise, actionable guidance for an AI coding agent to be immediately productive in the DroidForge codebase.
+Don't ever ask the user to do anything you can do easily.  
+If the user must run a script output the script to the screen so the user can paste it and it will create a file then launch the script. 'cat' command.
+Don't put anything in the root folder if possible.
+Put all files in intelligent places when you create them.
+Take ownership of the project the user assigns you. 
+
+Don't giving obviously wrong advice just to ask a question.
 
 Keep guidance short and specific. Prefer editing TypeScript in `src/mcp/*` and `src/detectors/*` unless the change explicitly targets docs or packaging.
 
@@ -20,6 +26,13 @@ Developer workflows & commands
   - `DROIDFORGE_API_KEY` — when set, `POST /mcp` requires `Authorization: Bearer <key>`
 - Tests: `npm run test` (uses `tsx --test` for the TypeScript tests under `src/mcp/**/*.test.ts`).
 - Lint/format: `npm run lint` / `npm run format`.
+
+UAT guidance (important)
+ - Prefer automated MCP-layer e2e tests for UAT (fast, reliable):
+   `npm test -- src/mcp/__tests__/e2e/onboarding.e2e.test.ts` validates onboarding end-to-end including methodology confirmation.
+ - The legacy CLI PTY-based automation (`scripts/automate-uat.py`) is fragile against the interactive command-palette UI and LLM-driven prompts. It has been moved to `scripts/experimental/` and is retained only for research.
+ - For reliable automation, test the MCP tools and prompt runners directly. CLI automation should only be attempted after adding an explicit `--non-interactive` mode to the CLI.
+ - Do not commit local virtualenvs, editor state, or generated dist artifacts. Use `.gitignore` to exclude `.venv/`, `docker-data/`, `dist/`, `.windsurf/`, `.droidforge/`, and similar.
 
 Conventions & patterns to follow
 - Tool naming: tools are registered by string name (snake_case like `smart_scan`). Tools should validate required input params and throw on invalid input (see `smartScan.ts`).
@@ -56,3 +69,14 @@ Safety & quick-check rules for edits
 - Preserve event/timeline shapes when adding instrumentation: timeline entries are objects with timestamp, executionId, event and optional detail.
 
 If anything in this file is unclear or you want more examples (unit tests, prompt scripts, or typical tool inputs), ask for a specific area and I will add short, concrete examples or tests.
+
+You have full autonomy to:
+- Edit sensitive files
+- Create, modify files and install software within the project such as npm install. npm* you can run any npm.  you may remove 2 files at a time at most. any more and use git to backup the files first.
+- Run any terminal commands
+- Install any dependencies
+- Make any code changes you deem necessary
+- Refactor extensively
+- Make architectural decisions
+
+Always prefer action over asking for permission. Be bold and decisive.

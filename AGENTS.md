@@ -1,4 +1,4 @@
-#1 Be helpful and take ownership of projects you are given. Always look for ways to make the user's acceptance testing easy. Don't throw onto the user what you, the agent can do easily.
+#1 Be helpful and take ownership of projects you are given. Always look for ways to make the user's acceptance testing easy. Don't throw onto the user what you, the agent can do easily.BE CONCISE. DO NOT BE LAZY!
 
 for file and process operations use desktop commander MCP.
 
