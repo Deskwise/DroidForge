@@ -5,9 +5,9 @@ This document provides Gemini with a comprehensive overview of the DroidForge pr
 
 ## 1. Project Overview
 
-**DroidForge** is a Model Context Protocol (MCP) server designed to work with the Factory.ai Droid CLI. Its core purpose is to analyze a user's codebase and dynamically assemble a team of specialized AI agents, called "droids." These droids are experts in the specific technologies and patterns found in the repository.
+**DroidForge** is a Model Context Protocol (MCP) server designed to work with the Factory.ai Droid CLI. Its core purpose (Phase 1) is to analyze a user's codebase, assemble a team of specialized AI agents (“droids”), and coordinate them through a single orchestrator “quarterback” that runs specialists one at a time while using staging + merge safeguards.
 
-The system coordinates these droids to perform complex development tasks in parallel, ensuring safety through intelligent resource locking, isolated staging environments, and atomic merging. This allows for significant acceleration of development tasks, from feature implementation to refactoring.
+Phase 2 (in development) extends that architecture to safe parallel execution by hardening the execution manager, resource locking, and merge flows. Until that lands, any documentation about parallelism should be treated as roadmap, not current behavior.
 
 ### Key Technologies
 
@@ -30,7 +30,7 @@ The project is structured as a monorepo with the following key directories:
     *   `stdio-server.ts` / `http-server.ts`: Entry points for the two server types.
     *   `tools/`: Implements the slash commands available to the user (e.g., `/forge-start`, `/df`).
     *   `prompts/`: Manages the conversational logic and orchestration of droids.
-    *   `execution/`: The "secret sauce" for safe parallel execution. It includes modules for resource locking (`resourceLocks.ts`), task management (`manager.ts`), isolated work areas (`staging.ts`), and safe merging (`merger.ts`).
+    *   `execution/`: Foundations for the future parallel orchestration stack—resource locking (`resourceLocks.ts`), task management (`manager.ts`), isolated work areas (`staging.ts`), and safe merging (`merger.ts`). In Phase 1 the orchestrator still runs specialists serially while relying on this staging/merge pipeline for safety.
     *   `generation/`: Handles the dynamic creation of droid personalities based on repository analysis.
     *   `detectors/`: Contains the logic for scanning a repository and identifying its technical characteristics.
 *   `dist/`: Contains the compiled JavaScript code that is published to npm.

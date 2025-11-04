@@ -320,9 +320,9 @@ The package name stays as `droidforge` for easy installation. Only the executabl
 - **E2E Suite 1**: Full onboarding flow (4 tests)
 - **E2E Suite 2**: UUID persistence (7 tests) 
 - **E2E Suite 3**: Safe cleanup flow (10 tests)
-- **E2E Suite 4**: Parallel execution safety (10 tests)
+- **E2E Suite 4**: Execution safety foundations (10 tests) — exercises the staging/locking pipeline in serial mode ahead of Phase 2
 - **E2E Suite 5**: Snapshot/restore functionality (10 tests)
-- **Performance Tests**: Stress testing with large repos and concurrent operations
+- **Performance Tests**: Stress testing with large repos and simulated concurrent operations
 
 ### 🏗️ **Architecture Improvements**
 - **PERSISTENCE LAYER**: Graceful ENOENT handling, race condition fixes

@@ -1,5 +1,7 @@
 # Instructions for Implementing Methodology Recommendations
 
+> **Context:** DroidForge is currently operating in **Phase 1** (serial orchestrator + AI onboarding). Parallel execution is a **Phase 2 roadmap** item; any instructions here apply to the existing Phase 1 flow and must not assume live concurrency.
+
 ## Your Task
 
 Add intelligent methodology recommendations to the DroidForge onboarding flow. Users describe their project, and the AI should recommend 3 methodologies that fit their specific situation.

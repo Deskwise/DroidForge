@@ -231,11 +231,11 @@ Run `/forge-start` to initialize the team.
 
 Check logs with `/forge-logs` and the execution status with `/forge-status`.
 
-### Conflicts During Parallel Work
+### Conflicts During Serial Runs (Future Parallel Prep)
 
-DroidForge uses resource locking to prevent conflicts. If one occurs:
-1. Check `/ forge-status` for details
-2. Review staging areas in `.droidforge/exec/`
+DroidForge already uses the staging + locking pipeline while running specialists one at a time. If a conflict is reported (or when parallel mode arrives):
+1. Check `/forge-status` for details
+2. Review staging areas in `.factory/exec/`
 3. Manually resolve if needed
 
 ### Clean Start

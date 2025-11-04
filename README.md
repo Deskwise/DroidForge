@@ -35,11 +35,11 @@ Built as a Model Context Protocol (MCP) server for Factory.ai's Droid CLI.
 - A **backend specialist** who understands YOUR API architecture, YOUR database, YOUR auth
 - Not generic agents - **specialists who speak your project's language**
 
-### 2. Identifies Parallel Work Opportunities
+### 2. Maps Work Dependencies
 - Analyzes each request to understand what needs to be done
-- Intelligently determines which tasks can happen simultaneously
-- Recognizes when work is independent (frontend + backend) vs dependent (tests need APIs first)
-- Creates smart execution plans that maximize efficiency
+- Builds an execution plan that orders specialists correctly
+- Calls out which tasks could run in parallel once Phase 2 lands (today they run sequentially)
+- Keeps the queue efficient even when everything runs one-at-a-time
 
 ### 3. Assigns the Right Expert to the Right Work
 - Routes frontend changes to df-frontend who knows YOUR React patterns
@@ -47,17 +47,13 @@ Built as a Model Context Protocol (MCP) server for Factory.ai's Droid CLI.
 - Routes database changes to df-database who knows YOUR Prisma schema
 - Each expert works on what they know best
 
-### 4. Coordinates Safe Parallel Execution (The Secret Sauce)
-- **Prevents file conflicts** - Intelligent resource locking ensures no two droids modify the same file
-- **Eliminates race conditions** - Each droid works in an isolated staging area
-- **Detects conflicts before they happen** - Analyzes what files each task will touch
-- **Resolves dependencies** - Ensures Task B waits if it needs Task A's results
-- **Tracks progress in real-time** - Know exactly what each specialist is doing
-- **Atomic merging** - Changes are merged safely or not at all
-- **Automatic rollback** - If something fails, clean recovery
+### 4. Orchestrates Safely (Phase 1) and Lays Groundwork for Parallelism (Phase 2)
+- **Phase 1 reality:** The orchestrator executes specialists sequentially, guaranteeing no overlaps while still using the staging + merge pipeline for safety.
+- **Future-ready:** Resource locking, dependency analysis, and staging were designed for Phase 2 parallelism; they are exercised today in serial mode and will enable safe concurrency once hardened.
+- **Progress tracking:** You still get detailed logs of each hand-off, so work stays transparent even when run one specialist at a time.
 
 ### The Result
-Work that used to take hours (waiting for each step to finish) now happens in parallel, safely, with code that fits your project perfectly.
+Phase 1 delivers dependable serial execution with code that fits your project perfectly; Phase 2 will bring the accelerated parallel run once the safety gates are fully validated.
 
 ---
 
@@ -95,24 +91,24 @@ The `df-orchestrator` acts as your technical lead:
 - **Define scopes** for each droid's responsibilities
 - **Set guidelines** for code quality and patterns
 
-### Battle-Tested Parallel Coordination
+### Parallel Coordination Roadmap
 
-The technical innovation that makes safe parallel work possible:
+The architecture that will power safe parallel work (Phase 2) is already in place and exercised in serial mode today:
 
 **Intelligent Resource Locking**
 - Glob-aware file locking (locks `src/api/**` prevents conflicts across all API files)
 - Detects overlapping claims before work starts
-- Read vs write lock modes for concurrent reading
+- Read vs write lock modes ready for concurrent access in Phase 2
 
 **Isolated Execution**
 - Each droid works in a private staging area (copy of your repo)
-- No race conditions - impossible for droids to interfere with each other
+- Serial runs already benefit from crash-safe isolation
 - Changes collected and reviewed before merging to main codebase
 
 **Dependency Resolution**
 - Analyzes task dependencies automatically
-- Task A must finish before Task B can start
-- Detects circular dependencies (deadlocks) before they happen
+- Ensures the serial queue respects prerequisites today
+- Detects circular dependencies (deadlocks) before Phase 2 parallel launches
 
 **Atomic Operations**
 - Changes merge completely or not at all
@@ -121,7 +117,7 @@ The technical innovation that makes safe parallel work possible:
 - Snapshot support for major changes
 
 **Real-Time Coordination**
-- Event bus for inter-droid communication
+- Event bus for inter-droid communication (utilized in serial mode, future-proofed for parallel)
 - Progress tracking shows exactly what each specialist is doing
 - Health monitoring detects stuck or failed tasks
 - Metrics track performance and resource usage
@@ -302,8 +298,8 @@ The **df-orchestrator** (your technical lead) thinks like a human architect:
    - Test specialist writes tests matching your existing test suite style
 
 5. **Coordinates execution**:
-   - Runs independent work in parallel (backend + frontend start together)
-   - Ensures dependencies are met (tests wait for APIs)
+   - In Phase 1, executes specialists sequentially to guarantee safety
+   - Keeps dependency ordering correct (tests wait for APIs)
    - Prevents conflicts (each droid has clear file ownership)
 
 6. **Reports results** with what each specialist accomplished
@@ -438,7 +434,7 @@ Your repository has:
 - **df-mobile** - Knows React Native, Expo, native modules
 - **df-api** - Coordinates API contracts between all platforms
 
-When you ask for a feature, DroidForge coordinates across all platforms while each specialist works in their domain expertise.
+When you ask for a feature, **DroidForge** coordinates across all platforms by running specialists in sequence today; the dependency graph it builds will unlock true parallelism in Phase 2.
 
 ---
 
@@ -667,10 +663,10 @@ Most AI coding assistants have fundamental limitations:
 - Detects your specific frameworks, versions, patterns, conventions
 - Creates specialists who are experts in YOUR project, not generic "React developers"
 
-**2. Intelligent Parallel Execution**
+**2. Intelligent Execution Planning**
 - Analyzes requests to identify independent work
-- Multiple specialists work simultaneously when safe
-- Hours of sequential work → minutes of parallel execution
+- Today: schedules the queue sequentially (Phase 1)
+- Future: will run safe parallel batches once Phase 2 is hardened
 
 **3. Battle-Tested Coordination**
 - Intelligent resource locking prevents file conflicts
@@ -691,7 +687,7 @@ Most AI coding assistants have fundamental limitations:
 
 ### ✅ Completed in v0.5.0 (Production Release)
 - [x] **Comprehensive E2E Testing** - 41 tests covering all critical flows
-- [x] **Parallel Execution Safety** - Resource locking, conflict detection, atomic merging
+- [x] **Parallel Execution Safety Foundations** - Resource locking, conflict detection, and atomic merging built for Phase 2; currently exercised in serial mode
 - [x] **UUID Persistence** - Reliable droid identification across sessions
 - [x] **Safe Cleanup** - Atomic cleanup with confirmation requirements
 - [x] **Snapshot/Restore** - Complete state preservation system

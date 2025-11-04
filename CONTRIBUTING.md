@@ -28,10 +28,9 @@ npm install
 npm run dev
 ```
 
-4. **Run Tests**
-```bash
-npm test
-```
+4. **Coordinate Validation**
+   - Full automated test runs are currently disabled while the Phase 2 parallel stack is hardened.
+   - Do **not** run `npm test`; ask a maintainer which targeted checks are required.
 
 5. **Build Project**
 ```bash
@@ -64,23 +63,15 @@ droidforge/
 
 ## 🧪 Testing
 
-### Running Tests
-```bash
-# Run all tests
-npm test
+Parallel execution hardening (Phase 2) temporarily suspends the default `npm test` workflow. Until the suite is reinstated:
 
-# Run tests in watch mode
-npm run test:watch
-
-# Run tests with coverage
-npm run test:coverage
-```
+- **Do not run `npm test`.**
+- Coordinate with maintainers for any targeted checks or scripts required for your change.
+- Focus on linting, type checks, and feature-specific validation as directed.
 
 ### Writing Tests
-- Use Node.js built-in test runner
-- Place tests in `tests/` directory with `.test.js` extension
-- Follow naming convention: `module-name.test.js`
-- Test both happy paths and edge cases
+- When adding coverage, use Node.js' built-in test runner patterns, but check in with maintainers on naming/location before committing.
+- Ensure new tests respect the Phase 1 (serial orchestrator) behavior.
 
 ### Test Structure
 ```javascript
@@ -164,22 +155,20 @@ git checkout -b fix/your-bug-fix
   - `test: add tests for feature`
   - `refactor: improve code structure`
 
-### 4. Test Your Changes
+### 4. Validate Your Changes
 ```bash
-# Run full test suite
-npm test
-
 # Check linting
 npm run lint
 
 # Build project
 npm run build
 
-# Test CLI functionality locally
+# (Optional) Package for local CLI testing
 npm pack
 npm install -g droidforge-*.tgz
 droidforge --help
 ```
+> Reminder: the full automated test suite is offline during Phase 2 hardening; do not run `npm test` unless explicitly instructed.
 
 ### 5. Submit Pull Request
 - Update documentation if needed
