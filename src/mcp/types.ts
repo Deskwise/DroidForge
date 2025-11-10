@@ -1,5 +1,5 @@
 import type { ExecutionPlan, ExecutionStatus, NodeSchedule, PollSnapshot } from './execution/manager.js';
-import type { DroidManifest, PRDContent } from '../types.js';
+import type { DroidManifest, PRDContent, OnboardingData } from '../types.js';
 
 export type { ExecutionPlan, ExecutionStatus, NodeSchedule, PollSnapshot } from './execution/manager.js';
 
@@ -32,18 +32,7 @@ export interface OnboardingSession {
   scanPrimaryLanguage?: string | null;
   description?: string;
   // Extended onboarding data per spec
-  projectVision?: string;
-  targetAudience?: string;
-  timelineConstraints?: string;
-  qualityVsSpeed?: string;
-  teamSize?: string;
-  experienceLevel?: string;
-  budgetConstraints?: string;
-  deploymentRequirements?: string;
-  securityRequirements?: string;
-  scalabilityNeeds?: string;
-  aiRecommendations?: string[];
-  inferredData?: Record<string, string>;
+  onboarding: OnboardingData;
   methodology?: string;
   methodologyConfirmed?: boolean;
   selectedDroids?: string[];
@@ -77,6 +66,7 @@ export interface RecordProjectGoalOutput {
 }
 
 export interface RecordOnboardingDataInput extends ToolContext {
+  onboardingData?: OnboardingData;
   projectVision?: string;
   targetAudience?: string;
   timelineConstraints?: string;

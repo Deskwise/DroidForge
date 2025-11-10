@@ -38,3 +38,18 @@ export interface DroidManifest {
   customDroids: DroidManifestEntry[];
   snapshots: Array<{ id: string; label?: string; createdAt: string }>;
 }
+
+export interface OnboardingData {
+  projectVision?: string;
+  targetAudience?: string;
+  timelineConstraints?: string;
+  qualityVsSpeed?: string;
+  teamSize?: string;
+  experienceLevel?: string;
+  budgetConstraints?: string;
+  deploymentRequirements?: string;
+  securityRequirements?: string;
+  scalabilityNeeds?: string;
+  aiRecommendations?: string[];
+  inferredData?: Record<string, string>;
+}
