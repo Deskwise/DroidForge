@@ -59,7 +59,7 @@ export function createRecordOnboardingDataTool(deps: Deps): ToolDefinition<Recor
         );
       }
 
-      if (!session.projectVision && payloadKeys.some(key => key !== 'projectVision')) {
+      if (!session.onboarding.projectVision && payloadKeys.some(key => key !== 'projectVision')) {
         throw new Error('Capture projectVision first before recording other onboarding data.');
       }
 
@@ -69,11 +69,11 @@ export function createRecordOnboardingDataTool(deps: Deps): ToolDefinition<Recor
         if (typeof v === 'string') {
           const cleaned = sanitize(v);
           if (cleaned) {
-            (session as any)[key] = cleaned;
+            (session.onboarding as any)[key] = cleaned;
             saved.push(key);
           }
         } else if (v && typeof v === 'object' && key === 'inferred') {
-          session.inferredData = { ...(session.inferredData || {}), ...(v as Record<string, string>) };
+          session.onboarding.inferredData = { ...(session.onboarding.inferredData || {}), ...(v as Record<string, string>) };
           saved.push(key);
         }
       };

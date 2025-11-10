@@ -116,13 +116,27 @@ export function createSmartScanTool(deps: SmartScanDeps): ToolDefinition<SmartSc
       }
 
       const now = new Date().toISOString();
+      const legacySession = session as any;
       const nextSession: OnboardingSession = session
-        ? { ...session }
+        ? { ...session, onboarding: session.onboarding || {
+              projectVision: legacySession.projectVision || '',
+              targetAudience: legacySession.targetAudience || '',
+              successMetrics: legacySession.successMetrics || [],
+              budget: legacySession.budget || 0,
+              timelineWeeks: legacySession.timelineWeeks || 0,
+              existingCode: legacySession.existingCode || '',
+              stakeholders: legacySession.stakeholders || [],
+              compliance: legacySession.compliance || []
+            }}
         : {
             sessionId: finalSessionId,
             repoRoot,
             createdAt: now,
-            state: 'collecting-goal'
+            state: 'collecting-goal',
+            onboarding: {
+              projectVision: '',
+              targetAudience: ''
+            }
           };
 
       if (!nextSession.createdAt) {

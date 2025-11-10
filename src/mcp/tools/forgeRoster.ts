@@ -45,7 +45,7 @@ function normaliseCustom(input: ForgeRosterInput): CustomDroidSeed[] {
     .map(line => inferCustomSeed(line));
 }
 
-const REQUIRED_SESSION_FIELDS: Array<keyof OnboardingSession> = [
+const REQUIRED_ONBOARDING_FIELDS = [
   'projectVision',
   'targetAudience',
   'timelineConstraints',
@@ -56,7 +56,7 @@ const REQUIRED_SESSION_FIELDS: Array<keyof OnboardingSession> = [
   'deploymentRequirements',
   'securityRequirements',
   'scalabilityNeeds'
-];
+] as const;
 
 const FIELD_LABELS: Record<string, string> = {
   projectVision: 'project vision',
@@ -75,12 +75,14 @@ function collectMissing(session: OnboardingSession): string[] {
   const have = (value: unknown) => typeof value === 'string' && value.trim().length > 0;
   const missing: string[] = [];
 
-  if (!have(session.projectVision ?? session.description)) {
+  // Check projectVision from onboarding or fallback to description
+  if (!have(session.onboarding.projectVision ?? session.description)) {
     missing.push(FIELD_LABELS.projectVision);
   }
 
-  for (const field of REQUIRED_SESSION_FIELDS.filter(f => f !== 'projectVision')) {
-    const value = (session as any)[field];
+  // Check other onboarding fields
+  for (const field of REQUIRED_ONBOARDING_FIELDS.filter(f => f !== 'projectVision')) {
+    const value = (session.onboarding as any)[field] ?? (session as any)[field];
     if (!have(value)) {
       missing.push(FIELD_LABELS[field] ?? field);
     }

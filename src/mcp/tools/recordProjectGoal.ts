@@ -79,7 +79,7 @@ export function createRecordProjectGoalTool(deps: Deps): ToolDefinition<RecordPr
         throw new Error('No active onboarding session found. Please run /forge-start first.');
       }
       session.description = description;
-      session.projectVision = description;
+      session.onboarding.projectVision = description;
       session.state = 'collecting-goal';
       await deps.sessionStore.save(repoRoot, session);
       await appendLog(repoRoot, {

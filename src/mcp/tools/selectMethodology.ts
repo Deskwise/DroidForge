@@ -21,21 +21,21 @@ const ALLOWED = new Set([
   'other'
 ]);
 
-const CORE_FIELDS: Array<keyof OnboardingSession> = [
+const CORE_FIELDS = [
   'projectVision',
   'targetAudience',
   'timelineConstraints',
   'qualityVsSpeed',
   'teamSize',
   'experienceLevel'
-];
+] as const;
 
-const DELIVERY_FIELDS: Array<keyof OnboardingSession> = [
+const DELIVERY_FIELDS = [
   'budgetConstraints',
   'deploymentRequirements',
   'securityRequirements',
   'scalabilityNeeds'
-];
+] as const;
 
 const FIELD_LABELS: Record<string, string> = {
   projectVision: 'project vision',

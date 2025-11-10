@@ -5,7 +5,7 @@ interface Deps {
   sessionStore: SessionStore;
 }
 
-const REQUIRED_KEYS: (keyof OnboardingSession)[] = [
+const REQUIRED_KEYS = [
   'projectVision',
   'targetAudience',
   'timelineConstraints',
@@ -16,7 +16,7 @@ const REQUIRED_KEYS: (keyof OnboardingSession)[] = [
   'deploymentRequirements',
   'securityRequirements',
   'scalabilityNeeds'
-];
+] as const;
 
 function isFilled(val: unknown): boolean {
   return typeof val === 'string' && val.trim().length > 0;
@@ -47,9 +47,9 @@ export function createGetOnboardingProgressTool(deps: Deps): ToolDefinition<GetO
       const collectedFlags: Record<string, boolean> = {};
       for (const key of REQUIRED_KEYS) {
         if (key === 'projectVision') {
-          collectedFlags[key] = isFilled((session as any)['projectVision'] || session.description);
+          collectedFlags[key] = isFilled(session.onboarding.projectVision || session.description);
         } else {
-          collectedFlags[key] = isFilled((session as any)[key]);
+          collectedFlags[key] = isFilled((session.onboarding as any)[key] ?? (session as any)[key]);
         }
       }
       const missing = REQUIRED_KEYS.filter(k => !collectedFlags[k]).map(String);

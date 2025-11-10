@@ -55,11 +55,11 @@ export function createRecommendDroidsTool(deps: Deps): ToolDefinition<RecommendD
 }
 
 function buildIntroductions(session: OnboardingSession, suggestions: DroidSuggestion[]): string {
-  const vision = session.projectVision ?? session.description ?? 'your project';
-  const audience = session.targetAudience ? ` for ${session.targetAudience}` : '';
+  const vision = session.onboarding.projectVision ?? session.description ?? 'your project';
+  const audience = session.onboarding.targetAudience ? ` for ${session.onboarding.targetAudience}` : '';
   const methodology = session.methodology ? ` I\'ll run ${session.methodology} so every playbook stays aligned.` : '';
-  const timeline = session.timelineConstraints ? ` Timeline focus: ${session.timelineConstraints}.` : '';
-  const quality = session.qualityVsSpeed ? ` You told me "${session.qualityVsSpeed}", so I\'ll keep that front of mind.` : '';
+  const timeline = session.onboarding.timelineConstraints ? ` Timeline focus: ${session.onboarding.timelineConstraints}.` : '';
+  const quality = session.onboarding.qualityVsSpeed ? ` You told me "${session.onboarding.qualityVsSpeed}", so I\'ll keep that front of mind.` : '';
 
   const lines = suggestions.map(suggestion => {
     const label = suggestion.label ?? suggestion.id;
@@ -72,12 +72,12 @@ function buildIntroductions(session: OnboardingSession, suggestions: DroidSugges
 }
 
 function buildCoverageRecap(session: OnboardingSession, suggestions: DroidSuggestion[]): string {
-  const experience = session.experienceLevel ? `You mentioned you\'re ${session.experienceLevel}. ` : '';
-  const team = session.teamSize ? `Team context: ${session.teamSize}. ` : '';
-  const budget = session.budgetConstraints ? `Budget lens: ${session.budgetConstraints}. ` : '';
-  const deployment = session.deploymentRequirements ? `Deployment plan: ${session.deploymentRequirements}. ` : '';
-  const security = session.securityRequirements ? `Security guardrails: ${session.securityRequirements}. ` : '';
-  const scalability = session.scalabilityNeeds ? `Scale target: ${session.scalabilityNeeds}. ` : '';
+  const experience = session.onboarding.experienceLevel ? `You mentioned you\'re ${session.onboarding.experienceLevel}. ` : '';
+  const team = session.onboarding.teamSize ? `Team context: ${session.onboarding.teamSize}. ` : '';
+  const budget = session.onboarding.budgetConstraints ? `Budget lens: ${session.onboarding.budgetConstraints}. ` : '';
+  const deployment = session.onboarding.deploymentRequirements ? `Deployment plan: ${session.onboarding.deploymentRequirements}. ` : '';
+  const security = session.onboarding.securityRequirements ? `Security guardrails: ${session.onboarding.securityRequirements}. ` : '';
+  const scalability = session.onboarding.scalabilityNeeds ? `Scale target: ${session.onboarding.scalabilityNeeds}. ` : '';
   const coverage = suggestions.map(suggestion => suggestion.label ?? suggestion.id).join(', ');
 
   const recap = `${experience}${team}${budget}${deployment}${security}${scalability}`.trim();
