@@ -188,7 +188,18 @@ export async function parseOnboardingResponse(
   // For now, we use basic pattern matching for extraction
   const extracted: AIExtractionResponse = {};
   
-  // TODO: Implement structured logging using logEvent from observability/logger.ts
+  // Merge extracted data with current session
+  const result = mergeData(extracted, currentSession, userInput);
   
-  return mergeData(extracted, currentSession, userInput);
+  // TODO: Emit structured log event (Task 10 integration)
+  // When observability/logger.ts is available:
+  // logEvent({
+  //   event: 'parse_onboarding_response',
+  //   sessionId: currentSession.sessionId,
+  //   userInput,
+  //   extractedFields: Object.keys(extracted),
+  //   mergedSession: result
+  // });
+  
+  return result;
 }
