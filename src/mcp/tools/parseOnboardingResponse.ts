@@ -28,6 +28,10 @@ function extractTeamSize(text: string): string | undefined {
   const match = text.match(/(?:team of |(?:^|\s))(\d+)\s+(?:developers?|people?|engineers?|members?)/i);
   if (match) return match[1];
   
+  // Match "N senior devs", "N devs", etc.
+  const match2 = text.match(/(\d+)\s+(?:senior\s+)?(?:devs|developers?)/i);
+  if (match2) return match2[1];
+  
   return undefined;
 }
 
@@ -35,10 +39,18 @@ function extractTeamSize(text: string): string | undefined {
  * Extract experience level from text
  */
 function extractExperienceLevel(text: string): string | undefined {
-  const matches = text.match(/(\d+\+?\s*years?|\bsenior\b|\bjunior\b|\bmid-level\b|\bexpert\b)/i);
-  if (matches) {
-    return matches[0].trim();
+  // Match "senior devs", "junior developers", etc.
+  const adjMatch = text.match(/\b(senior|junior|mid-level|expert|experienced|beginner)\b/i);
+  if (adjMatch) {
+    return adjMatch[1].toLowerCase();
   }
+  
+  // Match X+ years patterns
+  const yearsMatch = text.match(/(\d+\+?\s*years?)/i);
+  if (yearsMatch) {
+    return yearsMatch[1].trim();
+  }
+  
   return undefined;
 }
 
@@ -63,22 +75,36 @@ function extractSecurity(text: string): string | undefined {
 }
 
 /**
+ * Extract deployment requirements from text
+ */
+function extractDeploymentRequirements(text: string): string | undefined {
+  if (/24\/7|always.*up|uptime|reliability|persistent|continuous|high.*availability/i.test(text)) {
+    return '24/7 availability and high uptime';
+  }
+  return undefined;
+}
+
+/**
  * Extract project vision from text
  */
 function extractProjectVision(text: string): string | undefined {
-  // Look for action verbs followed by what they want to build
-  let match = text.match(/want\s+to\s+(\w+)\s+([a-zA-Z0-9\s-]+?)(?:\s*,|\s*\.|\s+(?:with|for|using|but)|\s*$)/i);
+  // Look for build/create/make/develop/want to build
+  let match = text.match(/(?:build|create|make|develop)\s+([a-zA-Z0-9\s-]+?)(?:\s+(?:for|with|using|to)|\s*,|\s*\.|\s*$)/i);
   
   if (!match) {
-    // Fallback: look for build/create/make/develop directly
-    match = text.match(/(?:build|create|make|develop)\s+([a-zA-Z0-9\s-]+?)(?:\s*,|\s*\.|\s*$)/i);
+    // Try "want to" + verb
+    match = text.match(/want\s+to\s+(\w+\s+[a-zA-Z0-9\s-]+?)(?:\s*,|\s*\.|\s*$)/i);
+  }
+  
+  if (!match) {
+    // Very simple: any noun phrase after "build"
+    match = text.match(/\b(?:building|building a|build|want to build)\s+([a-zA-Z0-9\s-]+?)(?:\s*$|,)/i);
   }
   
   if (match) {
-    // If we matched "want to verb object", take the full verb+object
-    const vision = match[match.length > 2 ? 2 : 1]?.trim() || '';
-    if (vision) {
-      return vision.replace(/[,;.]$/, '');
+    const vision = match[1]?.trim() || '';
+    if (vision.length > 2) {
+      return vision.replace(/[,;.]$/, '').trim();
     }
   }
   return undefined;
@@ -108,6 +134,7 @@ function mergeData(
   updateField('experienceLevel', extractExperienceLevel(userInput));
   updateField('scalabilityNeeds', extractScalability(userInput));
   updateField('securityRequirements', extractSecurity(userInput));
+  updateField('deploymentRequirements', extractDeploymentRequirements(userInput));
   updateField('projectVision', extractProjectVision(userInput));
   
   merged.onboarding = newOnboarding;

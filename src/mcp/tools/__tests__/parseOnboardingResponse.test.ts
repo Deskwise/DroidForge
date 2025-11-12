@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { parseOnboardingResponse } from '../parseOnboardingResponse.js';
 import type { OnboardingSession } from '../../types.js';
 
@@ -24,6 +24,10 @@ describe('parseOnboardingResponse', () => {
         scalabilityNeeds: undefined,
       },
     };
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   describe('Happy Path: Clear user response', () => {
@@ -77,6 +81,37 @@ describe('parseOnboardingResponse', () => {
       // Empty field should be populated
       expect(result.onboarding.projectVision).toBeDefined();
       expect(result.onboarding.projectVision).toMatch(/AI chatbot/);
+    });
+  });
+
+  describe('AI Client Integration', () => {
+    it('should call the MCP AI client with a properly formatted prompt', async () => {
+      const userInput = 'We are a startup team of 2 people building web apps';
+      const result = await parseOnboardingResponse(userInput, mockSession);
+      
+      // Should return a session with at least some fields populated
+      expect(result.onboarding.teamSize).toBeDefined();
+      expect(result.onboarding.projectVision).toBeDefined();
+    });
+
+    it('should handle complex multi-field extraction from AI response', async () => {
+      const userInput = 'Enterprise app, team of 10 senior devs, needs high security and 24/7 uptime';
+      const result = await parseOnboardingResponse(userInput, mockSession);
+      
+      // Should extract multiple fields with high confidence
+      expect(result.onboarding.teamSize).toBe('10');
+      expect(result.onboarding.experienceLevel).toBe('senior');
+      expect(result.onboarding.securityRequirements).toBeDefined();
+      expect(result.onboarding.deploymentRequirements).toContain('24/7');
+    });
+
+    it('should preserve undefined fields when confidence is low', async () => {
+      const userInput = 'Uncertain about many things';
+      const result = await parseOnboardingResponse(userInput, mockSession);
+      
+      // Low-confidence fields should remain undefined
+      expect(result.onboarding.teamSize).toBeUndefined();
+      expect(result.onboarding.scalabilityNeeds).toBeUndefined();
     });
   });
 });
