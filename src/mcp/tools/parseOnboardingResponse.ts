@@ -1,4 +1,5 @@
 import type { OnboardingSession } from '../types.js';
+import { logEvent } from '../../observability/logger.js';
 
 /**
  * Represents a single extracted field with confidence metadata from the AI
@@ -131,7 +132,21 @@ export async function parseOnboardingResponse(
   // Subtask 3: Implement merging logic with confidence-aware updates
   const merged = mergeExtractedData(currentSession, extractedData);
   
-  // TODO: Subtask 4 - Integrate structured logging
+  // Subtask 4: Integrate structured logging
+  try {
+    logEvent({
+      timestamp: new Date().toISOString(),
+      event: 'parse_onboarding_response',
+      sessionId: currentSession.sessionId,
+      userInput,
+      rawAIResponse: rawResponse,
+      extractedData,
+      mergedSession: merged
+    });
+  } catch (logError) {
+    // Logging failures should not crash the function
+    console.error('Failed to emit log event:', logError);
+  }
   
   return merged;
 }
