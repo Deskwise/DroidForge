@@ -28,8 +28,9 @@ function extractTeamSize(text: string): string | undefined {
   const match = text.match(/(?:team of |(?:^|\s))(\d+)\s+(?:developers?|people?|engineers?|members?)/i);
   if (match) return match[1];
   
-  // Match "N senior devs", "N devs", etc.
-  const match2 = text.match(/(\d+)\s+(?:senior\s+)?(?:devs|developers?)/i);
+  // Match "N [adj] developers", "of N developers", "N devs", etc.
+  // Flexible pattern that allows adjectives between number and dev/engineer words
+  const match2 = text.match(/(?:of\s+)?(\d+)\s+[a-z\s]*?(?:devs?|developers?|engineers?|people?)/i);
   if (match2) return match2[1];
   
   return undefined;
@@ -68,6 +69,9 @@ function extractScalability(text: string): string | undefined {
  * Extract security requirements from text
  */
 function extractSecurity(text: string): string | undefined {
+  if (/enterprise.*security|security.*enterprise/i.test(text)) {
+    return 'enterprise security requirements';
+  }
   if (/security|secure|encryption|compliance|strict|pci|hipaa|gdpr/i.test(text)) {
     return 'strict security requirements';
   }
@@ -80,6 +84,31 @@ function extractSecurity(text: string): string | undefined {
 function extractDeploymentRequirements(text: string): string | undefined {
   if (/24\/7|always.*up|uptime|reliability|persistent|continuous|high.*availability/i.test(text)) {
     return '24/7 availability and high uptime';
+  }
+  return undefined;
+}
+
+/**
+ * Extract timeline constraints from text
+ */
+function extractTimeline(text: string): string | undefined {
+  // Match "N months", "N weeks", "N years"
+  const match = text.match(/(\d+)\s+(?:months?|weeks?|years?)/i);
+  if (match) {
+    return `${match[0]} timeline`;
+  }
+  return undefined;
+}
+
+/**
+ * Extract budget constraints from text
+ */
+function extractBudget(text: string): string | undefined {
+  if (/tight|limited|low|budget/i.test(text)) {
+    return 'tight budget constraints';
+  }
+  if (/generous|high|large|unlimited|ample/i.test(text) && /budget/i.test(text)) {
+    return 'generous budget available';
   }
   return undefined;
 }
@@ -135,6 +164,8 @@ function mergeData(
   updateField('scalabilityNeeds', extractScalability(userInput));
   updateField('securityRequirements', extractSecurity(userInput));
   updateField('deploymentRequirements', extractDeploymentRequirements(userInput));
+  updateField('timelineConstraints', extractTimeline(userInput));
+  updateField('budgetConstraints', extractBudget(userInput));
   updateField('projectVision', extractProjectVision(userInput));
   
   merged.onboarding = newOnboarding;

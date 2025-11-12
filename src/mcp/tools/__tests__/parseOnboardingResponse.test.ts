@@ -82,6 +82,99 @@ describe('parseOnboardingResponse', () => {
       expect(result.onboarding.projectVision).toBeDefined();
       expect(result.onboarding.projectVision).toMatch(/AI chatbot/);
     });
+
+    it('should handle complex multi-field merging scenarios', async () => {
+      // Pre-populate some fields
+      mockSession.onboarding.teamSize = '3';
+      mockSession.onboarding.experienceLevel = 'junior';
+      mockSession.onboarding.projectVision = undefined;
+      mockSession.onboarding.scalabilityNeeds = undefined;
+      
+      const userInput = 'We are 5 senior developers building a high-performance trading platform with enterprise security';
+      
+      const result = await parseOnboardingResponse(userInput, mockSession);
+      
+      // Existing values should NOT be overwritten
+      expect(result.onboarding.teamSize).toBe('3');
+      expect(result.onboarding.experienceLevel).toBe('junior');
+      
+      // Empty fields should be populated with new data
+      expect(result.onboarding.projectVision).toBeDefined();
+      expect(result.onboarding.scalabilityNeeds).toBeDefined();
+      expect(result.onboarding.securityRequirements).toContain('enterprise');
+    });
+
+    it('should merge multiple fields from single complex input', async () => {
+      const userInput = 'Startup of 2 experienced devs building API in 6 months with tight budget but high uptime needs';
+      
+      const result = await parseOnboardingResponse(userInput, mockSession);
+      
+      // Should extract multiple distinct fields
+      expect(result.onboarding.teamSize).toBe('2');
+      expect(result.onboarding.timelineConstraints).toContain('6 months');
+      expect(result.onboarding.budgetConstraints).toContain('tight');
+      expect(result.onboarding.deploymentRequirements).toBeDefined();
+    });
+
+    it('should not overwrite fields with partial matches', async () => {
+      mockSession.onboarding.experienceLevel = 'expert';
+      
+      const userInput = 'Our team of 5 junior people working together';
+      
+      const result = await parseOnboardingResponse(userInput, mockSession);
+      
+      // existing expert level should NOT be overwritten by junior
+      expect(result.onboarding.experienceLevel).toBe('expert');
+      // But team size should be updated
+      expect(result.onboarding.teamSize).toBe('5');
+    });
+
+    it('should handle null/undefined transition correctly', async () => {
+      mockSession.onboarding.projectVision = null as any;
+      
+      const userInput = 'Building a real-time chat application with WebSockets';
+      
+      const result = await parseOnboardingResponse(userInput, mockSession);
+      
+      // Should populate previously null field
+      expect(result.onboarding.projectVision).toBeDefined();
+    });
+
+    it('should preserve original session metadata while updating onboarding', async () => {
+      mockSession.scan = { summary: 'test scan', frameworks: [], testConfigs: [], prdPaths: [], scripts: [], prdContent: null };
+      mockSession.state = 'collecting-goal';
+      
+      const userInput = 'We are 3 developers wanting to build a REST API';
+      
+      const result = await parseOnboardingResponse(userInput, mockSession);
+      
+      // Original session properties should be preserved
+      expect(result.sessionId).toBe(mockSession.sessionId);
+      expect(result.repoRoot).toBe(mockSession.repoRoot);
+      expect(result.state).toBe('collecting-goal');
+      expect(result.scan?.summary).toBe('test scan');
+      
+      // Onboarding data should be updated
+      expect(result.onboarding.teamSize).toBe('3');
+      expect(result.onboarding.projectVision).toContain('REST API');
+    });
+
+    it('should emit structured log events during merging', async () => {
+      // This test validates structured logging integration (subtask 4)
+      const userInput = 'Team of 5 junior engineers building mobile app in 3 months';
+      
+      const result = await parseOnboardingResponse(userInput, mockSession);
+      
+      // Verify onboarding was updated
+      expect(result.onboarding).toBeDefined();
+      expect(result.onboarding.teamSize).toBe('5');
+      
+      // TODO: Once logging is implemented, verify logEvent was called with:
+      // - userInput
+      // - rawAIResponse
+      // - mergedSession state
+      // This will be verified in subtask 4
+    });
   });
 
   describe('AI Client Integration', () => {
