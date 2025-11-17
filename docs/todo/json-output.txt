@@ -1,0 +1,1100 @@
+{
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Define Core Onboarding Data Model and Session State",
+      "description": "Refactor the core session data model to include a comprehensive structure for the intelligent onboarding process. This involves updating existing types and session management logic in the MCP to support nested onboarding data.",
+      "status": "done",
+      "priority": "high",
+      "dependencies": [],
+      "details": "Modify the existing `Session` interface in `src/mcp/types.ts`. Add a new property `onboarding: OnboardingData`. Define the `OnboardingData` interface to be a nested structure containing: `requiredData` (for the 10 mandatory data points like vision, audience, etc.), `collectionMetadata`, `methodology`, and `team`. The `requiredData` fields should follow the `{ value: string | null, confidence: number, source: string }` pattern. Subsequently, update the `updateSession` function in `src/mcp/sessionStore.ts` to perform a deep merge on the `onboarding` property. This is critical to allow for partial updates to the onboarding state without overwriting existing collected data.",
+      "testStrategy": "Update the existing test suite in `src/mcp/__tests__/sessionStore.test.ts`. Add new unit tests to validate the updated `Session` shape, ensuring the `onboarding` property and its nested structure can be correctly initialized and typed. Crucially, add tests specifically for the deep merge functionality in `updateSession`, verifying that patching a single field within `onboarding.requiredData` persists correctly without erasing other fields in the `onboarding` object.",
+      "subtasks": [
+        {
+          "id": "1",
+          "title": "Refactor onboarding session types and data model",
+          "description": "Update src/mcp/types.ts and related tool IO types to introduce nested onboarding structures for required data, collection metadata, methodology, and team.",
+          "details": "<info added on 2025-11-04T19:21:38.998Z>\n{\n  \"text\": \"1. In `src/mcp/types.ts`, introduce the new types for the nested data model: `OnboardingRequiredData`, `CollectionMetadata`, `MethodologyData`, and `TeamData`, based on the implementation plan.\\n2. Refactor the `OnboardingSession` interface to replace the current flat fields with a new nested structure. For backward compatibility, the legacy flat fields will be marked as optional until all dependent tool callers are updated.\\n3. Update the input/output types for the following tools to use the new nested session structure: `record_onboarding_data`, `get_onboarding_progress`, `select_methodology`, `recommend_droids`, and `forge_roster`. Ensure any dependent exports are also updated accordingly.\"\n}\n</info added on 2025-11-04T19:21:38.998Z>",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 1,
+          "updatedAt": "2025-11-04T20:30:55.357Z",
+          "parentId": "undefined"
+        },
+        {
+          "id": "2",
+          "title": "Implement deep merge utilities and session store updates",
+          "description": "Build reusable deep merge helper and update src/mcp/sessionStore.ts to merge nested onboarding data without clobbering existing fields. [Updated: 11/4/2025]",
+          "details": "<info added on 2025-11-04T21:09:15.986Z>\n```json\n\"Define the rule for resuming an incomplete onboarding session. When the onboarding process is initiated, the system must check for an existing session file in the `.factory/sessions/` directory. If a session is found, it will be loaded. The continuation logic will then inspect the `onboarding.requiredData` object within the session state to find the first mandatory data field that is null or has a low confidence score. The system will then prompt the user for that specific piece of information, allowing the session to continue from the last incomplete step.\"\n```\n</info added on 2025-11-04T21:09:15.986Z>\n<info added on 2025-11-05T00:58:56.796Z>\n\"The `save` method in `src/mcp/sessionStore.ts` will be updated to integrate the `deepMerge` utility. The `onboarding` data object will be merged using `deepMerge`, while all other top-level keys will continue to use a shallow merge to preserve existing behavior. The `deepMerge` helper will be imported and applied conditionally, only when both the existing session and the incoming data contain an `onboarding` block. To prevent side effects, the sanitization process within the `save` function will be updated to work on a clone of the data, avoiding mutation of original objects. A regression guard will be added to handle arrays correctly, ensuring they are replaced rather than merged. After implementation, code will be formatted, and work on the subsequent test coverage subtask (1.3) can begin.\"\n</info added on 2025-11-05T00:58:56.796Z>\n<info added on 2025-11-05T01:04:14.443Z>\n\"A reusable deepMerge utility has been created in src/mcp/utils and integrated into the sessionStore.save method. The save function now filters undefined properties, preserves legacy fields, and deep merges the onboarding data block when it exists in both the source and existing session. Array data, such as roster lists, are now replaced via a cloning mechanism to ensure data consistency.\"\n</info added on 2025-11-05T01:04:14.443Z>\n<info added on 2025-11-06T00:53:19.909Z>\nFrom code review feedback: The custom `cloneValue` helper should be replaced with `structuredClone` or an equivalent robust cloning implementation to avoid corrupting complex object types like Dates or Maps in the future. This is pending confirmation of runtime compatibility. A new regression test must also be added to ensure that saving a session that lacks an `onboarding` payload leaves the previously stored onboarding state untouched. This test can optionally cover another nested segment, such as `collectionMetadata`, to validate the merge logic's scope.\n</info added on 2025-11-06T00:53:19.909Z>\n<info added on 2025-11-06T04:05:17.630Z>\n\"Outcome: Reworked SessionStore.save to ignore empty onboarding payloads, retaining previously stored onboarding arrays and metadata. New regression test now passes; scoped suite: node --test --loader ts-node/esm src/mcp/__tests__/sessionStore.test.ts.\"\n</info added on 2025-11-06T04:05:17.630Z>",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 1,
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T22:29:41.436Z"
+        },
+        {
+          "id": "3",
+          "title": "Update unit tests for session types and deep merge behavior",
+          "description": "Adjust existing tests and add new coverage ensuring refactored onboarding session types and deep merge logic behave correctly.",
+          "details": "<info added on 2025-11-05T01:05:51.536Z>\n\"Create a new test file in src/mcp/__tests__/ to specifically test the deep merge behavior of sessionStore.save. Test cases must cover: 1) nested updates within the onboarding data object, 2) complete replacement of array values, and 3) preservation of legacy fields not present in the new data. Use the ensureStructuredOnboarding helper to prepare test fixtures, which will be written to a temporary directory using the SessionStore. Validate by running the new test suite via npm test.\"\n</info added on 2025-11-05T01:05:51.536Z>\n<info added on 2025-11-05T04:27:02.485Z>\nProgress: Added src/mcp/__tests__/sessionStore.test.ts covering deep merge for requiredData, array replacement, and legacy field preservation. Tests create temp repos via SessionStore. Next step is to run npm test -- sessionStore to verify.\n</info added on 2025-11-05T04:27:02.485Z>\n<info added on 2025-11-05T09:13:02.546Z>\n{\n  \"content\": \"Validation complete: The new deep merge tests in `src/mcp/__tests__/sessionStore.test.ts` pass when run directly via `node --test --loader ts-node/esm`. Failures in the full `npm test` suite are confirmed to be pre-existing and unrelated to this work (e.g., execution locks, e2e failures).\"\n}\n</info added on 2025-11-05T09:13:02.546Z>\n<info added on 2025-11-05T22:06:53.926Z>\n{\n  \"content\": \"Plan for RED tests: Target file: src/mcp/sessionStore.ts, focusing on save() deep merge behavior added in subtask 1.2. Create new test suite src/mcp/__tests__/sessionStore.test.ts using node:test to avoid Jest dependency. Fixtures: build temp repo under OS tmpdir with .droidforge/session/<id>.json file to simulate existing session. Test cases to implement: 1. Merges nested onboarding.requiredData updates without wiping sibling entries. 2. Replaces onboarding.selectedDroids array instead of merging contents. 3. Preserves legacy top-level fields when not provided in new payload. Utilities: introduce helper ensureStructuredOnboarding within test to seed baseline session shape. After implementation run scoped tests via Autopilot RED phase: npm test -- src/mcp/__tests__/sessionStore.test.ts. Expected failure: tests should fail because implementation currently performs shallow merge without onboarding deep merge/array replace and lacks deepMerge utility integration.\"\n}\n</info added on 2025-11-05T22:06:53.926Z>",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 1,
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T22:30:58.718Z"
+        },
+        {
+          "id": "4",
+          "title": "Define OnboardingData and Supporting Interfaces in types.ts",
+          "description": "Create the core data structures for the onboarding process by defining the `OnboardingData` interface and its nested types, including the structure for required data points.",
+          "dependencies": [],
+          "details": "In `src/mcp/types.ts`, define a new interface `RequiredDataPoint { value: string | null; confidence: number; source: string; }`. Then, create the main `OnboardingData` interface. This interface will contain `requiredData: Record<string, RequiredDataPoint>`, `collectionMetadata: object`, `methodology: object`, and `team: object`.\n<info added on 2025-11-06T22:20:38.226Z>\nThe definitions for the `RequiredDataPoint` and `OnboardingData` interfaces will be moved into the shared `src/types.ts` file. Consequently, `src/mcp/types.ts` will be updated to import these shared interfaces instead of defining them locally, while ensuring its existing exports remain intact. All references to these types, including those in test files, must be adjusted to use the new import path so that the TypeScript project compiles cleanly.\n</info added on 2025-11-06T22:20:38.226Z>\n<info added on 2025-11-06T23:42:03.676Z>\nTo follow a TDD approach, first add a failing test to `src/mcp/__tests__/sessionStore.test.ts`. This test will import `OnboardingData` from `src/types.ts` and include a type expectation to confirm it contains `requiredData`, `collectionMetadata`, `methodology`, and `team`. This will cause a compile-time error, driving the implementation of the interface in the shared types file.\n</info added on 2025-11-06T23:42:03.676Z>\n<info added on 2025-11-06T23:55:11.725Z>\n{\n  \"update\": \"To implement the 'Green' step, move the RequiredDataPoint and OnboardingData interface definitions into src/types.ts and ensure they are exported. Update src/mcp/types.ts to remove the now-duplicate local definitions, and instead import the interfaces from ../../types and re-export them to maintain its public API. This will resolve the compile-time error in the test from the previous step, allowing the test suite to pass.\"\n}\n</info added on 2025-11-06T23:55:11.725Z>\n<info added on 2025-11-06T23:58:37.920Z>\nOutcome: Shared onboarding interfaces now live in src/types.ts and are imported by src/mcp/types.ts. Session store tests compile and pass, confirming OnboardingData shape availability for downstream consumers.\n</info added on 2025-11-06T23:58:37.920Z>",
+          "status": "done",
+          "testStrategy": "Type validation will be implicitly tested in subsequent subtasks. No direct unit tests are required for type-only files, but compilation must succeed.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T22:34:58.713Z"
+        },
+        {
+          "id": "5",
+          "title": "Integrate OnboardingData into the Core Session Interface",
+          "description": "Update the primary `Session` interface to officially include the new `OnboardingData` structure, making it a part of the core session state.",
+          "dependencies": [
+            4
+          ],
+          "details": "Modify the existing `Session` interface in `src/mcp/types.ts`. Add a new, non-optional property `onboarding: OnboardingData`. This change formally links the onboarding state to the session object managed by the MCP.\n<info added on 2025-11-07T01:04:25.260Z>\n[\n  \"In src/mcp/__tests__/sessionStore.test.ts, add a new test case that imports the OnboardingData type from ../types. The test should assert that the session object contains a non-optional 'onboarding' property that conforms to the OnboardingData interface. This will intentionally cause a compile-time error, fulfilling the 'RED' phase of TDD and driving the required update to the Session interface.\"\n]\n</info added on 2025-11-07T01:04:25.260Z>\n<info added on 2025-11-07T01:10:51.071Z>\n\"Session interface now exposes a non-optional onboarding property referencing shared OnboardingData, and session store tests compile/pass, confirming integration.\"\n</info added on 2025-11-07T01:10:51.071Z>",
+          "status": "done",
+          "testStrategy": "Compile the project to ensure the type change does not break existing code that uses the `Session` interface. The new property will be explicitly tested in the session store tests.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T22:32:34.818Z"
+        },
+        {
+          "id": "6",
+          "title": "Update Session Creation to Initialize Onboarding State",
+          "description": "Modify the session creation logic to initialize a default/empty `onboarding` object for every new session. This ensures the property exists and is ready for deep merging.",
+          "dependencies": [
+            5
+          ],
+          "details": "In `src/mcp/sessionStore.ts`, find the function that creates a new session object (e.g., `createSession`). Update it to include the `onboarding` key with a default structure, such as an empty `requiredData` object and other nested properties set to their initial empty state.\n<info added on 2025-11-07T02:33:57.770Z>\n\"Plan (RED phase):\\n- Add a new unit test in src/mcp/__tests__/sessionStore.test.ts that creates a brand new session payload without an onboarding block, writes it via SessionStore.save, and asserts the persisted file contains an onboarding object with empty requiredData/collectionMetadata/methodology/team.\\n- Introduce a helper for creating an empty OnboardingData structure and ensure SessionStore.save applies it whenever onboarding is missing while creating a new session.\\n- Update any code path that instantiates a fresh OnboardingSession (e.g., smartScan tool) to use the same helper so onboarding is pre-populated.\\n- Re-run the targeted session store tests through Autopilot once the failing test is in place.\"\n</info added on 2025-11-07T02:33:57.770Z>\n<info added on 2025-11-07T02:52:25.826Z>\n\"Plan (RED):\\n1. Extend sessionStore RED test coverage in src/mcp/__tests__/sessionStore.test.ts by adding a new case that saves a session without onboarding data and expects persisted onboarding keys to exist with empty objects.\\n2. Ensure new test only describes failing behavior; do not modify implementation yet.\\n3. Run the targeted suite via Autopilot to capture the failing result.\"\n</info added on 2025-11-07T02:52:25.826Z>\n<info added on 2025-11-07T02:56:13.804Z>\n[]\n</info added on 2025-11-07T02:56:13.804Z>\n<info added on 2025-11-07T02:58:41.790Z>\n{\n  \"text\": \"Outcome (GREEN): Implemented onboarding seeding helper in SessionStore.save so new sessions persist default structures including selectedDroids []; confirmed targeted test passes.\"\n}\n</info added on 2025-11-07T02:58:41.790Z>\n<info added on 2025-11-07T23:43:58.004Z>\n{\n  \"text\": \"Progress (RED): Added a failing test to `src/mcp/__tests__/sessionStore.test.ts` to assert that new sessions are initialized with default onboarding data. The targeted test run (`npm test -- src/mcp/__tests__/sessionStore.test.ts`) currently fails because `SessionStore.save` persists the session as-is without the onboarding block. Ready for GREEN implementation.\"\n}\n</info added on 2025-11-07T23:43:58.004Z>",
+          "status": "done",
+          "testStrategy": "Update or add a unit test in `src/mcp/__tests__/sessionStore.test.ts` to verify that a newly created session object contains the `onboarding` property with the expected default empty structure.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T22:33:45.462Z"
+        },
+        {
+          "id": "7",
+          "title": "Implement Deep Merge for Onboarding Property in updateSession",
+          "description": "Refactor the `updateSession` function to use a deep merge strategy for the `onboarding` property, allowing partial state updates without overwriting existing collected data.",
+          "dependencies": [
+            6
+          ],
+          "details": "In `src/mcp/sessionStore.ts`, modify the `updateSession` function. Instead of a shallow spread or `Object.assign` for the entire session, implement logic that specifically deep merges the `onboarding` property from the update payload into the existing session's `onboarding` object. A pre-existing deep merge utility should be used as per task 1.2.\n<info added on 2025-11-07T03:02:22.252Z>\n{\n  \"text\": \"RED:\\n1. In `src/mcp/__tests__/sessionStore.test.ts`, add a new test case for the `updateSession` function.\\n2. The test should first create and persist a session with a complete `onboarding` object (e.g., with both `requiredData` and `methodology` fields populated).\\n3. Then, call `updateSession` with a payload that only updates a part of the `onboarding` object (e.g., `{ onboarding: { requiredData: ... } }`).\\n4. Assert that the other parts of the original `onboarding` object (e.g., `methodology`) are still present and unchanged in the updated session.\\n5. This test is expected to fail, demonstrating that the current shallow merge overwrites the entire `onboarding` object. Run the test to confirm and capture this failure.\"\n}\n</info added on 2025-11-07T03:02:22.252Z>\n<info added on 2025-11-07T03:12:37.991Z>\n{\n  \"text\": \"GREEN:\\n1. In `src/mcp/sessionStore.ts`, implemented a new helper function, `mergeOnboarding`, to handle the deep merge logic for the `onboarding` property.\\n2. Refactored `updateSession` to utilize this helper. The function now separates the `onboarding` object from the update payload, deep merges it, and then shallow merges the remaining session properties.\\n3. Confirmed that the previously failing test in `src/mcp/__tests__/sessionStore.test.ts` now passes, verifying that partial updates to the `onboarding` object preserve existing, non-updated segments of the onboarding state.\"\n}\n</info added on 2025-11-07T03:12:37.991Z>",
+          "status": "done",
+          "testStrategy": "Create a dedicated test in `src/mcp/__tests__/sessionStore.test.ts` for this functionality. The test should: 1. Create a session with initial onboarding data. 2. Call `updateSession` with a partial payload for a different part of the onboarding data. 3. Assert that the original data is preserved and the new data is correctly merged.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T22:36:03.854Z"
+        },
+        {
+          "id": "8",
+          "title": "Add Comprehensive Tests for Session Onboarding State",
+          "description": "Enhance the test suite in `sessionStore.test.ts` to fully cover the new onboarding data model, including initialization, deep merging, and type correctness.",
+          "dependencies": [
+            7
+          ],
+          "details": "In `src/mcp/__tests__/sessionStore.test.ts`, add a new test suite (`describe` block) for 'Onboarding Session State'. Consolidate tests for session creation with default onboarding state and the deep merge functionality. Add a test case to ensure updates to other parts of the session (outside of `onboarding`) do not affect the onboarding data.\n<info added on 2025-11-07T03:41:51.854Z>\n{\n  \"content\": \"As part of the TDD (Red) phase, introduce at least one new assertion that is designed to fail with the current implementation. This test should demonstrate that a non-onboarding update incorrectly removes or alters the onboarding data. Run the targeted test to observe this failure before proceeding with implementation adjustments.\"\n}\n</info added on 2025-11-07T03:41:51.854Z>\n<info added on 2025-11-07T03:44:37.420Z>\n{\n  \"content\": \"RED phase result: The grouped tests for onboarding state have been added. The specific assertion designed to fail (verifying that a non-onboarding update would overwrite onboarding data) passed unexpectedly. This confirms the current implementation already prevents this regression, so no 'Green' phase is required for this specific test.\"\n}\n</info added on 2025-11-07T03:44:37.420Z>",
+          "status": "done",
+          "testStrategy": "This task is purely about testing. Success is defined by comprehensive test coverage for the features implemented in the preceding subtasks, ensuring robustness of the session state management.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T22:37:35.548Z"
+        }
+      ],
+      "updatedAt": "2025-11-14T22:37:35.548Z"
+    },
+    {
+      "id": "2",
+      "title": "Implement AI-Powered Data Extraction from Freeform Text",
+      "description": "Develop a Phase 1 parsing tool that uses the Model Context Protocol (MCP) AI client to extract structured data from freeform user input. This tool will be a core component of the intelligent onboarding flow, responsible for interpreting user responses, populating the OnboardingSession, and merging new information with existing session data.",
+      "status": "done",
+      "priority": "high",
+      "dependencies": [
+        "1"
+      ],
+      "details": "Create a new module at `src/mcp/tools/parseOnboardingResponse.ts`. This module will export an async function, `parseOnboardingResponse(userInput: string, currentSession: OnboardingSession): Promise<OnboardingSession>`. The function will:\n1. Construct a detailed prompt for the MCP AI client. The prompt must instruct the model to analyze the user's text and extract values for the 10 fields defined in the `OnboardingSession` interface. The prompt must explicitly request a JSON object where each key is a field name and the value is another object containing `{ value: any; confidence: number; source: string; }`.\n2. Invoke the MCP AI client and parse its JSON response.\n3. Implement merging logic. The extracted data should be intelligently merged with the `currentSession` object. New data should only update existing fields if it has a high confidence score or if the existing field was empty. \n4. Emit structured logs using the `logEvent` function from `src/observability/logger.ts` (related to Task 10). A log entry should be created containing the user input, the raw AI response, and the state of the `OnboardingSession` after the merge.\n5. Return the fully updated `OnboardingSession` object.",
+      "testStrategy": "Create unit tests in `src/mcp/tools/__tests__/parseOnboardingResponse.test.ts`. The tests must mock the MCP AI client to simulate various responses. Test cases should cover:\n1. **Happy Path:** A clear user response where all data is extracted correctly.\n2. **Vague Input:** An ambiguous response, asserting that the tool produces lower confidence scores and correctly populates only the certain fields.\n3. **Inference:** A response where data is implied (e.g., 'we are a duo' -> teamSize: 2), and assert the tool correctly infers the value.\n4. **Merging Logic:** A scenario where `currentSession` already has some data, and assert that the function correctly merges new information without incorrectly overwriting existing, high-confidence values.",
+      "subtasks": [
+        {
+          "id": "1",
+          "title": "Setup Tool File Structure and Types",
+          "description": "Create the new files `src/mcp/tools/parseOnboardingResponse.ts` and the corresponding test file `src/mcp/tools/__tests__/parseOnboardingResponse.test.ts`. Define the main function signature and necessary supporting types for the AI response.",
+          "dependencies": [],
+          "details": "In `src/mcp/tools/parseOnboardingResponse.ts`, define and export the async function `parseOnboardingResponse`. Define an internal type, e.g., `AIExtractionResult`, to model the expected JSON structure from the AI for each field: `{ value: any; confidence: number; source: string; }`.",
+          "status": "done",
+          "testStrategy": "Verify that the files are created in the correct locations and that the exported function and types are correctly defined and do not cause compilation errors.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T23:37:00.536Z"
+        },
+        {
+          "id": "2",
+          "title": "Implement AI Prompt Construction and Client Call",
+          "description": "Implement the logic for dynamically constructing the prompt sent to the MCP AI client and executing the call. The prompt should clearly define the desired JSON output structure.",
+          "dependencies": [
+            1
+          ],
+          "details": "Within `parseOnboardingResponse`, write the code to create the system and user prompts. The user prompt will contain the user's freeform text. The system prompt will instruct the AI to act as a project manager, extract the 10 fields, and respond in the specified JSON format with value, confidence, and source. Use the project's MCP client to make the API call and retrieve the raw JSON response.",
+          "status": "done",
+          "testStrategy": "In a temporary test, call this internal logic and log the generated prompt to ensure it's well-formed. Mock the AI client to ensure the call is made with the correct parameters.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T23:52:16.905Z"
+        },
+        {
+          "id": "3",
+          "title": "Implement Session Merging Logic",
+          "description": "Write the core logic that takes the AI's response and intelligently merges it into the existing `OnboardingSession` object.",
+          "dependencies": [
+            2
+          ],
+          "details": "Create a private helper function, e.g., `mergeAIResponse(session: OnboardingSession, aiData: ParsedAIResponse): OnboardingSession`. This function will iterate through the fields in the AI response. For each field, it will check the confidence score and whether a value already exists in the session. Implement rules for overwriting, e.g., only update if confidence > 0.75 or if the existing session field is null/undefined. Return the new, merged session state.",
+          "status": "done",
+          "testStrategy": "Unit test this specific merge function with various combinations of existing session data and mock AI responses to validate the merging rules.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T23:54:44.348Z"
+        },
+        {
+          "id": "4",
+          "title": "Integrate Structured Logging",
+          "description": "Add calls to the centralized logger to record the activity of the parsing tool for auditability and debugging.",
+          "dependencies": [
+            1
+          ],
+          "details": "Import the `logEvent` function from `src/observability/logger.ts`. Add a call to `logEvent` at the conclusion of the `parseOnboardingResponse` function. The log payload should include the `sessionId` from the session object, the original `userInput`, the raw AI JSON response, and the final merged `OnboardingSession` object. This provides a complete record of the transaction.",
+          "status": "done",
+          "testStrategy": "During integration testing, check the contents of the relevant `.factory/sessions/<sessionId>.jsonl` file to ensure the parsing event was logged correctly with all required data fields.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T23:56:11.005Z"
+        },
+        {
+          "id": "5",
+          "title": "Write Unit Tests for Parsing Tool",
+          "description": "Implement the full suite of unit tests in `src/mcp/tools/__tests__/parseOnboardingResponse.test.ts` to ensure the tool is robust and reliable.",
+          "dependencies": [
+            3,
+            4
+          ],
+          "details": "Using a testing framework like Jest, mock the entire MCP AI client module. Write specific tests that provide different `userInput` strings and assert the final `OnboardingSession` is correct. Cover the cases specified in the main test strategy: happy path, vague/ambiguous input, inferred values (e.g., team size), and the merging logic with pre-populated session data. Also mock the logger to ensure it is called with the correct payload.\n<info added on 2025-11-14T23:56:46.814Z>\n{\n  \"text\": \"Plan: Finalize the parseOnboardingResponse unit test suite by ensuring prompt generation, merging logic, and logging scenarios are all exercised in src/mcp/tools/__tests__/parseOnboardingResponse.test.ts. Run the suite using the command: NODE_OPTIONS=... node --loader ts-node/esm --test src/mcp/tools/__tests__/parseOnboardingResponse.test.ts.\"\n}\n</info added on 2025-11-14T23:56:46.814Z>",
+          "status": "done",
+          "testStrategy": "Run the test suite and ensure all tests pass with 100% coverage for the `parseOnboardingResponse.ts` module.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T23:57:15.982Z"
+        },
+        {
+          "id": "6",
+          "title": "Create File Structure and Function Signature for Onboarding Parser",
+          "description": "Create the new module file at `src/mcp/tools/parseOnboardingResponse.ts` and its corresponding test file. Define and export the async function `parseOnboardingResponse` with the correct signature and a placeholder implementation.",
+          "dependencies": [],
+          "details": "Create the file `src/mcp/tools/parseOnboardingResponse.ts` and export `async function parseOnboardingResponse(userInput: string, currentSession: OnboardingSession): Promise<OnboardingSession>`. Also create the test file `src/mcp/tools/__tests__/parseOnboardingResponse.test.ts` with a basic test suite structure.",
+          "status": "done",
+          "testStrategy": "A placeholder test will be created to ensure the file structure is correct and the function is exportable. This test will be expanded in a later subtask.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T23:58:14.885Z"
+        },
+        {
+          "id": "7",
+          "title": "Implement AI Prompt Construction for Data Extraction",
+          "description": "Inside `parseOnboardingResponse`, develop the logic to construct a detailed system prompt for the MCP AI client. The prompt must instruct the model to extract values for all fields defined in the `OnboardingSession` interface.",
+          "dependencies": [
+            6
+          ],
+          "details": "The prompt generation logic will dynamically reference the fields from the `OnboardingSession` type. It must explicitly request a JSON object where each key is a field name and the value is another object: `{ value: any; confidence: number; source: string; }`.",
+          "status": "done",
+          "testStrategy": "Unit tests will be added to `parseOnboardingResponse.test.ts` to verify that the generated prompt string is correctly formatted and contains all the required instructions for the AI model.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-14T23:59:17.632Z"
+        },
+        {
+          "id": "8",
+          "title": "Integrate MCP AI Client Call and Response Parsing",
+          "description": "Invoke the MCP AI client with the constructed prompt and parse its JSON response. Implement error handling for both the client call and the JSON parsing.",
+          "dependencies": [
+            7
+          ],
+          "details": "Use the existing MCP AI client abstraction to send the prompt. The function should await the response, then safely parse the returned string into a structured object matching the format requested in the prompt. Handle cases where the response is not valid JSON or the API call fails.",
+          "status": "done",
+          "testStrategy": "In the test file, mock the MCP AI client. Create test cases for successful responses (valid JSON), malformed JSON responses, and API call failures (e.g., throwing an exception).",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-15T00:00:06.460Z"
+        },
+        {
+          "id": "9",
+          "title": "Implement Intelligent Session Data Merging Logic",
+          "description": "Develop the logic to merge the structured data extracted by the AI with the `currentSession` object. The merge should be conditional, based on confidence scores and existing data.",
+          "dependencies": [
+            8
+          ],
+          "details": "Iterate through the fields in the parsed AI response. For each field, update the `currentSession` object only if the new data's confidence score is above a defined threshold (e.g., 0.8) or if the corresponding field in the current session is null or empty. The original session object should be deep-cloned to avoid mutation side effects.",
+          "status": "done",
+          "testStrategy": "Add unit tests focused on the merge logic. Test scenarios include: updating an empty field, updating a field with a high-confidence value, not updating a field due to low confidence, and handling a mix of updates in a single call.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-15T00:00:50.280Z"
+        },
+        {
+          "id": "10",
+          "title": "Add Structured Logging and Finalize Unit Tests",
+          "description": "Integrate structured logging using the `logEvent` function and complete the unit test suite to cover the entire parsing and merging process.",
+          "dependencies": [
+            9
+          ],
+          "details": "After the merge logic is complete, call the `logEvent` function from `src/observability/logger.ts`. The log payload must include the original `userInput`, the raw AI response string, and the final state of the `OnboardingSession` after the merge. Finalize the unit tests in `parseOnboardingResponse.test.ts` to assert that the entire function works end-to-end and that `logEvent` is called with the correct parameters.",
+          "status": "done",
+          "testStrategy": "Using a mocked `logEvent` function, assert that it is called exactly once per `parseOnboardingResponse` execution and that its payload is correctly structured. Run the full suite of tests covering happy paths, edge cases, and error handling.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-15T00:01:37.784Z"
+        }
+      ],
+      "updatedAt": "2025-11-15T00:01:37.784Z"
+    },
+    {
+      "id": "3",
+      "title": "Develop Conversational Follow-up Logic",
+      "description": "Create the logic to dynamically ask follow-up questions for any data points within `session.onboarding.requiredData` that are missing or have a low confidence score after the initial AI parsing. The system must ask questions one at a time to maintain a conversational flow.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [
+        "2"
+      ],
+      "details": "The follow-up logic will be co-located with other onboarding prompt logic. Create a new helper module at `src/mcp/onboarding/followups.ts`. This module will export a function `getNextQuestion(session: Session): FollowUpPrompt | null`. This function iterates through the keys of `session.onboarding.requiredData` in a predefined order. It finds the first field where `value` is null or `confidence` is below a defined threshold (e.g., 0.7). It then returns a `FollowUpPrompt` object containing the field's key, question text, and an example answer. If all required data has high confidence, it returns `null`. The main onboarding prompt generator in `src/mcp/prompts/onboarding.ts` will use this helper.",
+      "testStrategy": "Write unit tests for `getNextQuestion` in a new file `src/mcp/onboarding/__tests__/followups.test.ts`. Test various states of the `Session` object's `onboarding.requiredData` property: 1) an empty session should return the prompt for the first required field, 2) a partially filled session should return the prompt for the first missing/low-confidence field, and 3) a complete, high-confidence session should return `null`. Verify the returned `FollowUpPrompt` object is correctly structured.",
+      "subtasks": [
+        {
+          "id": "1",
+          "title": "Create Follow-up Helper and Data Structures",
+          "description": "Establish the foundational module and data structures for the conversational follow-up logic, including the helper file and type definitions.",
+          "dependencies": [],
+          "details": "Create a new file at `src/mcp/onboarding/followups.ts`. Inside this file, define and export the `FollowUpPrompt` interface (e.g., `{ key: string, question: string, example: string }`). Also, define constants for the `CONFIDENCE_THRESHOLD` and a `FOLLOW_UP_METADATA` map that links keys from `OnboardingData['requiredData']` to their respective question and example text.",
+          "status": "pending",
+          "testStrategy": "The defined types and constants will be validated by the unit tests for the `getNextQuestion` function in a subsequent subtask.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "2",
+          "title": "Implement the `getNextQuestion` Function",
+          "description": "Implement the core logic to determine the next follow-up question based on the current session state.",
+          "dependencies": [
+            1
+          ],
+          "details": "In `src/mcp/onboarding/followups.ts`, implement the `getNextQuestion(session: Session): FollowUpPrompt | null` function. It must iterate over a predefined order of keys from `session.onboarding.requiredData`. For each key, check if the `value` is null or if `confidence` is below `CONFIDENCE_THRESHOLD`. On finding the first match, construct and return a `FollowUpPrompt` object using the `FOLLOW_UP_METADATA`. If all fields are complete with high confidence, return `null`.",
+          "status": "pending",
+          "testStrategy": "Correctness will be verified by the unit tests in the next subtask. Code review should focus on the iteration logic over `session.onboarding.requiredData` and the construction of the `FollowUpPrompt` object.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "3",
+          "title": "Create Unit Tests for Follow-up Logic",
+          "description": "Develop a comprehensive suite of unit tests for the `getNextQuestion` function to ensure its reliability across various session states.",
+          "dependencies": [
+            2
+          ],
+          "details": "Create a new test file `src/mcp/onboarding/__tests__/followups.test.ts`. Using Jest, write tests for `getNextQuestion`. Scenarios must include: 1) A session with missing data (null value) in `requiredData`. 2) A session with a low-confidence value. 3) A fully populated, high-confidence session, expecting `null`. 4) An initial, empty session, expecting the `FollowUpPrompt` for the first required field.",
+          "status": "pending",
+          "testStrategy": "Execute tests via `npm test`. All tests must pass. Use mocked `Session` objects with varying `onboarding.requiredData` states to validate the function's output.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "4",
+          "title": "Integrate Follow-up Logic into Onboarding Prompt Generation",
+          "description": "Incorporate the `getNextQuestion` helper into the main onboarding prompt service to enable dynamic, conversational follow-ups.",
+          "dependencies": [
+            2
+          ],
+          "details": "Modify the prompt generation logic in `src/mcp/prompts/onboarding.ts`. After the main data extraction step, call `getNextQuestion(session)`. If it returns a `FollowUpPrompt` object, use its `question` and `example` properties to construct the next message for the user. If it returns `null`, the conversational data gathering is complete, and the system can proceed to the next phase (e.g., roster generation).",
+          "status": "pending",
+          "testStrategy": "Integration will be tested manually or via an E2E test. The test should simulate a conversation where the user provides an initial response, the system asks a follow-up question based on a gap, and the user answers it.",
+          "parentId": "undefined"
+        }
+      ],
+      "updatedAt": "2025-11-15T00:58:44.439Z"
+    },
+    {
+      "id": "4",
+      "title": "Implement Onboarding Session Persistence and Resumption",
+      "description": "Enhance the onboarding flow to be pausable and resumable by persisting session state after each mutation. This involves snapshotting the state to a session-specific history log and ensuring the canonical session file is kept in sync for robust recovery.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": [
+        "3"
+      ],
+      "details": "This task will modify the existing session management logic in `src/mcp/sessionStore.ts` to support incremental state saving and resumption. Do not create a new `src/session/manager.ts`.\n\nTwo new helper methods will be added to `sessionStore.ts`:\n1.  `saveSnapshot(session: OnboardingSession)`: This function will serialize the entire `OnboardingSession` object and append it as a new line to the JSONL history file at `.factory/sessions/<sessionId>.jsonl`. It must also update the canonical session file at `.droidforge/session/<id>.json` to reflect the latest state, ensuring consistency.\n2.  `loadSnapshot(repoRoot: string, sessionId: string)`: This function will read the session history file `.factory/sessions/<sessionId>.jsonl`, parse the last valid JSON line, and return the most recent `OnboardingSession` state. The primary session loading function, `loadActive`, should be updated to use this mechanism for resuming an existing session.\n\nThe following functions, which mutate the session state, must be instrumented to call `saveSnapshot` immediately after their changes are applied:\n- `record_project_goal`\n- `record_onboarding_data`\n- `select_methodology`\n- `recommend_droids`\n- `forge_roster`",
+      "testStrategy": "Create a new integration test file at `src/mcp/__tests__/sessionPersistence.test.ts`. The test suite should cover the following scenario:\n1.  Start a new onboarding session and perform an action, like recording the project goal, which triggers a state mutation.\n2.  Verify that `saveSnapshot` is called, resulting in a new entry in `.factory/sessions/<sessionId>.jsonl` and an update to `.droidforge/session/<id>.json`.\n3.  Simulate an application restart by creating a new session store instance.\n4.  Call `loadActive(sessionId)` to resume the session.\n5.  Assert that the loaded session state is identical to the state before the restart, paying close attention to nested data structures within the onboarding object.\n6.  Perform another mutation and verify that a second entry is appended to the `.jsonl` file.",
+      "subtasks": [
+        {
+          "id": "1",
+          "title": "Implement Snapshot Helpers in sessionStore.ts",
+          "description": "Add the core snapshot saving and loading functionality to the session store.",
+          "dependencies": [],
+          "details": "In `src/mcp/sessionStore.ts`, create two new exported functions: `saveSnapshot(session: OnboardingSession)` and `loadSnapshot(repoRoot: string, sessionId: string)`. `saveSnapshot` will append the session state to `.factory/sessions/<sessionId>.jsonl` and update `.droidforge/session/<id>.json`. `loadSnapshot` will read the last line from the `.jsonl` file to retrieve the most recent state.",
+          "status": "pending",
+          "testStrategy": "Unit tests for these helpers should verify file I/O operations: `saveSnapshot` correctly appends a JSON line and overwrites the canonical file; `loadSnapshot` correctly reads and deserializes the last line of a multi-line JSONL file.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "2",
+          "title": "Integrate saveSnapshot into Onboarding Mutation Functions",
+          "description": "Instrument key functions in the onboarding process to call saveSnapshot after they modify the session state.",
+          "dependencies": [
+            1
+          ],
+          "details": "Locate the following functions and add a call to `saveSnapshot(session)` at the end of each, after the session object has been modified: `record_project_goal`, `record_onboarding_data`, `select_methodology`, `recommend_droids`, and `forge_roster`. Ensure the updated session object is passed to the function.",
+          "status": "pending",
+          "testStrategy": "No dedicated tests are needed for this subtask; it will be validated by the integration tests in the final subtask.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "3",
+          "title": "Update Session Loading Logic to Use Snapshots",
+          "description": "Modify the main session loading function to prioritize resuming from a snapshot if one exists.",
+          "dependencies": [
+            1
+          ],
+          "details": "In `src/mcp/sessionStore.ts`, update the `loadActive(sessionId)` function (or its equivalent). The function should check for the existence of a `.factory/sessions/<sessionId>.jsonl` file. If found, it should use the new `loadSnapshot` helper to reconstruct the session state. If not found, it should fall back to the existing loading mechanism.",
+          "status": "pending",
+          "testStrategy": "Manually create a session file and a snapshot file. Test that `loadActive` correctly loads from the snapshot. Delete the snapshot file and test that it falls back to loading the canonical session file.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "4",
+          "title": "Create Integration Tests for Session Persistence",
+          "description": "Implement end-to-end tests to verify the entire session persistence and resumption flow.",
+          "dependencies": [
+            2,
+            3
+          ],
+          "details": "Create the test file `src/mcp/__tests__/sessionPersistence.test.ts`. Implement the test cases described in the main task's test strategy. This includes starting a session, triggering a snapshot, reloading the session, and asserting the data integrity. Ensure filesystem cleanup is handled properly in `beforeEach`/`afterEach` blocks.",
+          "status": "pending",
+          "testStrategy": "The test should use a temporary directory for the `.factory` and `.droidforge` folders to avoid interfering with other tests or the local development environment. Assert file contents directly to confirm that the JSONL file is being appended to correctly.",
+          "parentId": "undefined"
+        }
+      ],
+      "updatedAt": "2025-11-15T01:02:29.108Z"
+    },
+    {
+      "id": "5",
+      "title": "Build AI-Powered Methodology Recommendation Engine",
+      "description": "As part of the Phase 1 conversational onboarding flow, recommend three suitable development methodologies using an AI tool. The recommendations must be based on the collected user data and include explicit reasoning.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [
+        "4"
+      ],
+      "details": "The core logic will be implemented as a new AI-backed tool in `src/mcp/tools/generateMethodologyRecommendations.ts`. This tool will consume the `session.onboarding.requiredData` to generate a prompt for the Model Context Protocol SDK. The AI will return three methodology recommendations with reasoning. This tool will be invoked from the conversational prompt defined in `src/mcp/prompts/onboarding.ts` immediately after the initial six project attributes are collected. The results will be persisted to `session.onboarding.methodology.recommendations`. The existing `select_methodology` tool will be updated to handle selection from this list (or a custom entry), storing the final choice in `session.onboarding.methodology.surfacedChoice`.",
+      "testStrategy": "Create a new unit test file `src/mcp/tools/__tests__/generateMethodologyRecommendations.test.ts` that mocks the AI client to verify the tool's prompt generation and response parsing. Additionally, enhance the tests for `src/mcp/prompts/onboarding.ts` to assert that the conversational flow correctly triggers the recommendation tool, renders the options to the user, and correctly branches based on the user's selection.",
+      "subtasks": [
+        {
+          "id": "1",
+          "title": "Update Methodology Data Structures in Session State",
+          "description": "Modify the core session types to support storing AI-generated recommendations and the user's final selection. This prepares the session state for the new feature.",
+          "dependencies": [],
+          "details": "In `src/mcp/types.ts`, update the `methodology` object within the `OnboardingData` interface. Add a `recommendations: Recommendation[] | null` property to store the AI output and a `surfacedChoice: string | null` property for the user's selection. Define the `Recommendation` interface to include fields like `id: string`, `name: string`, and `reasoning: string`.",
+          "status": "pending",
+          "testStrategy": "Type definitions will be validated by the TypeScript compiler. Update tests for `sessionStore` in `src/mcp/__tests__/sessionStore.test.ts` to ensure the new fields can be correctly persisted and retrieved.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "2",
+          "title": "Implement the Methodology Recommendation Generation Tool",
+          "description": "Create a self-contained AI tool that takes onboarding data and returns a list of methodology recommendations. This centralizes the AI interaction logic.",
+          "dependencies": [
+            1
+          ],
+          "details": "Create the file `src/mcp/tools/generateMethodologyRecommendations.ts`. Implement an async function that accepts `session.onboarding.requiredData`. This function will construct a detailed prompt instructing the AI to select three methodologies and provide reasoning. It will then call the MCP AI client (similar to other tools) and parse the JSON response into a `Recommendation[]` array.",
+          "status": "pending",
+          "testStrategy": "Unit tests for this tool will be created in a subsequent subtask. This subtask is considered complete when the tool is implemented and exports the main function.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "3",
+          "title": "Integrate Recommendation Tool into Onboarding Prompt",
+          "description": "Hook the new recommendation tool into the main conversational flow, displaying the results to the user and asking for their choice.",
+          "dependencies": [
+            2
+          ],
+          "details": "In `src/mcp/prompts/onboarding.ts`, modify the conversation logic. After the step that collects the six core project fields, call the `generateMethodologyRecommendations` tool. Use the result to update the session state via `sessionStore`, persisting the recommendations. Then, update the prompt to render the three recommendations (with reasoning) and ask the user to select one.",
+          "status": "pending",
+          "testStrategy": "Testing will be performed in a later subtask focusing on the entire prompt flow to ensure correct integration and user experience.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "4",
+          "title": "Update `select_methodology` Tool and State Management",
+          "description": "Adapt the existing `select_methodology` tool to handle selections from the new recommendation list and persist the final choice.",
+          "dependencies": [
+            3
+          ],
+          "details": "Modify the `select_methodology` tool, likely located in `src/mcp/tools/`. Update its logic to accept either a recommendation ID (e.g., 'rec-1') or a freeform methodology name. If an ID is provided, it should map to the full name from the stored recommendations. The tool will then update the `session.onboarding.methodology.surfacedChoice` property with the selected methodology name.",
+          "status": "pending",
+          "testStrategy": "Update the unit tests for the `select_methodology` tool to cover the new input formats (ID and freeform text) and assert that `surfacedChoice` is correctly updated in the session state.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "5",
+          "title": "Create Unit and Prompt Tests for Methodology Recommendation",
+          "description": "Develop a comprehensive test suite to validate the new recommendation tool and its integration into the conversational prompt.",
+          "dependencies": [
+            2,
+            3,
+            4
+          ],
+          "details": "Create `src/mcp/tools/__tests__/generateMethodologyRecommendations.test.ts`. Mock the AI client to test the `generateMethodologyRecommendations` tool, verifying correct prompt construction and response parsing. Add or update tests for `src/mcp/prompts/onboarding.ts` to simulate the full conversation, ensuring the recommendation step is triggered, results are rendered, and the user's selection is correctly processed by the updated `select_methodology` tool.",
+          "status": "pending",
+          "testStrategy": "Run `npm test` and ensure all new and updated tests pass. Code coverage for `generateMethodologyRecommendations.ts` and related prompt logic should meet project standards.",
+          "parentId": "undefined"
+        }
+      ],
+      "updatedAt": "2025-11-15T01:02:30.221Z"
+    },
+    {
+      "id": "6",
+      "title": "Create Droid Roster Generation Service",
+      "description": "Generate specialist definitions (JSON and Markdown files) in `.factory/` and `.droidforge/` directories. This service will function as an MCP tool, consuming detailed Phase 1 onboarding data to create personalized content for each specialist.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [
+        "5"
+      ],
+      "details": "The core logic will be implemented as a new tool in `src/mcp/tools/forgeRoster.ts`. This tool will accept the `Session` object. It will use a new helper module, `src/mcp/roster/templateLoader.ts`, to load boilerplate JSON and Markdown templates from the `templates/methodologies/<methodology_name>/` directory, based on `session.onboarding.methodology.value`. The `forgeRoster` tool will then populate these templates by replacing placeholders (e.g., `{{projectVision}}`, `{{targetAudience}}`) with the corresponding data from `session.onboarding.requiredData`. The populated JSON files will be written to `.factory/droids/`, Markdown files to `.droidforge/`, and a `.factory/manifest.json` will be updated to track all generated artifacts.",
+      "testStrategy": "Create file-system-based integration tests in `src/mcp/__tests__/forgeRoster.test.ts`. A test case will involve seeding a mock `Session` object with realistic `onboarding.requiredData`. After executing the `forgeRoster` tool, assertions will verify: 1. The existence of the correct JSON and Markdown files in `.factory/droids/` and `.droidforge/`. 2. The content of generated files includes personalized text from the mock session data. 3. The `.factory/manifest.json` is created and correctly lists all generated file paths.",
+      "subtasks": [
+        {
+          "id": "1",
+          "title": "Implement Template Loading Utilities",
+          "description": "Create a dedicated module for discovering and loading droid templates from the filesystem based on the chosen methodology.",
+          "dependencies": [],
+          "details": "Create a new file `src/mcp/roster/templateLoader.ts`. This module will export a function, e.g., `loadDroidTemplates(methodology: string)`, that reads the `templates/methodologies/<methodology>/` directory. It will find all `*.json` and `*.md` files, read their contents, and return them in a structured way, like a map of filenames to content.",
+          "status": "pending",
+          "testStrategy": "Create a new unit test file `src/mcp/roster/__tests__/templateLoader.test.ts`. Use the `mock-fs` library to create a fake `templates/` directory structure. Call `loadDroidTemplates` and assert that it correctly reads and returns the contents of the expected files.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "2",
+          "title": "Scaffold forgeRoster Tool and Output Directory Management",
+          "description": "Create the main `forgeRoster.ts` tool file and implement logic to ensure the necessary output directories exist before writing files.",
+          "dependencies": [],
+          "details": "Create the new tool file at `src/mcp/tools/forgeRoster.ts`. Define and export the main async function, e.g., `forgeRoster(session: Session): Promise<void>`. Import the `Session` type from `src/mcp/types.ts`. Implement internal helper functions using `fs.promises.mkdir` with the `{ recursive: true }` option to ensure `.factory/droids/` and `.droidforge/` exist.",
+          "status": "pending",
+          "testStrategy": "In a new test file `src/mcp/__tests__/forgeRoster.test.ts`, write a test that calls the tool and uses `jest.spyOn` to mock `fs.promises.mkdir`, asserting it's called with the correct paths.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "3",
+          "title": "Implement Personalized Template Population Logic",
+          "description": "Populate the loaded template content with dynamic, personalized data from `session.onboarding.requiredData`.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Within `forgeRoster.ts`, create a private helper function `populateTemplate(templateContent: string, session: Session): string`. This function will perform string replacement for placeholders corresponding to the 10 onboarding data points (e.g., `{{projectVision}}`, `{{keyFeatures}}`, `{{targetAudience}}`). The main tool function will use this helper to process each template loaded by the `templateLoader`.",
+          "status": "pending",
+          "testStrategy": "Add a unit test for the `populateTemplate` helper in `src/mcp/__tests__/forgeRoster.test.ts`. Pass a sample template string and a mock `Session` object with `onboarding.requiredData` populated. Assert that the returned string has all placeholders correctly substituted with data from the session.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "4",
+          "title": "Write Populated Files and Update Generation Manifest",
+          "description": "Write the personalized droid definition files to their respective locations and update a manifest file to track all generated artifacts for cleanup purposes.",
+          "dependencies": [
+            3
+          ],
+          "details": "In the `forgeRoster` tool, after populating the templates, write each file to its destination: JSON files to `.factory/droids/` and Markdown files to `.droidforge/`. Implement logic to create or update `.factory/manifest.json`. This JSON file must contain a `rosterArtifacts` key with an array of strings, where each string is the relative path to a generated file. This is critical for the `/forge-removeall` command (Task 11).",
+          "status": "pending",
+          "testStrategy": "Extend the integration test using `mock-fs`. After calling `forgeRoster`, assert that the `.factory/manifest.json` file is created and that its `rosterArtifacts` array contains the exact paths of the generated files.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "5",
+          "title": "Create forgeRoster Tool Integration Test",
+          "description": "Create a file-system-based integration test to verify the end-to-end functionality of the `forgeRoster` tool, from session input to personalized file output.",
+          "dependencies": [
+            4
+          ],
+          "details": "In `src/mcp/__tests__/forgeRoster.test.ts`, write a comprehensive integration test. Use `mock-fs` to set up a virtual file system including templates. Create a detailed mock `Session` object, ensuring `onboarding.requiredData` and `onboarding.methodology` are fully populated. Execute `forgeRoster` and then perform detailed assertions: 1. Check for the existence of specific files (e.g., `ProductManager.json`, `LeadEngineer.md`). 2. Read the content of a generated file and parse it to verify that dynamic fields are correctly populated from the mock session data.",
+          "status": "pending",
+          "testStrategy": null,
+          "parentId": "undefined"
+        }
+      ],
+      "updatedAt": "2025-11-15T01:02:31.333Z"
+    },
+    {
+      "id": "7",
+      "title": "Support Custom Droid Definition via AI Parsing",
+      "description": "Extend the roster generation to allow users to add a custom droid by providing a freeform text description. An AI call will parse this text to derive a structured definition for the new droid.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": [
+        "6"
+      ],
+      "details": "In `src/forge/roster.ts`, add a function `parseCustomDroid(description: string): Promise<DroidDefinition>`. This function will use the AI SDK to process the user's description. The prompt will ask the model to generate a JSON object containing a `slug` (e.g., 'ui-polisher'), a `role` (e.g., 'UI Enhancement Specialist'), and a detailed `description`. The main roster generation flow will be updated to optionally call this function and merge the resulting `DroidDefinition` into the set of specialists to be generated.",
+      "testStrategy": "Unit test `parseCustomDroid` by mocking the AI SDK. Provide various freeform descriptions (e.g., 'an agent to check for typos', 'a droid that can refactor legacy code') and assert that the function returns a correctly structured `DroidDefinition` object with plausible values for slug, role, and description.",
+      "subtasks": [
+        {
+          "id": "1",
+          "title": "Create `parseCustomDroid` Function Stub and Supporting Types",
+          "description": "Define the function signature for `parseCustomDroid` in `src/forge/roster.ts` and create its corresponding unit test file. This sets up the foundational structure for the AI parsing logic.",
+          "dependencies": [],
+          "details": "In `src/forge/roster.ts`, add the exported async function `parseCustomDroid(description: string): Promise<DroidSpecialistDefinition>`. It should initially throw a 'Not Implemented' error. Ensure the `DroidSpecialistDefinition` type is imported from `src/forge/types.ts`. Create a new test file `src/forge/__tests__/roster.custom.test.ts` to house tests for this new functionality.",
+          "status": "pending",
+          "testStrategy": "A single test case should be created in `src/forge/__tests__/roster.custom.test.ts` that calls the stub function and asserts that it throws an error, confirming the test file is correctly set up and linked.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "2",
+          "title": "Implement AI Prompt and Parsing Logic in `parseCustomDroid`",
+          "description": "Implement the core logic within the `parseCustomDroid` function. This involves creating a system prompt, calling the AI model, and parsing the structured JSON response.",
+          "dependencies": [
+            1
+          ],
+          "details": "Flesh out the `parseCustomDroid` function in `src/forge/roster.ts`. Following the pattern in `src/mcp/tools/recommendDroids.ts`, use the AI client to send a prompt asking for a JSON object with `slug`, `role`, and `description` based on the user's input. Define a Zod schema to parse and validate the AI's response, ensuring it conforms to the `DroidSpecialistDefinition` type. Handle potential JSON parsing errors and validation failures gracefully.",
+          "status": "pending",
+          "testStrategy": "This will be tested in the next subtask. Manual testing during development can be done by invoking the function with a sample description and logging the output to the console.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "3",
+          "title": "Develop Unit Tests for `parseCustomDroid` with Mocked AI Client",
+          "description": "Write a comprehensive test suite for the `parseCustomDroid` function, mocking the AI client to ensure the function behaves correctly under various conditions.",
+          "dependencies": [
+            2
+          ],
+          "details": "In `src/forge/__tests__/roster.custom.test.ts`, mock the AI client module. Write multiple test cases for `parseCustomDroid` that simulate different AI responses: a successful response with valid JSON, a response with malformed JSON, a response with a structurally valid but incomplete JSON object, and a case where the AI client itself throws an error. Assert that the function returns a valid `DroidSpecialistDefinition` on success and throws appropriate, informative errors on failure.",
+          "status": "pending",
+          "testStrategy": "The test suite itself is the verification method. Use a testing framework like Jest to mock the AI SDK and run assertions against the function's return values and thrown errors based on the mocked outputs.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "4",
+          "title": "Integrate Custom Droid into Main Roster Generation Flow",
+          "description": "Update the primary roster generation logic to incorporate the new custom droid parsing capability, allowing a user-defined droid to be included in the final generated roster.",
+          "dependencies": [
+            3
+          ],
+          "details": "Modify the `generateRoster` function in `src/forge/roster.ts`. Update its signature to accept an optional `customDroidDescription: string`. If this argument is provided, the function should `await` the result of `parseCustomDroid(customDroidDescription)`. The returned `DroidSpecialistDefinition` should then be added to the array of specialists before the file generation process begins. Update any calling functions, such as those in the main CLI entry point, to pass this new optional parameter.",
+          "status": "pending",
+          "testStrategy": "Update an existing integration test or create a new one that calls `generateRoster` with a sample custom droid description. The test should then verify that a file corresponding to the custom droid's slug is created in the output directory and that its contents (role, description) are correct.",
+          "parentId": "undefined"
+        }
+      ],
+      "updatedAt": "2025-11-15T01:02:32.417Z"
+    },
+    {
+      "id": "8",
+      "title": "Harden Resource Locking in Execution Manager",
+      "description": "Enhance the existing execution manager's locking foundation to support robust read/write semantics on glob patterns. Implement deadlock detection to prevent stalled executions.",
+      "status": "done",
+      "priority": "high",
+      "dependencies": [],
+      "details": "Refactor the locking mechanism in `src/execution/lockManager.ts`. The current foundation should be extended to a class `LockManager` that maintains a state of all active locks. Implement `acquireLock(globPattern: string, type: 'read' | 'write'): Promise<Lock>`. When a write lock is requested, the manager must check for any existing read or write locks on overlapping patterns. When a read lock is requested, it must only check for write locks. Implement a timeout mechanism with deadlock detection: if a lock cannot be acquired within a certain period, analyze the lock graph to identify a cycle and throw a specific `DeadlockError`.",
+      "testStrategy": "Create comprehensive unit tests for the `LockManager`. Test concurrent lock requests: two reads on the same file should succeed, a read and a write should block, two writes should block. Create a specific test scenario that intentionally creates a deadlock (e.g., Process A locks file1, waits for file2; Process B locks file2, waits for file1) and assert that a `DeadlockError` is thrown.",
+      "subtasks": [
+        {
+          "id": "1",
+          "title": "Refactor Lock Mechanism into a `LockManager` Class",
+          "description": "Restructure the existing locking functions in `src/execution/lockManager.ts` into a new `LockManager` class. This class will serve as the foundation for managing lock state, requests, and releases.",
+          "dependencies": [],
+          "details": "Create and export a `LockManager` class in `src/execution/lockManager.ts`. It should have a private data structure (e.g., a Map or an array) to track active locks. Define the public methods `acquireLock(globPattern: string, type: 'read' | 'write'): Promise<Lock>` and `releaseLock(lock: Lock)`. The `Lock` object or interface should also be defined, containing at least the lock's ID, pattern, and type.\n<info added on 2025-11-04T18:55:38.737Z>\nAn analysis of `src/execution/lockManager.ts` confirms it currently exports standalone locking functions. The refactor will proceed by first defining a `Lock` interface and then creating the `LockManager` class to encapsulate the existing logic. This class will use a private `Map` to track active locks. The primary consumer identified is `src/execution/worker.ts`, which will be updated to import and instantiate the `LockManager`. The immediate goal is to replace the calls to the old standalone functions with calls to the new class methods, without altering the fundamental locking behavior.\n</info added on 2025-11-04T18:55:38.737Z>\n<info added on 2025-11-04T18:57:06.314Z>\n\"Codebase analysis confirms the existing lock manager is ResourceLockManager located in src/mcp/execution/resourceLocks.ts. The previously mentioned src/execution/lockManager.ts does not exist. The refactoring will adapt the existing ResourceLockManager into the new class structure, either by renaming resourceLocks.ts to lockManager.ts or by creating the new file and migrating the logic.\"\n</info added on 2025-11-04T18:57:06.314Z>\n<info added on 2025-11-04T19:22:59.283Z>\nThe LockManager class has been implemented in `src/mcp/execution/resourceLocks.ts`. For backward compatibility, the legacy standalone `acquireLock` and `releaseLock` functions are re-exported and now delegate to an instance of the new class. The `ExecutionManager` and related tests have been updated to use the new `LockManager` class directly.\n</info added on 2025-11-04T19:22:59.283Z>",
+          "status": "done",
+          "testStrategy": "Unit tests will be added in a subsequent task. This task focuses on the structural refactoring. Existing tests might need to be temporarily adjusted or disabled.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-04T19:23:22.549Z"
+        },
+        {
+          "id": "2",
+          "title": "Implement Read/Write Lock Semantics with Glob Overlap",
+          "description": "Enhance the `acquireLock` method to correctly handle read and write lock requests based on conflicts with existing locks on overlapping glob patterns.",
+          "dependencies": [
+            1
+          ],
+          "details": "In the `LockManager.acquireLock` method, implement the core conflict detection logic. A 'write' lock request must wait if there are any existing 'read' or 'write' locks on an overlapping pattern. A 'read' lock request must wait only for existing 'write' locks. Use a library like `micromatch` to determine if glob patterns overlap. For instance, a lock on `src/**/*.ts` overlaps with `src/execution/*.ts`.\n<info added on 2025-11-04T19:36:30.078Z>\n```json\n\"Implementation Plan: First, inspect the current `LockManager` in `src/execution/lockManager.ts`, which currently performs only identity-based conflict checks. Integrate the `ResourceMatcher.overlaps` method to enable conflict detection for glob patterns. Update the `acquireLock` logic to ensure that a 'write' lock request blocks if there is any overlapping existing lock (read or write). A 'read' lock request should only block on a conflicting 'write' lock, allowing for multiple shared reads on the same resource pattern. The manager's internal state tracking will need to be adjusted to accommodate this.\"\n```\n</info added on 2025-11-04T19:36:30.078Z>\n<info added on 2025-11-04T19:40:53.751Z>\nImplementation is now complete. The `LockManager` leverages the `ResourceMatcher` for glob overlap detection to enforce read/write semantics. Write requests now block on any overlapping lock (read or write), while read requests can be shared unless there is a conflicting write lock. A release helper function was renamed to resolve a linting conflict. The lint process confirmed no implementation issues, noting only a non-blocking TypeScript version warning.\n</info added on 2025-11-04T19:40:53.751Z>\n<info added on 2025-11-07T21:08:36.390Z>\n```json\n\"Plan: Start by adding a failing spec to `src/execution/__tests__/lockManager.test.ts` that covers read/write lock conflicts with overlapping glob patterns. Then, modify the `acquireLock` method in `src/execution/lockManager.ts` to use the `ResourceMatcher` for overlap detection, enforcing the correct read/write semantics. Finally, ensure the lock release logic correctly handles the updated path management.\"\n```\n</info added on 2025-11-07T21:08:36.390Z>",
+          "status": "done",
+          "testStrategy": "The test strategy will be defined in the dedicated testing task. Logic will be verified by testing concurrent requests for overlapping and non-overlapping patterns.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-04T19:41:26.456Z"
+        },
+        {
+          "id": "3",
+          "title": "Implement Lock Request Queuing and Timeouts",
+          "description": "Introduce a queuing system for lock requests that cannot be acquired immediately. Add a timeout mechanism to prevent indefinite waiting.",
+          "dependencies": [
+            2
+          ],
+          "details": "When `acquireLock` detects a conflict, instead of busy-waiting, it should add the request to a queue. The method will return a Promise that resolves when the lock is eventually granted. Implement a configurable timeout (e.g., 30 seconds). If the promise does not resolve within this period, it should reject. This will involve wrapping the dequeuing logic in a `Promise.race` against a `setTimeout`.\n<info added on 2025-11-05T00:50:09.839Z>\nFinalize the queue handling and deadlock-aware timeout logic in `src/mcp/execution/lockManager.ts`. The `processQueue` method must be updated to ensure pending requests correctly resolve when a lock is granted or reject on timeout. Update related tests to verify the correct resolution and rejection of these queued requests.\n</info added on 2025-11-05T00:50:09.839Z>\n<info added on 2025-11-07T18:01:13.890Z>\nAdd new, initially failing tests to the `ResourceLockManager` test suite located in `src/mcp/execution/__tests__/lockManager.test.ts`. These tests will validate the missing queue and timeout behaviors.\n\nSpecifically, create tests for the following scenarios:\n1.  **Queued Acquisition:** A test where a second `acquireLock` call for a busy resource is queued. Upon release of the first lock, the test should assert that the promise from the second call resolves successfully.\n2.  **Timeout Rejection:** A test where a queued `acquireLock` request is made, but the conflicting lock is never released. Using fake timers (`jest.useFakeTimers()`), the test should advance time and assert that the promise from the queued call rejects due to the timeout.\n</info added on 2025-11-07T18:01:13.890Z>\n<info added on 2025-11-07T21:17:27.228Z>\nExpand the test suite in `src/mcp/execution/__tests__/lockManager.test.ts` to cover more complex scenarios. Add a new test case for a request waiting on multiple resources to be released. Introduce a specific failure scenario to better exercise the interaction between the queue and timeout logic. Ensure tests also verify that a timed-out request is properly cleaned up from the queue. The `ResourceLockManager` implementation will then be modified to fix any gaps revealed by these new failing tests.\n</info added on 2025-11-07T21:17:27.228Z>\n<info added on 2025-11-08T21:15:17.904Z>\nNext steps are to implement the test-driven development plan. First, review the current `ResourceLockManager` and its tests. Then, add new failing tests to `src/mcp/execution/__tests__/lockManager.test.ts` to cover key queuing and timeout scenarios: a queued request that successfully acquires a lock after release, a queued request that correctly times out using fake timers, and a request waiting on multiple resources that cleans up properly on timeout. After confirming these new tests fail as expected, the work on the implementation itself will be deferred.\n</info added on 2025-11-08T21:15:17.904Z>\n<info added on 2025-11-08T21:22:36.124Z>\n{\n  \"text\": \"Codebase analysis reveals that `ResourceLockManager` currently only exposes synchronous `tryAcquire`/`release` APIs. The asynchronous `acquireLock` with queuing and timeout semantics, which is the target for the new tests, has not yet been implemented. Furthermore, the specified test file `src/mcp/execution/__tests__/lockManager.test.ts` does not exist; existing tests are in `resourceLocks.test.ts`. Writing the proposed tests is blocked until the new asynchronous API and its expected behavior are defined. Proposing to first align on the public API for the queued `acquireLock` method before proceeding with test implementation.\"\n}\n</info added on 2025-11-08T21:22:36.124Z>\n<info added on 2025-11-08T22:14:43.334Z>\n{\n  \"text\": \"The previous blocker on API definition is resolved. The requirement for async lock queuing with timeouts was located in `docs/PRD.md` (section 9.4). A new design document has been created at `docs/specifications/lock-queue-design.md`, which defines the new `acquireLock()` API and outlines 5 test scenarios. With the specification now clear, the next step is to write the tests.\"\n}\n</info added on 2025-11-08T22:14:43.334Z>\n<info added on 2025-11-08T22:15:45.685Z>\n{\n  \"text\": \"Test execution complete. All 5 test scenarios from the design specification now fail as expected, documenting the required behavior. The failures are due to the `acquireLock()` method being unimplemented: (1) immediate acquisition fails, (2) queued acquisition completes instantly instead of waiting, (3) timeout rejection does not occur, (4) multi-resource wait does not block, and (5) queue cleanup logic cannot be verified. The next step is to implement the `acquireLock()` method in `lockManager.ts` to make these tests pass.\"\n}\n</info added on 2025-11-08T22:15:45.685Z>",
+          "status": "done",
+          "testStrategy": "Will be tested as part of the comprehensive testing task. Scenarios will include verifying that a blocked request is eventually granted after the conflicting lock is released, and that a request times out if the lock is held for too long.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-08T22:15:53.013Z"
+        },
+        {
+          "id": "4",
+          "title": "Implement Deadlock Detection Logic",
+          "description": "On lock acquisition timeout, implement a mechanism to analyze the lock dependency graph to detect circular dependencies (deadlocks).",
+          "dependencies": [
+            3
+          ],
+          "details": "When a lock request times out, trigger a deadlock detection routine. This routine will construct a directed graph where nodes are processes/requesters and an edge from A to B means A is waiting for a lock held by B. Perform a cycle detection algorithm (e.g., Depth-First Search) starting from the timed-out requester. If a cycle is found, the `acquireLock` promise should reject with a specific `DeadlockError`. If no cycle is found, reject with a generic `LockTimeoutError`.\n<info added on 2025-11-07T22:42:43.602Z>\nAdd failing tests to `src/mcp/execution/__tests__/lockManager.test.ts` to cover the deadlock detection logic. Use fake timers to reliably trigger the timeout code paths.\n\n1.  Add a test case for a genuine deadlock scenario:\n    *   Process 1 acquires a lock on resource A.\n    *   Process 2 acquires a lock on resource B.\n    *   Process 1 requests a lock on resource B (and waits).\n    *   Process 2 requests a lock on resource A.\n    *   Advance timers to trigger a timeout.\n    *   Assert that the promise for the timed-out request rejects with `DeadlockError`.\n\n2.  Add a test case for a simple timeout scenario without a deadlock:\n    *   Process 1 acquires a lock on resource A.\n    *   Process 2 requests a lock on resource A (and waits).\n    *   Advance timers to trigger a timeout.\n    *   Assert that the promise rejects with `LockRequestTimeoutError`.\n</info added on 2025-11-07T22:42:43.602Z>\n<info added on 2025-11-07T22:43:47.978Z>\n{\n  \"text\": \"Investigation update: The correct test file is `src/mcp/execution/__tests__/resourceLocks.test.ts`. It currently has no deadlock coverage. Plan is to add two new `describe` blocks for deadlock detection using fake timers. For the initial RED phase of the test, will assert against a placeholder class name for the `DeadlockError` and add a TODO to update it once the actual error class is implemented.\"\n}\n</info added on 2025-11-07T22:43:47.978Z>\n<info added on 2025-11-08T22:40:01.339Z>\nMy plan is to first inspect `src/mcp/execution/resourceLocks.ts` to confirm the API and the exact `DeadlockError` and `LockRequestTimeoutError` types. I will then review `src/mcp/execution/__tests__/resourceLocks.test.ts` to align with existing patterns, especially the use of fake timers. Following that, I'll add new `describe` blocks to cover two key scenarios: (a) a deadlock that throws `DeadlockError`, and (b) a simple timeout that throws `LockRequestTimeoutError`. I will use Jest's fake timers to control the timeouts and ensure proper cleanup between tests. Finally, I'll run the targeted test file with `npm test -- resourceLocks.test.ts` and update the subtask with the results.\n</info added on 2025-11-08T22:40:01.339Z>\n<info added on 2025-11-08T22:45:22.086Z>\nResourceLockManager currently re-exports LockManager, which lacks queueing/timeout features. Deadlock and timeout errors are not yet implemented; existing lockManager.test.ts refers to planned acquireLock() API. New tests will focus on ExecutionManager behavior by simulating locking deadlocks/timeouts via DeadlockDetector + tryAcquire. Need to introduce minimal error classes and use fake timers from node:test's mock utilities.\n</info added on 2025-11-08T22:45:22.086Z>\n<info added on 2025-11-08T22:50:52.403Z>\n{\n  \"text\": \"Added RED tests to `src/mcp/execution/__tests__/resourceLocks.test.ts` covering the planned `DeadlockError` and `LockRequestTimeoutError` behaviors. The initial test run failed because the `npm test` script requires the full path from the project root, not a path relative to the `src/mcp` directory. The correct invocation is `npm test -- src/mcp/execution/__tests__/resourceLocks.test.ts`.\"\n}\n</info added on 2025-11-08T22:50:52.403Z>\n<info added on 2025-11-08T22:51:29.783Z>\n{\n  \"text\": \"RED phase confirmed. The new tests fail as expected with 'Missing expected rejection' because the acquireLock deadlock/timeout behavior is not yet implemented.\"\n}\n</info added on 2025-11-08T22:51:29.783Z>\n<info added on 2025-11-09T14:27:46.437Z>\n{\n  \"text\": \"Plan: 1) Review existing locking implementation in src/mcp/execution/resourceLocks.ts and related tests to confirm current API. 2) Design expected DeadlockError and LockRequestTimeoutError behaviors and identify integration points. 3) Implement necessary production code updates enabling the RED tests to pass, ensuring fake timer compatibility. 4) Update or add tests in src/mcp/execution/__tests__/resourceLocks.test.ts to cover deadlock and simple timeout scenarios. 5) Run targeted npm test suite for the file and adjust per failures.\"\n}\n</info added on 2025-11-09T14:27:46.437Z>\n<info added on 2025-11-09T14:57:34.236Z>\nAdded a microtask flush before calling timers.tick/tickAsync so the LockRequestTimeoutError test observes the pending timeout promise. This stabilizes the fake timer path without altering runtime logic.\n</info added on 2025-11-09T14:57:34.236Z>\n<info added on 2025-11-09T21:37:40.620Z>\n{\n  \"text\": \"Starting GREEN phase. My plan is to implement the production code that will make the existing RED tests pass. I will begin by examining the failing tests to understand the expected API. Next, I will implement the `DeadlockError` and `LockRequestTimeoutError` classes, along with the core deadlock detection algorithm in the lock manager. I will ensure the implementation is compatible with the fake timer logic in the tests and will run the test suite to verify completion of the GREEN phase.\"\n}\n</info added on 2025-11-09T21:37:40.620Z>\n<info added on 2025-11-09T21:38:22.920Z>\n{\n  \"text\": \"GREEN phase complete. All tests are now passing, including the new tests confirming that `acquireLock` rejects with `DeadlockError` for circular waits and `LockRequestTimeoutError` for simple timeouts. The implementation in `src/mcp/execution/lockManager.ts` is finished. It includes the `DeadlockError` and `LockRequestTimeoutError` custom error classes, an `acquireLock` method with timeout support, and a `detectCircularWait()` method for graph-based cycle detection. The algorithm correctly identifies all participants in a dependency cycle and rejects their promises, with proper timeout cleanup and fake timer compatibility.\"\n}\n</info added on 2025-11-09T21:38:22.920Z>",
+          "status": "done",
+          "testStrategy": "A specific test case will be created to orchestrate a deadlock scenario (e.g., process A locks X and requests Y, while process B locks Y and requests X) and verify that the correct `DeadlockError` is thrown.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-08T22:40:10.861Z"
+        },
+        {
+          "id": "5",
+          "title": "Create Comprehensive Unit Tests for LockManager",
+          "description": "Develop a suite of unit tests in `src/execution/__tests__/lockManager.test.ts` to validate all new locking features, including concurrency, timeouts, and deadlock detection.",
+          "dependencies": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "details": "Create or update the test file `src/execution/__tests__/lockManager.test.ts`. The test suite must cover: 1. Concurrent read locks on the same pattern should succeed. 2. A write lock request should block if a read lock exists. 3. A read lock request should block if a write lock exists. 4. Concurrent write locks should block. 5. Test glob pattern overlap detection. 6. Verify that a lock request times out correctly. 7. Implement a specific test to create a deadlock and assert that a `DeadlockError` is thrown.\n<info added on 2025-11-10T16:23:26.428Z>\nCreated a new file `lockManager.hardening.test.ts` containing 6 new hardening-specific tests. These focus on security vulnerabilities such as multi-node deadlock detection, memory leak prevention, concurrent operations, error handling, and timeout validation, as distinct from comprehensive feature tests. All 46 total lock manager tests are passing.\n</info added on 2025-11-10T16:23:26.428Z>",
+          "status": "done",
+          "testStrategy": "This task is the implementation of the test strategy for the entire LockManager feature. It will involve mocking concurrent asynchronous operations to simulate real-world race conditions and deadlock scenarios.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-10T22:14:23.663Z"
+        },
+        {
+          "id": "6",
+          "title": "Refactor lockManager.ts into a LockManager Class",
+          "description": "Convert the existing procedural locking logic in `src/execution/lockManager.ts` into a class-based structure. This will provide a foundation for managing complex lock states and requests.",
+          "dependencies": [],
+          "details": "Create a `LockManager` class in `src/execution/lockManager.ts`. Define interfaces for `Lock` and pending lock requests. The class should have private properties to track active locks and a queue of pending requests. Initially, it can replicate the existing simple lock functionality to prepare for further enhancements.\n<info added on 2025-11-07T22:38:09.745Z>\n\"Pre-refactor analysis plan:\\n- Validate the procedural helper functions and module-level state within `src/execution/lockManager.ts`.\\n- Determine if `src/execution/resourceLocks.ts` contains any stateful logic or is purely for type definitions.\\n- Identify all modules that import from `src/execution/lockManager.ts` (e.g., `src/execution/worker.ts`) to map out all call sites that will need to be updated to use the new `LockManager` class.\"\n</info added on 2025-11-07T22:38:09.745Z>\n<info added on 2025-11-08T14:59:48.217Z>\n{\n  \"text\": \"Initial analysis: review existing lock management modules, including src/execution/lockManager.ts, src/execution/resourceLocks.ts, and callers (e.g., worker.ts). Plan to document responsibilities and state management patterns before refactor.\"\n}\n</info added on 2025-11-08T14:59:48.217Z>\n<info added on 2025-11-08T15:02:45.539Z>\n{\n  \"text\": \"Implementation plan:\\n1. Restructure src/execution/lockManager.ts to make the LockManager class responsible for queue bookkeeping: introduce helpers like getOrCreateLock, canShareLock, and enqueue/dequeue while keeping the public API (tryAcquire/release/getLockState/etc.) compatible.\\n2. Update src/execution/manager.ts and src/execution/resourceLocks.ts if needed to align with the refactored API (expect no signature changes but confirm imports and types).\\n3. Strengthen tests under src/execution/__tests__/resourceLocks.test.ts to cover queue bookkeeping (e.g., pending requests, reattempt after release) and new helper behaviors.\\n4. Run npm test -- resourceLocks (or full npm test if quick) to ensure regression coverage.\"\n}\n</info added on 2025-11-08T15:02:45.539Z>\n<info added on 2025-11-08T15:16:35.389Z>\n{\n  \"text\": \"Starting the refactor of `src/execution/lockManager.ts` into a `LockManager` class. The internal logic is being reorganized into private helper methods: `getOrCreateLock`, `canShareLock`, `promoteQueue`, and `releaseLockEntry`. The public API will remain unchanged.\"\n}\n</info added on 2025-11-08T15:16:35.389Z>\n<info added on 2025-11-08T15:24:34.933Z>\nRefactored src/mcp/execution/lockManager.ts, introducing helper methods getOrCreateLock, canAcquireLock, acquireLock, releaseLockEntry, and resolveMode while preserving the public API. An attempt to run a targeted test with `npm test -- resourceLocks` failed because the test script requires a glob pattern. Will run the full test suite after finalizing the changes.\n</info added on 2025-11-08T15:24:34.933Z>\n<info added on 2025-11-08T19:22:17.777Z>\nThe test script glob pattern has been corrected to a directory path, allowing the full test suite to run. All tests are now passing, confirming the successful completion of the `lockManager.ts` helper method refactor.\n</info added on 2025-11-08T19:22:17.777Z>",
+          "status": "done",
+          "testStrategy": "Create a new test file `src/execution/__tests__/lockManager.test.ts`. Add basic tests to verify that the `LockManager` class can be instantiated and that a simple lock can be acquired and released sequentially.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-08T19:22:46.233Z"
+        },
+        {
+          "id": "7",
+          "title": "Implement Promise-based `acquireLock` and `release` Methods",
+          "description": "Implement the core asynchronous methods for acquiring and releasing locks. `acquireLock` will return a Promise that resolves with a `Lock` object, which in turn has a `release` method.",
+          "dependencies": [
+            6
+          ],
+          "details": "Implement `acquireLock(resourceId: string): Promise<Lock>`. When a lock is available, it resolves immediately. If not, the request is queued. The returned `Lock` object must have a `release()` method. When `release()` is called, the `LockManager` should process the next compatible request from the queue.\n<info added on 2025-11-09T21:39:10.473Z>\n```json\n\"Based on an analysis of the current implementation, the `LockManager` class currently has an `acquireLock(resources, mode, nodeId, timeoutMs)` method that returns `Promise<void>`, and a separate `release(resources, nodeId)` method.\n\nThe refactoring plan is as follows:\n1. Define a new `Lock` interface that includes a `release()` method.\n2. Refactor the `acquireLock` method to return a `Promise<Lock>`.\n3. Ensure the returned `Lock` object properly encapsulates the necessary context (like resources and nodeId) so that its `release()` method can function without parameters.\n4. Update or add tests to verify the new API, ensuring the `acquireLock` promise resolves with a valid `Lock` object and that calling `lock.release()` works as expected.\"\n```\n</info added on 2025-11-09T21:39:10.473Z>\n<info added on 2025-11-09T21:43:20.087Z>\n[]\n</info added on 2025-11-09T21:43:20.087Z>\n<info added on 2025-11-09T21:48:20.565Z>\n```json\n\"Analysis of the failing test:\\n\\nThe test \\\"removes timed-out request from queue without affecting others\\\" is failing because when request2 (node3) times out, it's not properly cleaning up the queue, which prevents request1 (node2) from acquiring the lock when node1 releases it.\\n\\n**Root Cause Hypothesis:**\\nWhen a timeout occurs and `removeFromQueues()` is called, there might be an issue with:\\n1. The queue ordering getting disrupted\\n2. The `blockedOn` set not being properly cleared\\n3. The queue processing logic not skipping timed-out requests properly\\n\\n**Plan to Fix:**\\n1. Add debug logging to understand the queue state during timeout\\n2. Review the `removeFromQueues()` method to ensure it doesn't disrupt queue ordering\\n3. Check if timed-out requests are being properly filtered out during queue processing\\n4. Add a test to verify queue state after timeout before attempting lock release\\n5. Fix the queue cleanup logic to ensure other requests aren't affected\\n\\n**Expected Fix:**\\nThe timeout cleanup should remove only the timed-out request from the queue while preserving the order and state of other waiting requests. When the lock is released, the next valid request in the queue should acquire it.\"\n```\n</info added on 2025-11-09T21:48:20.565Z>",
+          "status": "done",
+          "testStrategy": "In `lockManager.test.ts`, add tests for concurrency. For example, request a lock that is already held and verify the Promise does not resolve until the first lock is released. Ensure the `release()` method correctly triggers the resolution of the next pending lock.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "8",
+          "title": "Implement Read/Write Semantics and Glob Pattern Conflict Detection",
+          "description": "Enhance the `acquireLock` method to support 'read' and 'write' lock types and detect conflicts based on overlapping glob patterns.",
+          "dependencies": [
+            7
+          ],
+          "details": "Modify `acquireLock` to accept `(globPattern: string, type: 'read' | 'write')`. Use the `micromatch` library to check for overlaps between requested patterns and existing lock patterns. A 'write' request must conflict with any overlapping 'read' or 'write' lock. A 'read' request must only conflict with overlapping 'write' locks.\n<info added on 2025-11-10T05:40:22.226Z>\n```json\n\"A new method, `acquireLockByPattern()`, has been implemented to support glob patterns with read/write lock semantics. The `micromatch` library is used for pattern overlap detection. The implementation correctly allows multiple concurrent readers on overlapping patterns, while write locks block both read and write requests. Comprehensive unit tests were added and are passing, covering scenarios including non-overlapping patterns, multiple reads, read-write conflicts, write-write conflicts, Lock object structure, release functionality, timeouts, and complex glob patterns.\"\n```\n</info added on 2025-11-10T05:40:22.226Z>",
+          "status": "done",
+          "testStrategy": "Add unit tests to cover various read/write scenarios: two reads on an overlapping glob should succeed concurrently. A read and a write on an overlapping glob should block. Two writes on an overlapping glob should block. Test non-overlapping globs to ensure they do not block each other.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-10T05:41:00.336Z"
+        },
+        {
+          "id": "9",
+          "title": "Implement Timeout and Deadlock Detection",
+          "description": "Add a timeout to lock acquisition and implement a deadlock detection mechanism that analyzes the lock dependency graph when a timeout occurs.",
+          "dependencies": [
+            8
+          ],
+          "details": "Wrap the `acquireLock` promise logic with a configurable timeout (e.g., 30 seconds). If the timeout is reached, traverse the graph of pending requests and active locks to detect a cycle. If a cycle is found, reject the promise with a custom `DeadlockError` that describes the cycle. If no cycle is found, reject with a standard `TimeoutError`.\n<info added on 2025-11-10T16:21:20.903Z>\nImplementation enhanced with a DFS-based, multi-node deadlock detection algorithm capable of detecting cycles of any length. Comprehensive timeout handling now includes memory-safe cleanup to prevent memory leaks from orphaned requests. Race conditions during asynchronous lock acquisition have been fixed. All tests are passing, including 6 new hardening tests. The full specification is documented in `docs/specifications/lock-queue-design.md`.\n</info added on 2025-11-10T16:21:20.903Z>",
+          "status": "done",
+          "testStrategy": "Create a specific test case that engineers a deadlock. For example, have Process A acquire lock on 'file1' and request 'file2', while Process B acquires lock on 'file2' and requests 'file1'. Verify that `acquireLock` rejects with a `DeadlockError`.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-10T16:21:50.588Z"
+        },
+        {
+          "id": "10",
+          "title": "Integrate LockManager into Execution Manager and Task Executors",
+          "description": "Update the existing `ExecutionManager` and/or `TaskExecutor` to use the new, robust `LockManager` for all resource-intensive operations.",
+          "dependencies": [
+            9
+          ],
+          "details": "Instantiate the `LockManager` within the `ExecutionManager`. Refactor `TaskExecutor` to call `lockManager.acquireLock(pattern, type)` before file system operations. Use `try...finally` blocks to guarantee that `lock.release()` is called, even if the task fails, to prevent dangling locks.\n<info added on 2025-11-10T16:25:47.924Z>\nPartial integration between the LockManager and ExecutionManager is complete in `src/execution/manager.ts`. Lock operations have been hardened, and error handling and cleanup logic have been updated. Full integration testing is still pending.\n</info added on 2025-11-10T16:25:47.924Z>",
+          "status": "pending",
+          "testStrategy": "This will be tested via integration tests. Run an execution plan that involves multiple tasks trying to access the same files. Verify that file access is correctly serialized for write operations and that no race conditions or deadlocks occur during a typical run. Check logs to confirm lock acquisition and release order.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-10T18:02:29.575Z"
+        },
+        {
+          "id": "11",
+          "title": "Establish LockManager Class and Refactor Integration",
+          "description": "Refactor `src/execution/lockManager.ts` to export a `LockManager` class. Update `executionManager.ts` to instantiate and use this manager, replacing the old procedural `acquireLock` function.",
+          "dependencies": [],
+          "details": "The initial `LockManager` class will contain a skeleton `acquireLock` method. The primary goal is to refactor the integration point in `executionManager.ts` to use a class instance, ensuring the new structure is in place for subsequent features.\n<info added on 2025-11-08T03:07:45.356Z>\nPlan:\n1. Copy the existing `ResourceLockManager` implementation into a new module at `src/mcp/execution/lockManager.ts`.\n2. From this new module, export a `LockManager` class. Include minimal type stubs to support future work on queuing and timeouts.\n3. Update `ExecutionManager` to lazily construct a `LockManager` instance using a `getLockManager()` method. Switch existing call sites for `tryAcquire`, `release`, and `getLockState` to use the new wrapper instance.\n4. To avoid breaking existing imports, preserve the current `resourceLocks.ts` file as a thin shim, re-exporting the new `LockManager` class.\n5. Run `npm test -- src/mcp/execution/__tests__/resourceLocks.test.ts` to ensure no regressions were introduced.\n</info added on 2025-11-08T03:07:45.356Z>\n<info added on 2025-11-08T03:21:46.674Z>\n{\n  \"update\": \"Outcome: Introduced src/mcp/execution/lockManager.ts with current tryAcquire/release APIs and converted resourceLocks.ts into a shim re-exporting the new class. ExecutionManager now tracks LockManager instances via getLockManager(), replacing the old getResourceLockManager helper, and we tightened restoreFromPersisted typing to use PersistedExecution. Tests: npm test -- src/mcp/execution/__tests__/resourceLocks.test.ts (suite ran; existing unrelated failures persist in broader test run). No new lint issues were introduced beyond pre-existing any-casts in http-server endpoints.\"\n}\n</info added on 2025-11-08T03:21:46.674Z>\n<info added on 2025-11-08T03:26:25.430Z>\nOutcome: Added LockManager class shimmed through resourceLocks, refactored ExecutionManager to use getLockManager, scoped tests run (resourceLocks suite). Broader suite failures pre-existing.\n</info added on 2025-11-08T03:26:25.430Z>\n<info added on 2025-11-08T03:35:48.519Z>\n```json\n\"Outcome: Added LockManager class shimmed through resourceLocks, refactored ExecutionManager to use getLockManager, and scoped resourceLocks tests (npm test -- src/mcp/execution/__tests__/resourceLocks.test.ts). Broader suite still has known unrelated failures.\"\n```\n</info added on 2025-11-08T03:35:48.519Z>\n<info added on 2025-11-08T03:43:38.480Z>\nOutcome: Added LockManager class shimmed through resourceLocks, refactored ExecutionManager to use getLockManager, and ran npm test -- src/mcp/execution/__tests__/resourceLocks.test.ts (other suites already failing beforehand).\n</info added on 2025-11-08T03:43:38.480Z>\n<info added on 2025-11-08T20:44:36.221Z>\n```json\n\"Plan:\\n1. In `src/mcp/execution/executionManager.ts`, audit all calls related to resource locking. Confirm that they are routed through the instance returned by `getLockManager()`, replacing any remaining procedural helper references.\\n2. Verify that `src/mcp/execution/lockManager.ts` properly exports the `LockManager` class and any associated types needed by `ExecutionManager` to ensure type safety and alignment.\\n3. Augment the test suite, likely in `src/mcp/execution/__tests__/executionManager.test.ts`, to cover the integration. Add tests that mock the `LockManager` instance and assert that `ExecutionManager` correctly calls methods like `tryAcquire` and `release` on it.\"\n```\n</info added on 2025-11-08T20:44:36.221Z>\n<info added on 2025-11-08T20:47:43.948Z>\n```json\n\"Progress: Added a `RecordingLockManager` test to `executionManager.test.ts`. This test verifies that the `ExecutionManager` correctly delegates `tryAcquire` and `release` calls to the `LockManager`. The implementation uses a test stub to inject a recorder into an internal map.\"\n```\n</info added on 2025-11-08T20:47:43.948Z>",
+          "status": "done",
+          "testStrategy": "Ensure existing application integration tests still pass after refactoring the call sites to use the new (placeholder) LockManager class.",
+          "updatedAt": "2025-11-08T20:51:27.644Z",
+          "parentId": "undefined"
+        },
+        {
+          "id": "12",
+          "title": "Implement Glob Pattern Conflict Resolution Logic",
+          "description": "Implement the internal logic to determine if a requested glob pattern lock conflicts with any active locks. This is a prerequisite for implementing the read/write semantics.",
+          "dependencies": [
+            11
+          ],
+          "details": "Add a private method like `_isConflicting(pattern: string, type: 'read' | 'write'): boolean`. This method will iterate through active locks. It should use a library like `micromatch` to check for pattern overlaps. A write request conflicts with any overlapping active lock. A read request conflicts only with overlapping write locks.\n<info added on 2025-11-10T16:26:58.032Z>\n{\n  \"text\": \"Completed as part of subtask 8.8 work. Glob pattern conflict detection using micromatch library was implemented and fully tested. See 8.8 for implementation details and test coverage.\"\n}\n</info added on 2025-11-10T16:26:58.032Z>",
+          "status": "done",
+          "testStrategy": "Unit test the conflict resolution method with various glob patterns (e.g., `src/**/*.ts` vs `src/execution/*.ts`, `file.txt` vs `file.txt`) to ensure correct overlap detection.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-10T16:26:59.240Z"
+        },
+        {
+          "id": "13",
+          "title": "Implement Core Read/Write Queuing and Lock Acquisition",
+          "description": "Build out the `acquireLock` method to manage a queue of lock requests and grant locks based on the read/write rules and conflict detection from the previous step.",
+          "dependencies": [
+            12
+          ],
+          "details": "`acquireLock` will return a `Promise` that resolves with a `Lock` object, which must have a `release()` method. Internally, manage a queue of pending requests. When a lock is released, check the queue to see if any waiting requests can now be granted using the conflict detection logic.",
+          "status": "done",
+          "testStrategy": "Write unit tests for concurrent requests. Test that two reads can be acquired concurrently, but a write must wait for all reads to be released. Test that a read must wait for a write to be released.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-10T16:24:38.956Z"
+        },
+        {
+          "id": "14",
+          "title": "Implement Lock Request Timeout and Deadlock Graph Construction",
+          "description": "Add a timeout mechanism to `acquireLock`. If a lock request is not granted within the timeout period, construct a 'waits-for' graph representing the current state of blocked processes.",
+          "dependencies": [
+            13
+          ],
+          "details": "Wrap the lock acquisition promise in a timeout (e.g., using `Promise.race` with a `setTimeout`). If the timeout is reached, analyze the lock request queue and the active locks to build a directed graph where an edge `A -> B` means request A is waiting for a resource held by the owner of request B.",
+          "status": "done",
+          "testStrategy": "Test that a lock request that cannot be fulfilled throws an error after the timeout. Manually inspect the constructed graph in a debugger for a simple blocking scenario.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-10T16:24:40.166Z"
+        },
+        {
+          "id": "15",
+          "title": "Implement Deadlock Cycle Detection and Throw DeadlockError",
+          "description": "Implement an algorithm to detect cycles in the 'waits-for' graph. If a cycle is detected, the `acquireLock` promise should reject with a specific `DeadlockError`.",
+          "dependencies": [
+            14
+          ],
+          "details": "Create a `DeadlockError` custom error class. Implement a graph traversal algorithm (e.g., Depth First Search) to detect cycles in the waits-for graph. If a cycle is found, reject the promise with a `DeadlockError` instance containing information about the detected cycle.",
+          "status": "done",
+          "testStrategy": "Create a specific unit test that orchestrates a deadlock: Process A locks resource X and requests Y, while Process B locks resource Y and requests X. Assert that `acquireLock` rejects with a `DeadlockError`.",
+          "parentId": "undefined",
+          "updatedAt": "2025-11-10T16:28:28.250Z"
+        },
+        {
+          "id": "16",
+          "title": "Fix queue cleanup after timeout",
+          "description": "Investigate and fix the queue cleanup logic when a lock request times out, ensuring other queued requests are not affected and can still acquire the lock when it becomes available.",
+          "details": "The test 'removes timed-out request from queue without affecting others' is failing because when request2 times out, request1 cannot acquire the lock even after the holder releases it. This suggests the queue cleanup is disrupting the queue state. Need to debug the removeFromQueues and processQueue methods to ensure proper cleanup without affecting other requests.\n<info added on 2025-11-10T04:47:44.130Z>\n\"The issue was traced to promise rejection timing when using mocked timers in the Node.js test framework. The fix involved modifying the timeout handler to reject promises synchronously with the timer callback and updating the test to use a pattern that properly tracks promises with mocked timers. As a result, the test now passes successfully.\"\n</info added on 2025-11-10T04:47:44.130Z>",
+          "status": "done",
+          "dependencies": [],
+          "parentTaskId": 8,
+          "updatedAt": "2025-11-10T04:47:52.208Z",
+          "parentId": "undefined"
+        }
+      ],
+      "updatedAt": "2025-11-12T03:36:23.282Z"
+    },
+    {
+      "id": "9",
+      "title": "Implement Atomic Worktree Management and Rollbacks",
+      "description": "Solidify the execution staging process to use isolated git worktrees for each specialist. Ensure that merges are atomic and that any merge failures trigger an automatic rollback, leaving the primary branch clean.",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": [],
+      "details": "Enhance the `src/execution/worker.ts`. The main execution function will perform the following sequence using `Desktop Commander MCP` for git operations: 1. Create a new git worktree from the base branch (`git worktree add -b <specialist-branch> ./staging/<exec-id>`). 2. Execute the specialist's task within that worktree. 3. `git add .` and `git commit`. 4. Switch back to the primary branch. 5. Attempt to merge the specialist branch with `--no-ff`. 6. If the merge succeeds, `git branch -d <specialist-branch>` and `git worktree remove ./staging/<exec-id>`. 7. If the merge fails (e.g., conflicts), catch the error, log it, run `git merge --abort`, and then clean up the branch and worktree. This ensures atomicity.",
+      "testStrategy": "Use an integration test with a temporary git repository. Run a successful task and assert that the changes are merged into the main branch and the worktree is removed. Run a second task that is designed to create a merge conflict. Assert that the merge fails, `git merge --abort` is effectively called (check git status), the main branch remains unchanged, and the temporary worktree is still cleaned up.",
+      "subtasks": [
+        {
+          "id": "1",
+          "title": "Implement Isolated Worktree Creation Logic",
+          "description": "Create the functionality to programmatically add a new Git worktree for each specialist execution. This isolates file system changes to a dedicated directory.",
+          "dependencies": [],
+          "details": "In a new utility file, possibly `src/git/manager.ts`, or directly within `src/execution/worker.ts`, create a function `createWorktree(execId, baseBranch)`. This function will construct a unique branch name and worktree path (e.g., `./staging/<exec-id>`). It will execute `git worktree add --force -b <specialist-branch> ./staging/<exec-id> <base-branch>` using the project's command execution utility. The staging directory should be created if it doesn't exist.",
+          "status": "pending",
+          "testStrategy": "Unit test the function to ensure it generates the correct git command. Mock the command executor and verify the arguments passed to it.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "2",
+          "title": "Execute Specialist Task and Commit within Worktree",
+          "description": "Adapt the specialist execution process to operate within the newly created worktree's directory. After execution, all changes must be committed to the specialist's branch.",
+          "dependencies": [
+            1
+          ],
+          "details": "Modify `src/execution/worker.ts`. The main execution function will call the new `createWorktree` function. It must then change the current working directory to the worktree path. After the specialist task completes its file modifications, execute `git add .` and `git commit -m \"feat(specialist): Changes for task <task-id>\"` within that directory before changing back to the project root.",
+          "status": "pending",
+          "testStrategy": "In an integration test, verify that after this step, a commit exists on the specialist's branch and the main branch is unchanged. Check that the working directory is correctly restored.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "3",
+          "title": "Implement Atomic Merge with Failure Detection",
+          "description": "Implement the logic to merge the specialist's branch into the primary branch. This operation must be atomic and capture any failures, such as merge conflicts.",
+          "dependencies": [
+            2
+          ],
+          "details": "In `src/execution/worker.ts`, after committing in the worktree, ensure the process is in the project's root directory and on the primary branch. Use a `try...catch` block to wrap the merge command: `git merge --no-ff <specialist-branch>`. The `--no-ff` flag is crucial for ensuring a merge commit is always created, preserving the history of the specialist's work.",
+          "status": "pending",
+          "testStrategy": "Test the successful merge path. Create a scenario with no conflicts and assert that the specialist branch is merged into the primary branch with a new merge commit.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "4",
+          "title": "Implement Automatic Rollback on Merge Failure",
+          "description": "In the event of a merge failure, the system must automatically abort the merge, leaving the primary branch in a clean state.",
+          "dependencies": [
+            3
+          ],
+          "details": "Implement the `catch` block for the merge operation in `src/execution/worker.ts`. If the `git merge` command fails, this block must immediately execute `git merge --abort`. This command resets the working directory and index to the state before the failed merge was attempted. The error should be logged and propagated to the calling process to indicate failure.",
+          "status": "pending",
+          "testStrategy": "Create an integration test that intentionally causes a merge conflict. Assert that the merge command throws an error, `git merge --abort` is effectively called, and the primary branch has no partial merge artifacts. Check `git status` to confirm the working tree is clean.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "5",
+          "title": "Implement Post-Operation Cleanup and Full Integration Test",
+          "description": "Create a robust cleanup mechanism to remove the temporary worktree and specialist branch after the operation concludes, whether it succeeded or failed.",
+          "dependencies": [
+            4
+          ],
+          "details": "In `src/execution/worker.ts`, add a `finally` block to the merge `try...catch`. This block will execute regardless of the outcome. It must call `git worktree remove --force ./staging/<exec-id>` and `git branch -d <specialist-branch>`. This ensures no git artifacts are left behind. The `-d` flag for branch deletion will fail if the branch isn't merged; use `-D` if cleanup should happen even on failed merges.",
+          "status": "pending",
+          "testStrategy": "Expand the integration tests from previous tasks. For both the successful merge and the failed merge scenarios, assert that after the entire process, the worktree directory is gone and the specialist branch has been deleted.",
+          "parentId": "undefined"
+        }
+      ],
+      "updatedAt": "2025-11-15T00:58:45.570Z"
+    },
+    {
+      "id": "10",
+      "title": "Implement Structured Logging for Auditability",
+      "description": "Emit structured JSONL logs for all key application events (onboarding, forging, execution, cleanup) to the session-specific log stream. Ensure user-facing summaries are clean of internal implementation details.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": [
+        "4",
+        "6",
+        "9"
+      ],
+      "details": "Create a centralized `src/observability/logger.ts`. It will expose functions like `logEvent(sessionId, eventType, payload)`. This function will write a timestamped JSON object to the appropriate `.factory/sessions/<sessionId>.jsonl` file. Instrument the codebase by calling `logEvent` at key points: after AI parsing, after methodology selection, at the start and end of roster generation, when acquiring/releasing locks, and at each step of the git worktree process. Create a separate function `presentSummary(sessionId)` that reads the log file but formats it into a human-readable summary, explicitly filtering out fields like session IDs, tool names, or raw JSON.",
+      "testStrategy": "In integration tests for other features (like onboarding or execution), check the contents of the corresponding `.jsonl` log file. Assert that the correct number of log entries were created and that their payloads accurately reflect the actions taken. For the summary presentation, test that the output is user-friendly and contains no forbidden internal jargon.",
+      "subtasks": [
+        {
+          "id": "1",
+          "title": "Create Centralized JSONL Logger Service",
+          "description": "Create the foundational logging module that provides a function to write structured, timestamped JSON events to a session-specific log file.",
+          "dependencies": [],
+          "details": "Create the new file `src/observability/logger.ts`. It will export an async function `logEvent(sessionId: string, eventType: string, payload: object)`. This function will construct a log entry object including a UTC timestamp, `eventType`, and `payload`. The entire object will be serialized into a JSON string and appended as a new line to the file at `.factory/sessions/<sessionId>.jsonl`. Use `fs/promises` for asynchronous file appends to prevent blocking. Ensure the directory `.factory/sessions` is created if it does not exist.",
+          "status": "pending",
+          "testStrategy": "Create unit tests in `src/observability/__tests__/logger.test.ts`. Mock the filesystem to verify that `logEvent` attempts to write a correctly formatted JSON string to the correct file path. Test the directory creation logic.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "2",
+          "title": "Instrument Onboarding and Planning Logic",
+          "description": "Integrate the logging service into the initial onboarding and task planning phases of the application.",
+          "dependencies": [
+            1
+          ],
+          "details": "Modify the application's core logic to call `logEvent`. Specifically, in `src/mcp/tools/parseOnboardingResponse.ts`, log the result of the AI data extraction. Also add logging at the start and end of methodology selection and roster generation processes. The `eventType` should be descriptive (e.g., 'AI_PARSE_COMPLETE', 'METHODOLOGY_SELECTED') and the `payload` should contain relevant, non-sensitive data.",
+          "status": "pending",
+          "testStrategy": "In existing or new integration tests for onboarding, after an action is performed, check the mocked `logEvent` function to ensure it was called with the expected `sessionId`, `eventType`, and `payload` structure.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "3",
+          "title": "Instrument Execution and Git Worktree Management",
+          "description": "Add detailed event logging to the task execution worker, specifically for resource locking and git worktree operations.",
+          "dependencies": [
+            1
+          ],
+          "details": "In `src/execution/worker.ts`, instrument the git workflow by calling `logEvent` at each critical step: acquiring/releasing locks, creating the worktree, committing changes, attempting the merge, and cleaning up the worktree (on both success and failure). Event types should be specific, like 'GIT_WORKTREE_CREATE_START', 'GIT_WORKTREE_CREATE_SUCCESS', 'GIT_MERGE_FAIL'. The payload should include details like branch names and commit SHAs where applicable.",
+          "status": "pending",
+          "testStrategy": "Update the integration tests for `worker.ts` that use a temporary git repository. After running a successful and a failed execution scenario, read the generated `.jsonl` file and assert that the complete, correct sequence of git operation events was logged.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "4",
+          "title": "Implement Human-Readable Log Summary Presenter",
+          "description": "Create a function that reads a session's JSONL log file and generates a clean, human-readable summary, filtering out internal implementation details.",
+          "dependencies": [
+            1
+          ],
+          "details": "Add a new exported function `presentSummary(sessionId: string)` to `src/observability/logger.ts`. This function will read the `.factory/sessions/<sessionId>.jsonl` file line by line, parsing each JSON entry. It will then format these events into a user-friendly string, explicitly omitting or summarizing sensitive or verbose fields like `sessionId`, raw tool inputs, or full JSON payloads. Focus on presenting a clear narrative of the session's key milestones.",
+          "status": "pending",
+          "testStrategy": "Create unit tests for `presentSummary`. Generate a sample `.jsonl` file with various event types. Call `presentSummary` and assert that the output string is correctly formatted, includes human-friendly descriptions of key events, and successfully filters out specified internal details.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "5",
+          "title": "End-to-End Integration Test for Logging",
+          "description": "Create a new integration test that runs a full onboarding and execution workflow, then validates the integrity and content of the generated audit log and its summary.",
+          "dependencies": [
+            2,
+            3,
+            4
+          ],
+          "details": "Create a new test file, e.g., `src/__tests__/logging.integration.test.ts`. This test will simulate a user session from start to finish. After the test run, it will: 1. Read the raw `.factory/sessions/<sessionId>.jsonl` file and assert that key events (onboarding, worktree creation, merge) are present in the correct order. 2. Call `presentSummary(sessionId)` and assert that the generated summary is well-formed and does not contain any of the filtered-out internal fields.",
+          "status": "pending",
+          "testStrategy": null,
+          "parentId": "undefined"
+        }
+      ],
+      "updatedAt": "2025-11-15T00:58:46.637Z"
+    },
+    {
+      "id": "11",
+      "title": "Create Safe Cleanup Tooling",
+      "description": "Implement the `/forge-removeall` command and associated scripts to safely reverse the artifacts created by roster generation and reset sessions, providing a clean state for users.",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": [
+        "6",
+        "10"
+      ],
+      "details": "Create a new command handler in `src/cli/commands/cleanup.ts`. This command will: 1. Read the manifest from `.factory/manifest.json` to identify all generated files. 2. Safely delete the roster files from `.droidforge/` and `.factory/droids/`. 3. Remove the `.factory/sessions` directory or specific session files. 4. Log the cleanup action using the structured logger. The implementation should be careful to only remove files that it can verify were created by DroidForge, for instance by checking a manifest or a unique header.",
+      "testStrategy": "Create an end-to-end test. First, run the full onboarding and roster generation process to create artifacts. Then, execute the `cleanup` command. Assert that all previously generated files and directories (`.droidforge/`, `.factory/droids/`, `.factory/sessions/`) have been removed. Verify that unrelated files in the project remain untouched.",
+      "subtasks": [
+        {
+          "id": "1",
+          "title": "Create `cleanup.ts` Command and Register with CLI",
+          "description": "Create the new command file `src/cli/commands/cleanup.ts`. Define the command signature for `cleanup` using the `commander` library and register this new command in the main CLI entry point, likely `src/cli/index.ts`.",
+          "dependencies": [],
+          "details": "In `src/cli/commands/cleanup.ts`, create and export a function that returns a `commander.Command` instance. The command should be named 'cleanup'. The action handler should initially contain only a placeholder log message. In `src/cli/index.ts` (or equivalent), import the new command factory function and register it with the main program instance using `program.addCommand()`.",
+          "status": "pending",
+          "testStrategy": "Manually run the compiled CLI with the `cleanup --help` flag to verify the command is registered. Running the command should execute the placeholder logic.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "2",
+          "title": "Implement Manifest Reading and Validation Logic",
+          "description": "Within the `cleanup` command's action handler, implement the logic to locate, read, and parse the `.factory/manifest.json` file. This logic must gracefully handle cases where the file does not exist or contains invalid JSON.",
+          "dependencies": [
+            1
+          ],
+          "details": "Use `fs.promises.readFile` to asynchronously read the contents of `.factory/manifest.json`. Define a type or interface for the expected manifest structure (e.g., `{ generatedFiles: string[] }`). Wrap the `JSON.parse` call in a try-catch block. If the file is missing or parsing fails, log a clear warning to the user and terminate the command gracefully without deleting any files.",
+          "status": "pending",
+          "testStrategy": "Create unit tests for the manifest reading function. Test cases should include a valid manifest file, a malformed JSON file, a file with a valid JSON but incorrect structure, and the absence of the manifest file. Assert that the function returns the correct file list or throws/handles the error appropriately.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "3",
+          "title": "Implement Safe Deletion of Manifest-Listed Files",
+          "description": "Iterate through the list of file paths obtained from the parsed manifest. For each file path, verify its existence and then safely delete it using filesystem operations. This will clean up generated artifacts in `.droidforge/` and `.factory/droids/`.",
+          "dependencies": [
+            2
+          ],
+          "details": "Using the `generatedFiles` array from the manifest, loop through each relative path. For each path, use `fs.promises.unlink` to delete the file. It is critical to wrap each `unlink` call in its own try-catch block to prevent one failed deletion (e.g., file not found) from halting the entire cleanup process. Log the status (success or failure) for each file deletion.",
+          "status": "pending",
+          "testStrategy": "In a test environment, create a mock manifest and a corresponding set of dummy files. Run the deletion logic and assert that all files listed in the manifest have been removed. Also test the case where a file in the manifest does not exist on the filesystem, ensuring the process continues without error.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "4",
+          "title": "Add Session Directory Removal and Structured Logging",
+          "description": "Enhance the cleanup command to remove the entire `.factory/sessions` directory. Additionally, instrument the entire command's lifecycle with structured logging to provide a clear audit trail of the cleanup operation.",
+          "dependencies": [
+            3
+          ],
+          "details": "Use `fs.promises.rm` with the `{ recursive: true, force: true }` options to reliably delete the `.factory/sessions` directory and its contents. Import and instantiate the structured logger (e.g., from `src/utils/logger.ts`). Add log entries for the command start, manifest processing result, session directory removal, count of files deleted, and a final summary message on completion or error.",
+          "status": "pending",
+          "testStrategy": "Extend existing tests to create a mock `.factory/sessions` directory with files inside. After running the cleanup command, assert that this directory no longer exists. Inspect the logged output (e.g., by capturing stdout/stderr) to verify that structured log messages are being generated correctly for each stage of the process.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "5",
+          "title": "Develop End-to-End Test for Safe Cleanup Verification",
+          "description": "Create a comprehensive end-to-end test suite that validates the entire cleanup process. The test must ensure that only DroidForge-generated artifacts are removed, leaving any other user-created files untouched.",
+          "dependencies": [
+            4
+          ],
+          "details": "Using a test runner like Jest, create a temporary directory structure mimicking a project. Populate it with mock files listed in a mock `.factory/manifest.json`, the `.factory/sessions` directory, and an unrelated 'rogue' file (e.g., `my-notes.txt`) in one of the directories. Execute the full `cleanup` command. Assert that all manifest-listed files and the sessions directory are deleted, and crucially, assert that the 'rogue' file still exists.",
+          "status": "pending",
+          "testStrategy": "This task is the creation of a test suite. The success of the tests themselves will validate the functionality. The test should be placed in a relevant location, such as `src/cli/commands/__tests__/cleanup.e2e.test.ts`.",
+          "parentId": "undefined"
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "title": "Automate UAT Scripts and Update Documentation",
+      "description": "Update existing automated UAT scripts and create new ones to cover the intelligent onboarding and hardened execution flows. Update all user-facing documentation (README, QUICKSTART) to reflect the new capabilities.",
+      "status": "pending",
+      "priority": "low",
+      "dependencies": [
+        "11"
+      ],
+      "details": "Review and update `scripts/automated-uat2.exp`. This script should be modified to interact with the new conversational onboarding, providing freeform text and selecting methodologies. Add assertions to check for correct roster generation and successful serial execution. Create a new `test-methodology-flow.mjs` if it doesn't cover the AI reasoning aspect. Update `README.md`, `docs/QUICKSTART.md`, and `docs/project/audit-log.md` with examples of the new onboarding flow, methodology recommendations, and how to use the audit logs.",
+      "testStrategy": "The primary test is to run the updated test suite (`npm test`) which should include the execution of these UAT scripts. The suite must pass completely. Manually review the generated documentation artifacts to ensure they are clear, accurate, and reflect the final implementation.",
+      "subtasks": [
+        {
+          "id": "1",
+          "title": "Update 'automated-uat2.exp' for Conversational Onboarding",
+          "description": "Modify the existing expect script `scripts/automated-uat2.exp` to handle the new multi-step conversational onboarding flow. The script must be able to respond to dynamic follow-up questions.",
+          "dependencies": [],
+          "details": "Refactor `scripts/automated-uat2.exp` to replace the single large input with a series of `expect` and `send` commands. The script should first send an initial project vision, then enter a loop or sequence to answer follow-up questions for fields like 'audience' or 'core features' until the system proceeds to the next stage.",
+          "status": "pending",
+          "testStrategy": "Execute the updated script against a running instance of the application. Verify that the script successfully navigates the entire Q&A sequence and that the session state is correctly populated in the backend.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "2",
+          "title": "Enhance UAT Script for Methodology Selection and Roster Generation",
+          "description": "Extend the `scripts/automated-uat2.exp` script to test the methodology recommendation and selection process, and verify the correct generation of the droid roster.",
+          "dependencies": [
+            1
+          ],
+          "details": "After the conversational onboarding part in `scripts/automated-uat2.exp`, add `expect` blocks to check for the methodology recommendation output. The script should then `send` a valid selection (e.g., '1'). Finally, add assertions to verify that the correct droid roster is generated and displayed based on the chosen methodology.",
+          "status": "pending",
+          "testStrategy": "Run the full `automated-uat2.exp` script. Check the stdout to confirm that a methodology is selected and that the resulting specialist roster matches the expected output for that methodology.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "3",
+          "title": "Create New Test Script for AI Reasoning and Custom Droid Parsing",
+          "description": "Create a new test script, `test-intelligent-flows.mjs`, to specifically validate the AI-driven aspects of the new features, including methodology reasoning and custom droid definition parsing.",
+          "dependencies": [],
+          "details": "Create a new Node.js test file at `scripts/test-intelligent-flows.mjs`. This script will use the application's SDK or API to test two flows: 1) Provide a project description and assert that the AI's reasoning for its methodology recommendation is sound. 2) Provide a freeform description for a new droid and assert that the system correctly parses it into a structured DroidDefinition.",
+          "status": "pending",
+          "testStrategy": "Add this new script to the `npm test` suite. The test should mock the underlying AI calls to ensure deterministic results. It will pass if the structured output from the AI parsing functions matches the expected JSON schemas.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "4",
+          "title": "Update README.md and QUICKSTART.md with New Onboarding Flow",
+          "description": "Revise the main `README.md` and `docs/QUICKSTART.md` to reflect the new intelligent onboarding process and methodology selection features, providing clear examples for new users.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "In both `README.md` and `docs/QUICKSTART.md`, update the 'Usage' or 'Getting Started' sections. Replace the old instructions with a new example showing the interactive question-and-answer session. Include a screenshot or code block of the terminal interaction. Explain the methodology recommendation feature and how the user selects an option.",
+          "status": "pending",
+          "testStrategy": "Manually review the rendered Markdown files. Perform a fresh user setup by following the updated documentation from scratch to ensure it's accurate, clear, and leads to a successful project generation.",
+          "parentId": "undefined"
+        },
+        {
+          "id": "5",
+          "title": "Update 'audit-log.md' with Onboarding and Execution Details",
+          "description": "Update the `docs/project/audit-log.md` documentation to include details on how the new conversational onboarding, AI confidence scores, and hardened execution steps are logged.",
+          "dependencies": [
+            1,
+            2
+          ],
+          "details": "Edit `docs/project/audit-log.md`. Add a new section detailing the log entries for the onboarding process. Document the format for logged events, including the `source` and `confidence` for each piece of data collected. Also, describe the log entries related to atomic worktree creation, merge attempts, and rollbacks.",
+          "status": "pending",
+          "testStrategy": "Generate a new project using the updated UAT scripts. Review the resulting audit log file and compare its contents against the updated `audit-log.md` documentation to ensure the descriptions and formats match the actual output.",
+          "parentId": "undefined"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "total": 12,
+    "filtered": 12,
+    "tag": "tdd",
+    "storageType": "file"
+  }
+}

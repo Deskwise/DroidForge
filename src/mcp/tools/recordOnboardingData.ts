@@ -64,12 +64,25 @@ export function createRecordOnboardingDataTool(deps: Deps): ToolDefinition<Recor
       }
 
       const saved: (keyof RecordOnboardingDataInput)[] = [];
+
+      if (!(session.onboarding as any).requiredData) {
+        (session.onboarding as any).requiredData = {};
+      }
+      const requiredData = (session.onboarding as any).requiredData as Record<string, { value: string | null; confidence: number; source: string }>;
+
       const assign = (key: keyof RecordOnboardingDataInput) => {
         const v = input[key];
         if (typeof v === 'string') {
           const cleaned = sanitize(v);
           if (cleaned) {
             (session.onboarding as any)[key] = cleaned;
+            if (key !== 'inferred') {
+              requiredData[key as string] = {
+                value: cleaned,
+                confidence: 1,
+                source: 'user'
+              };
+            }
             saved.push(key);
           }
         } else if (v && typeof v === 'object' && key === 'inferred') {

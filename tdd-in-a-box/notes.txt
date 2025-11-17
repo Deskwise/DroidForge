@@ -1,0 +1,4 @@
+must enter the api keywords
+must create tasks from prd. "task-master parse-prd --input <path to prd in repo>
+tell agent "Decompose tasks created by taskmaster into smaller sub-tasks until the sub-tasks are small enough to be completed by an ai agent in a single work session with a confidence rate of greater than 95% success the first time. If less the 95% confidence continue to decompose the task."
+tm alias isn't created yet

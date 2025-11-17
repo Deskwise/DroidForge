@@ -1,0 +1,115 @@
+{
+  "name": "TDD-in-a-Box Repository Guidance",
+  "description": "Structured checklist for agents operating inside the repository without shell execution. Mirrors human-facing docs and adds validation hints to prevent hallucinated steps.",
+  "version": "1.0.0",
+  "steps": [
+    {
+      "id": "review_guardrails",
+      "summary": "Read mandatory guardrail documentation before making changes.",
+      "instructions": [
+        "Open AGENTS.md and acknowledge the Agent Operating Agreement.",
+        "Review docs/guides/taskmaster-guardrails.md for ritual and lifecycle rules.",
+        "Skim docs/guides/human-in-the-loop-workflow.md to confirm approval policy."
+      ],
+      "validation": [
+        {
+          "type": "file_contains",
+          "path": "AGENTS.md",
+          "pattern": "# Agent Operating Agreement"
+        },
+        {
+          "type": "file_contains",
+          "path": "docs/guides/taskmaster-guardrails.md",
+          "pattern": "## 1. Pre-session ritual"
+        }
+      ]
+    },
+    {
+      "id": "place_assets",
+      "summary": "Ensure TDD-in-a-Box assets are present in the correct locations.",
+      "instructions": [
+        "Confirm docs/guides/ contains the four required guides (autopilot-tdd-stack-setup, autopilot-agent-runbook, taskmaster-guardrails, human-in-the-loop-workflow).",
+        "Verify docs/guides/autopilot-tdd-playbook.md is available for detailed TDD instructions.",
+        "Ensure scripts/ includes start-agent-work.sh, autopilot-reset.sh, and autopilot-wrapup.sh.",
+        "Ensure docs/project/onboarding-flow-todo.md exists for future logging."
+      ],
+      "validation": [
+        { "type": "file_exists", "path": "docs/guides/autopilot-tdd-stack-setup.md" },
+        { "type": "file_exists", "path": "docs/guides/autopilot-agent-runbook.md" },
+        { "type": "file_exists", "path": "docs/guides/taskmaster-guardrails.md" },
+        { "type": "file_exists", "path": "docs/guides/human-in-the-loop-workflow.md" },
+        { "type": "file_exists", "path": "docs/guides/autopilot-tdd-playbook.md" },
+        { "type": "file_exists", "path": "scripts/start-agent-work.sh" },
+        { "type": "file_exists", "path": "scripts/autopilot-reset.sh" },
+        { "type": "file_exists", "path": "scripts/autopilot-wrapup.sh" },
+        { "type": "file_exists", "path": "docs/project/onboarding-flow-todo.md" }
+      ]
+    },
+    {
+      "id": "check_agents_md",
+      "summary": "Confirm AGENTS.md contains the expected sections before onboarding new agents.",
+      "instructions": [
+        "Verify the mandatory pre-session ritual section lists task-master list --with-subtasks.",
+        "Ensure the human-in-the-loop checkpoint section references docs/guides/human-in-the-loop-workflow.md.",
+        "Confirm the honesty clause exists to keep reporting transparent."
+      ],
+      "validation": [
+        {
+          "type": "file_contains",
+          "path": "AGENTS.md",
+          "pattern": "## Mandatory pre-session ritual"
+        },
+        {
+          "type": "file_contains",
+          "path": "AGENTS.md",
+          "pattern": "## Human-in-the-loop checkpoint"
+        },
+        {
+          "type": "file_contains",
+          "path": "AGENTS.md",
+          "pattern": "## Honesty clause"
+        }
+      ]
+    },
+    {
+      "id": "verify_scripts",
+      "summary": "Ensure helper scripts reference expected commands and guardrails.",
+      "instructions": [
+        "Inspect scripts/start-agent-work.sh for dirty tree and stale session checks.",
+        "Inspect scripts/autopilot-reset.sh to confirm it backs up workflow-state.json before clearing.",
+        "Inspect scripts/autopilot-wrapup.sh to ensure it logs phase/currentSubtask/progress."
+      ],
+      "validation": [
+        {
+          "type": "file_contains",
+          "path": "scripts/start-agent-work.sh",
+          "pattern": "git status --porcelain"
+        },
+        {
+          "type": "file_contains",
+          "path": "scripts/autopilot-reset.sh",
+          "pattern": "workflow-state"
+        },
+        {
+          "type": "file_contains",
+          "path": "scripts/autopilot-wrapup.sh",
+          "pattern": "autopilot status"
+        }
+      ]
+    },
+    {
+      "id": "document_updates",
+      "summary": "Remind agents to log onboarding adjustments.",
+      "instructions": [
+        "After completing setup or modifications, append a dated entry to docs/project/onboarding-flow-todo.md describing actions taken and follow-ups."
+      ],
+      "validation": [
+        {
+          "type": "file_contains",
+          "path": "docs/project/onboarding-flow-todo.md",
+          "pattern": "##"
+        }
+      ]
+    }
+  ]
+}

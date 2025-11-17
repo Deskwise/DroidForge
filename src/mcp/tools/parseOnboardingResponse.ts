@@ -1,152 +1,246 @@
+import { logEvent, type LogEvent } from '../../observability/logger.js';
 import type { OnboardingSession } from '../types.js';
-import { logEvent } from '../../observability/logger.js';
 
-/**
- * Represents a single extracted field with confidence metadata from the AI
- */
 export interface AIExtractionResult {
-  value: any;
-  confidence: number; // 0-1, higher = more confident
-  source: string; // e.g., "direct", "inferred"
+  value: string | null;
+  confidence: number;
+  source: string;
 }
 
-/**
- * Interface for the MCP AI client
- */
-interface MCPAIClient {
-  callModel(systemPrompt: string, userPrompt: string): Promise<string>;
+export type AIExtractionMap = Record<string, AIExtractionResult>;
+
+interface AIPromptRequest {
+  systemPrompt: string;
+  userPrompt: string;
 }
 
-/**
- * Default MCP AI client implementation
- * TODO: Replace with actual MCP integration when available
- */
-const defaultAIClient: MCPAIClient = {
-  async callModel(systemPrompt: string, userPrompt: string): Promise<string> {
-    // Placeholder for actual AI client
-    // When MCP is integrated, this will be replaced with real API call
-    throw new Error('AI client not configured. TODO: Integrate MCP AI service.');
+export interface AIClient {
+  completePrompt(request: AIPromptRequest): Promise<string>;
+}
+
+interface ParseOnboardingDeps {
+  aiClient: AIClient;
+  mergeSession: (session: OnboardingSession, extracted: AIExtractionMap) => OnboardingSession;
+  logger: (event: LogEvent) => void;
+}
+
+const REQUIRED_FIELDS = [
+  'projectVision',
+  'targetAudience',
+  'timelineConstraints',
+  'qualityVsSpeed',
+  'teamSize',
+  'experienceLevel',
+  'budgetConstraints',
+  'deploymentRequirements',
+  'securityRequirements',
+  'scalabilityNeeds'
+] as const;
+
+const CONFIDENCE_THRESHOLD = 0.75;
+
+function normalizeValue(entry: AIExtractionResult): string | null {
+  if (entry.value === null || entry.value === undefined) {
+    return null;
   }
-};
+  const value = String(entry.value).trim();
+  return value.length === 0 ? null : value;
+}
 
-/**
- * Construct the system prompt for the AI to extract onboarding data
- */
-function constructSystemPrompt(): string {
-  return `You are an expert project manager and business analyst. Your task is to extract structured data from freeform user input about their project and team.
+function cloneOnboarding(session: OnboardingSession) {
+  const nextRequiredData = { ...(session.onboarding.requiredData ?? {}) };
+  const nextOnboarding = { ...session.onboarding, requiredData: nextRequiredData };
+  return { nextOnboarding, nextRequiredData };
+}
 
-Extract the following 10 fields if present in the user's text:
-1. projectVision - What they want to build
-2. targetAudience - Who will use it
-3. timelineConstraints - Timeline/deadline
-4. qualityVsSpeed - Priority between quality and speed
-5. teamSize - How many people
-6. experienceLevel - Team's technical experience
-7. budgetConstraints - Budget situation
-8. deploymentRequirements - Where/how to deploy
-9. securityRequirements - Security needs
-10. scalabilityNeeds - Scaling requirements
-
-Respond with a JSON object where each field is structured as:
-{
-  "fieldName": {
-    "value": <extracted value or null>,
-    "confidence": <0.0 to 1.0>,
-    "source": "<direct|inferred|missing>"
+function mergeAIResponse(session: OnboardingSession, extracted: AIExtractionMap): OnboardingSession {
+  if (!extracted || Object.keys(extracted).length === 0) {
+    return session;
   }
-}
 
-Only include fields where you found relevant information. For missing fields, use null value and "missing" source. Set confidence high (0.8-1.0) for explicitly stated information, medium (0.5-0.8) for inferred information.`;
-}
+  const { nextOnboarding, nextRequiredData } = cloneOnboarding(session);
+  let updated = false;
 
-/**
- * Construct the user prompt from the input
- */
-function constructUserPrompt(userInput: string): string {
-  return `Please analyze the following user input and extract the onboarding data:\n\n"${userInput}"`;
-}
-
-/**
- * Merge extracted data into session, respecting confidence thresholds
- */
-function mergeExtractedData(
-  session: OnboardingSession,
-  extractedData: Record<string, AIExtractionResult>
-): OnboardingSession {
-  const updated = { ...session };
-  const requiredData = { ...session.onboarding.requiredData };
-  
-  // Confidence threshold: only merge data above this score or if field is empty
-  const CONFIDENCE_THRESHOLD = 0.75;
-  
-  for (const [fieldName, extraction] of Object.entries(extractedData)) {
-    // Skip if extraction source is "missing"
-    if (extraction.source === 'missing') {
+  for (const field of REQUIRED_FIELDS) {
+    const aiEntry = extracted[field];
+    if (!aiEntry) continue;
+    const normalizedValue = normalizeValue(aiEntry);
+    if (normalizedValue === null) {
       continue;
     }
-    
-    // Skip if confidence is too low and field already has data
-    if (extraction.confidence < CONFIDENCE_THRESHOLD && requiredData[fieldName]) {
+    const currentEntry = nextRequiredData[field];
+    const hasExistingValue = Boolean(currentEntry?.value && String(currentEntry.value).trim().length > 0);
+    const shouldInsert = !!normalizedValue && (!hasExistingValue || aiEntry.confidence >= CONFIDENCE_THRESHOLD);
+
+    if (shouldInsert) {
+      nextRequiredData[field] = {
+        value: normalizedValue,
+        confidence: aiEntry.confidence,
+        source: aiEntry.source
+      };
+      (nextOnboarding as Record<string, any>)[field] = normalizedValue ?? undefined;
+      updated = true;
       continue;
     }
-    
-    // Merge the extracted field
-    requiredData[fieldName] = extraction;
+
   }
-  
-  updated.onboarding = {
-    ...session.onboarding,
-    requiredData
+
+  if (!updated) {
+    return session;
+  }
+
+  return { ...session, onboarding: nextOnboarding };
+}
+
+function createDefaultAIClient(): AIClient {
+  const endpoint = process.env.DROIDFORGE_AI_ENDPOINT;
+  if (!endpoint) {
+    return {
+      async completePrompt() {
+        throw new Error('DROIDFORGE_AI_ENDPOINT not configured for parseOnboardingResponse.');
+      }
+    };
+  }
+
+  if (typeof fetch !== 'function') {
+    return {
+      async completePrompt() {
+        throw new Error('Global fetch API is not available. Please run on Node 18+ or provide a custom aiClient.');
+      }
+    };
+  }
+
+  const apiKey = process.env.DROIDFORGE_AI_KEY;
+  const model = process.env.DROIDFORGE_AI_MODEL ?? 'json-extractor';
+
+  return {
+    async completePrompt(request) {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'content-type': 'application/json',
+          ...(apiKey ? { authorization: `Bearer ${apiKey}` } : {})
+        },
+        body: JSON.stringify({
+          model,
+          system: request.systemPrompt,
+          user: request.userPrompt,
+          format: 'json'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`AI endpoint responded with ${response.status}`);
+      }
+
+      return response.text();
+    }
   };
-  
-  return updated;
+}
+
+function buildDefaultDeps(): ParseOnboardingDeps {
+  return {
+    aiClient: createDefaultAIClient(),
+    mergeSession: mergeAIResponse,
+    logger: logEvent
+  };
+}
+
+let activeDeps: ParseOnboardingDeps = buildDefaultDeps();
+
+export function configureParseOnboardingDeps(overrides: Partial<ParseOnboardingDeps>): void {
+  activeDeps = { ...activeDeps, ...overrides };
+}
+
+export function resetParseOnboardingDeps(): void {
+  activeDeps = buildDefaultDeps();
+}
+
+function buildSystemPrompt(): string {
+  const instructions = `You are an AI intake specialist helping collect project onboarding data for software teams. ` +
+    `Extract the following fields and respond with JSON ONLY (no prose). Each field must be an object with keys { "value", "confidence", "source" }.
+Fields: ${REQUIRED_FIELDS.join(', ')}.
+Rules:
+- Confidence is a number between 0 and 1.
+- Source must explain whether the information came directly from the user, was inferred, or came from prior context.
+- If you cannot determine a field, set value to null and confidence below 0.4.`;
+  return instructions;
+}
+
+function buildUserPrompt(userInput: string, session: OnboardingSession): string {
+  const collected = Object.entries(session.onboarding.requiredData ?? {})
+    .map(([key, entry]) => `${key}: ${entry.value ?? 'unknown'} (confidence ${entry.confidence ?? 0})`)
+    .join('\n');
+  const contextBlock = collected ? `Known session data so far:\n${collected}\n\n` : '';
+  return `${contextBlock}User input:\n${userInput.trim()}`.trim();
+}
+
+function normalizeConfidence(value: unknown): number {
+  if (typeof value !== 'number' || Number.isNaN(value)) {
+    return 0;
+  }
+  if (value < 0) return 0;
+  if (value > 1) return 1;
+  return value;
+}
+
+function parseAIExtractionMap(raw: string): AIExtractionMap {
+  let parsed: Record<string, any>;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`AI response is not valid JSON: ${(error as Error).message}`);
+  }
+
+  if (typeof parsed !== 'object' || parsed === null) {
+    throw new Error('AI response must be a JSON object.');
+  }
+
+  const map: AIExtractionMap = {};
+  for (const field of REQUIRED_FIELDS) {
+    const entry = parsed[field];
+    if (!entry || typeof entry !== 'object') {
+      map[field] = { value: null, confidence: 0, source: 'ai' };
+      continue;
+    }
+    map[field] = {
+      value: entry.value ?? null,
+      confidence: normalizeConfidence(entry.confidence),
+      source: typeof entry.source === 'string' ? entry.source : 'ai'
+    };
+  }
+  return map;
 }
 
 /**
- * Parse freeform user input and extract structured onboarding data
- * @param userInput - Raw text from the user
- * @param currentSession - Current onboarding session state
- * @param aiClient - Optional AI client for testing (uses default if not provided)
- * @returns Updated session with merged extracted data
+ * Parse freeform onboarding responses with the MCP AI client.
  */
 export async function parseOnboardingResponse(
   userInput: string,
-  currentSession: OnboardingSession,
-  aiClient: MCPAIClient = defaultAIClient
+  currentSession: OnboardingSession
 ): Promise<OnboardingSession> {
-  // Subtask 2: AI Prompt Construction and Client Call
-  const systemPrompt = constructSystemPrompt();
-  const userPrompt = constructUserPrompt(userInput);
-  
-  // Call the AI client
-  const rawResponse = await aiClient.callModel(systemPrompt, userPrompt);
-  
-  // Parse the JSON response
-  let extractedData: Record<string, AIExtractionResult>;
-  try {
-    extractedData = JSON.parse(rawResponse);
-  } catch (error) {
-    throw new Error(`Failed to parse AI response as JSON: ${error}`);
+  if (!userInput?.trim()) {
+    return currentSession;
   }
-  
-  // Subtask 3: Implement merging logic with confidence-aware updates
-  const merged = mergeExtractedData(currentSession, extractedData);
-  
-  // Subtask 4: Integrate structured logging
-  try {
-    logEvent({
-      timestamp: new Date().toISOString(),
-      event: 'parse_onboarding_response',
-      sessionId: currentSession.sessionId,
-      userInput,
-      rawAIResponse: rawResponse,
-      extractedData,
-      mergedSession: merged
-    });
-  } catch (logError) {
-    // Logging failures should not crash the function
-    console.error('Failed to emit log event:', logError);
-  }
-  
+
+  const prompt: AIPromptRequest = {
+    systemPrompt: buildSystemPrompt(),
+    userPrompt: buildUserPrompt(userInput, currentSession)
+  };
+
+  const rawResponse = await activeDeps.aiClient.completePrompt(prompt);
+  const extracted = parseAIExtractionMap(rawResponse);
+  const merged = activeDeps.mergeSession(currentSession, extracted);
+
+  activeDeps.logger({
+    timestamp: new Date().toISOString(),
+    event: 'parse_onboarding_response',
+    sessionId: currentSession.sessionId,
+    userInput,
+    rawAIResponse: rawResponse,
+    extractedData: extracted,
+    mergedSession: merged
+  });
+
   return merged;
 }

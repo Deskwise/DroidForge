@@ -117,26 +117,38 @@ export function createSmartScanTool(deps: SmartScanDeps): ToolDefinition<SmartSc
 
       const now = new Date().toISOString();
       const legacySession = session as any;
+
+      const ensureOnboarding = (input: any): any => {
+        const onboarding = input.onboarding || {};
+        return {
+          requiredData: onboarding.requiredData ?? {},
+          collectionMetadata: onboarding.collectionMetadata ?? {},
+          methodology: onboarding.methodology ?? {},
+          team: onboarding.team ?? {},
+          // Preserve legacy flat fields if present
+          projectVision: onboarding.projectVision ?? legacySession?.projectVision ?? '',
+          targetAudience: onboarding.targetAudience ?? legacySession?.targetAudience ?? '',
+          timelineConstraints: onboarding.timelineConstraints,
+          qualityVsSpeed: onboarding.qualityVsSpeed,
+          teamSize: onboarding.teamSize,
+          experienceLevel: onboarding.experienceLevel,
+          budgetConstraints: onboarding.budgetConstraints,
+          deploymentRequirements: onboarding.deploymentRequirements,
+          securityRequirements: onboarding.securityRequirements,
+          scalabilityNeeds: onboarding.scalabilityNeeds,
+          aiRecommendations: onboarding.aiRecommendations ?? [],
+          inferredData: onboarding.inferredData ?? {}
+        };
+      };
+
       const nextSession: OnboardingSession = session
-        ? { ...session, onboarding: session.onboarding || {
-              projectVision: legacySession.projectVision || '',
-              targetAudience: legacySession.targetAudience || '',
-              successMetrics: legacySession.successMetrics || [],
-              budget: legacySession.budget || 0,
-              timelineWeeks: legacySession.timelineWeeks || 0,
-              existingCode: legacySession.existingCode || '',
-              stakeholders: legacySession.stakeholders || [],
-              compliance: legacySession.compliance || []
-            }}
+        ? { ...session, onboarding: ensureOnboarding(session) }
         : {
             sessionId: finalSessionId,
             repoRoot,
             createdAt: now,
             state: 'collecting-goal',
-            onboarding: {
-              projectVision: '',
-              targetAudience: ''
-            }
+            onboarding: ensureOnboarding({ onboarding: {} })
           };
 
       if (!nextSession.createdAt) {

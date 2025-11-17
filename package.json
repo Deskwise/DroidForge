@@ -26,7 +26,7 @@
     "version": "npm run build",
     "postversion": "git push && git push --tags",
     "clean": "node -e \"fs.rmSync('dist', { recursive: true, force: true })\"",
-    "test": "NODE_OPTIONS=\"--require ./src/mcp/test-resource-tracer.cjs --require ./test-ipc-cleanup.cjs\" node --loader ts-node/esm --test --test-timeout=60000 \"src/mcp/**/*.test.ts\" \"src/mcp/**/*.e2e.test.ts\"",
+    "test": "NODE_OPTIONS=\"--require ./src/mcp/test-resource-tracer.cjs --require ./test-ipc-cleanup.cjs\" bash -lc 'shopt -s globstar; node --loader ts-node/esm --test --test-timeout=60000 \"$@\" src/mcp/**/*.test.ts src/mcp/**/*.e2e.test.ts' bash \"$@\"",
     "analyze": "tsx scripts/analyze-performance.ts",
     "uat": "tsx scripts/uat-onboarding-flow.ts",
     "postinstall": "node scripts/install-global-commands.js"

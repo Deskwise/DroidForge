@@ -2,6 +2,7 @@ import { mkdirp } from 'mkdirp';
 import path from 'node:path';
 import { promises as fs } from 'node:fs';
 import type { OnboardingSession } from './types.js';
+import { deepMerge } from './utils/deepMerge.js';
 
 const SESSION_DIRNAME = '.droidforge/session';
 
@@ -47,7 +48,24 @@ export class SessionStore {
     const sanitized = Object.fromEntries(
       Object.entries(session).filter(([, value]) => value !== undefined)
     ) as OnboardingSession;
-    const merged = existing ? { ...existing, ...sanitized } : sanitized;
+
+    let merged: OnboardingSession;
+    if (existing) {
+      const base: OnboardingSession = { ...existing, ...sanitized };
+
+      if (existing.onboarding && sanitized.onboarding) {
+        base.onboarding = deepMerge(existing.onboarding, sanitized.onboarding);
+      } else if (sanitized.onboarding) {
+        base.onboarding = sanitized.onboarding;
+      } else if (existing.onboarding) {
+        base.onboarding = existing.onboarding;
+      }
+
+      merged = base;
+    } else {
+      merged = sanitized;
+    }
+
     const payload = JSON.stringify(merged, null, 2);
     const tmp = `${target}.tmp`;
     await fs.writeFile(tmp, payload, 'utf8');

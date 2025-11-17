@@ -43,9 +43,18 @@ export function createGetOnboardingProgressTool(deps: Deps): ToolDefinition<GetO
         };
       }
 
-      // Accept description as projectVision fallback
+      // Accept description as projectVision fallback and prefer nested requiredData entries
       const collectedFlags: Record<string, boolean> = {};
+      const requiredData = (session.onboarding as any).requiredData || {};
+
       for (const key of REQUIRED_KEYS) {
+        const nestedValue = requiredData[key]?.value as unknown;
+
+        if (isFilled(nestedValue)) {
+          collectedFlags[key] = true;
+          continue;
+        }
+
         if (key === 'projectVision') {
           collectedFlags[key] = isFilled(session.onboarding.projectVision || session.description);
         } else {

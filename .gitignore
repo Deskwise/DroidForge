@@ -7,7 +7,10 @@ yarn-debug.log*
 yarn-error.log*
 dev-debug.log
 # Dependency directories
+dist/
+build/
 node_modules/
+starter-kit/*.zip
 # Environment variables
 .env
 .env.local
@@ -26,10 +29,6 @@ backup/
 *.sw?
 # OS specific
 .DS_Store
-
-# Task files
-# tasks.json
-# tasks/ 
 
 # Python virtual envs
 .venv/
@@ -50,3 +49,7 @@ docker-data/
 
 # OS / misc
 .DS_Store
+
+# Task files
+tasks.json
+tasks/ 

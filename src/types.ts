@@ -39,7 +39,20 @@ export interface DroidManifest {
   snapshots: Array<{ id: string; label?: string; createdAt: string }>;
 }
 
+export interface RequiredDataPoint {
+  value: string | null;
+  confidence: number;
+  source: string;
+}
+
 export interface OnboardingData {
+  // Nested model used by new onboarding flow and AI parsers
+  requiredData: Record<string, RequiredDataPoint>;
+  collectionMetadata: Record<string, unknown>;
+  methodology: Record<string, unknown>;
+  team: Record<string, unknown>;
+
+  // Legacy flat fields kept for compatibility during migration
   projectVision?: string;
   targetAudience?: string;
   timelineConstraints?: string;

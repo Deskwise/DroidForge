@@ -1,117 +1,110 @@
+# Gemini CLI-Specific Instructions
 
-# Gemini Project Context: DroidForge
+> **Note:** This file works alongside `AGENTS.md` (generic AI agent instructions). AGENTS.md contains the core Task Master commands and workflows for all AI agents. This file contains only Gemini CLI-specific features and integrations.
 
-This document provides Gemini with a comprehensive overview of the DroidForge project, including its purpose, architecture, key commands, and development conventions.
+## MCP Configuration for Gemini CLI
 
-## 1. Project Overview
+Configure Task Master MCP server in `~/.gemini/settings.json`:
 
-**DroidForge** is a Model Context Protocol (MCP) server designed to work with the Factory.ai Droid CLI. Its core purpose (Phase 1) is to analyze a user's codebase, assemble a team of specialized AI agents (“droids”), and coordinate them through a single orchestrator “quarterback” that runs specialists one at a time while using staging + merge safeguards.
+```json
+{
+  "mcpServers": {
+    "task-master-ai": {
+      "command": "npx",
+      "args": ["-y", "task-master-ai"]
+    }
+  }
+}
+```
 
-Phase 2 (in development) extends that architecture to safe parallel execution by hardening the execution manager, resource locking, and merge flows. Until that lands, any documentation about parallelism should be treated as roadmap, not current behavior.
+**Note:** API keys are configured via `task-master models --setup`, not in MCP configuration.
 
-### Key Technologies
+## Gemini CLI-Specific Features
 
-*   **Language:** TypeScript
-*   **Platform:** Node.js (>=16.0.0)
-*   **Framework:** Express.js (for HTTP server)
-*   **Core Dependencies:**
-    *   `@modelcontextprotocol/sdk`: For MCP server implementation.
-    *   `async-mutex`: For handling concurrency.
-    *   `globby`, `micromatch`: For file path matching and locking.
-*   **Testing:** Built-in Node.js test runner (`node:test`), `tsx` for execution.
-*   **Linting/Formatting:** ESLint and Prettier.
+### Session Management
 
-### Architecture
+Built-in session commands:
 
-The project is structured as a monorepo with the following key directories:
+- `/chat` - Start new conversation while keeping context
+- `/checkpoint save <name>` - Save session state
+- `/checkpoint load <name>` - Resume saved session
+- `/memory show` - View loaded context
 
-*   `src/mcp/`: Contains the core logic for the MCP server.
-    *   `server.ts`: The main application entry point.
-    *   `stdio-server.ts` / `http-server.ts`: Entry points for the two server types.
-    *   `tools/`: Implements the slash commands available to the user (e.g., `/forge-start`, `/df`).
-    *   `prompts/`: Manages the conversational logic and orchestration of droids.
-    *   `execution/`: Foundations for the future parallel orchestration stack—resource locking (`resourceLocks.ts`), task management (`manager.ts`), isolated work areas (`staging.ts`), and safe merging (`merger.ts`). In Phase 1 the orchestrator still runs specialists serially while relying on this staging/merge pipeline for safety.
-    *   `generation/`: Handles the dynamic creation of droid personalities based on repository analysis.
-    *   `detectors/`: Contains the logic for scanning a repository and identifying its technical characteristics.
-*   `dist/`: Contains the compiled JavaScript code that is published to npm.
-*   `docs/`: Contains all project documentation.
-*   `scripts/`: Includes helper scripts, notably for automated UAT testing.
+Both `AGENTS.md` and `GEMINI.md` are auto-loaded on every Gemini CLI session.
 
-## 2. Building and Running
+### Headless Mode for Automation
 
-### Development Setup
+Non-interactive mode for scripts:
 
-1.  **Install Dependencies:**
-    ```bash
-    npm install
-    ```
-2.  **Build the Project:**
-    ```bash
-    npm run build
-    ```
-    This compiles all TypeScript files from `src/` to JavaScript in `dist/`.
+```bash
+# Simple text response
+gemini -p "What's the next task?"
 
-### Running the Server
+# JSON output for parsing
+gemini -p "List all pending tasks" --output-format json
 
-*   **For Local Development (with hot-reloading):**
-    ```bash
-    npm run dev
-    ```
-    This runs the stdio server directly from the TypeScript source using `ts-node`.
+# Stream events for long operations
+gemini -p "Expand all tasks" --output-format stream-json
+```
 
-*   **Running the Compiled Server:**
-    *   **STDIO:** `npm run start:stdio` or `node dist/mcp/stdio-server.js`
-    *   **HTTP:** `npm run start:http` or `node dist/mcp/http-server.js`
+### Token Usage Monitoring
 
-### Testing
+```bash
+# In Gemini CLI session
+/stats
 
-The project uses the native Node.js test runner.
+# Shows: token usage, API costs, request counts
+```
 
-*   **Run all tests:**
-    ```bash
-    npm test
-    ```
-    This command uses `tsx` to execute all `*.test.ts` and `*.e2e.test.ts` files within the `src/mcp/` directory.
+### Google Search Grounding
 
-*   **Local E2E Testing:** The `scripts/automated-uat2.exp` script provides a powerful way to test the full onboarding and execution flow against a local repository without needing to publish to npm.
-    ```bash
-    # Run against the current repo, automatically building and linking
-    UAT_SKIP_INSTALL=1 scripts/automated-uat2.exp
-    ```
+Leverage built-in Google Search as an alternative to Perplexity research mode:
+- Best practices research
+- Library documentation
+- Security vulnerability checks
+- Implementation patterns
 
-## 3. Development Conventions
+## Important Differences from Other Agents
 
-### Coding Style
+### No Slash Commands
+Gemini CLI does not support custom slash commands (unlike Claude Code). Use natural language instead.
 
-*   **Language:** All new code must be written in TypeScript.
-*   **Formatting:** The project uses **Prettier** for consistent code formatting and **ESLint** for code quality. Always run `npm run format` and `npm run lint` before committing.
-*   **Modules:** Use ES Module syntax (`import`/`export`).
-*   **Naming:** Use descriptive names for variables and functions. Droids created by the system should have the `df-` prefix.
+### No Tool Allowlist
+Security is managed at the MCP level, not via agent configuration.
 
-### Commit Messages
+### Session Persistence
+Use `/checkpoint` instead of git worktrees for managing multiple work contexts.
 
-Follow the **Conventional Commits** specification. This is crucial for automated versioning and changelog generation.
-*   `feat:` for new features.
-*   `fix:` for bug fixes.
-*   `docs:` for documentation changes.
-*   `test:` for adding or improving tests.
-*   `refactor:` for code changes that neither fix a bug nor add a feature.
-*   `chore:` for build process or auxiliary tool changes.
+### Configuration Files
+- Global: `~/.gemini/settings.json`
+- Project: `.gemini/settings.json`
+- **Not**: `.mcp.json` (that's for Claude Code)
 
-### Branching Strategy
+## Recommended Model Configuration
 
-*   Feature branches should be named `feature/<your-feature-name>`.
-*   Bugfix branches should be named `fix/<your-bug-fix>`.
+For Gemini CLI users:
 
-### Testing Practices
+```bash
+# Set Gemini as primary model
+task-master models --set-main gemini-2.0-flash-exp
+task-master models --set-fallback gemini-1.5-flash
 
-*   New features must be accompanied by tests.
-*   Bug fixes should include a regression test.
-*   Tests are located in the `__tests__` subdirectories, colocated with the code they are testing.
-*   E2E tests are critical and live in `src/mcp/__tests__/e2e/`.
+# Optional: Use Perplexity for research (or rely on Google Search)
+task-master models --set-research perplexity-llama-3.1-sonar-large-128k-online
+```
 
-### Documentation
+## Your Role with Gemini CLI
 
-*   The `docs/` directory follows the Diátaxis framework (tutorials, how-to guides, reference, explanation).
-*   Public-facing functions and classes should have JSDoc comments.
-*   The `README.md` and `QUICKSTART.md` are the primary entry points for users.
+As a Gemini CLI assistant with Task Master:
+
+1. **Use MCP tools naturally** - They integrate transparently in conversation
+2. **Reference files with @** - Leverage Gemini's file inclusion
+3. **Save checkpoints** - Offer to save state after significant progress
+4. **Monitor usage** - Remind users about `/stats` for long sessions
+5. **Use Google Search** - Leverage search grounding for research
+
+**Key Principle:** Focus on natural conversation. Task Master MCP tools work seamlessly with Gemini CLI's interface.
+
+---
+
+*See AGENTS.md for complete Task Master commands, workflows, and best practices.*
