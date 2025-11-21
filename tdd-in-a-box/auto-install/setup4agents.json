@@ -1,0 +1,70 @@
+{
+  "name": "TDD-in-a-Box Setup",
+  "description": "Automated instructions for preparing a repository with the TDD-in-a-Box workflow stack.",
+  "version": "1.0.0",
+  "steps": [
+    {
+      "id": "copy_bundle",
+      "description": "Copy the contents of tdd-in-a-box/ into the repository root.",
+      "commands": [
+        "cp -R tdd-in-a-box/* ./"
+      ],
+      "validation": [
+        {
+          "type": "file_exists",
+          "path": "AGENTS.md"
+        },
+        {
+          "type": "file_exists",
+          "path": "docs/guides/autopilot-tdd-stack-setup.md"
+        }
+      ]
+    },
+    {
+      "id": "install_dependencies",
+      "description": "Install Task-master and initialize project scaffolding.",
+      "commands": [
+        "npm install --save-dev task-master-ai",
+        "npx task-master init"
+      ],
+      "validation": [
+        {
+          "type": "file_exists",
+          "path": ".taskmaster/tasks/tasks.json"
+        }
+      ]
+    },
+    {
+      "id": "set_permissions",
+      "description": "Ensure helper scripts are executable.",
+      "commands": [
+        "chmod +x scripts/start-agent-work.sh",
+        "chmod +x scripts/autopilot-reset.sh",
+        "chmod +x scripts/autopilot-wrapup.sh"
+      ],
+      "validation": []
+    },
+    {
+      "id": "verify_agents_md",
+      "description": "Confirm AGENTS.md matches the TDD-in-a-Box template header.",
+      "commands": [],
+      "validation": [
+        {
+          "type": "file_contains",
+          "path": "AGENTS.md",
+          "pattern": "# Agent Operating Agreement"
+        }
+      ]
+    },
+    {
+      "id": "run_smoke_checks",
+      "description": "Perform post-install smoke tests.",
+      "commands": [
+        "npx task-master list --with-subtasks",
+        "./scripts/start-agent-work.sh || true",
+        "npx task-master autopilot status || true"
+      ],
+      "validation": []
+    }
+  ]
+}
