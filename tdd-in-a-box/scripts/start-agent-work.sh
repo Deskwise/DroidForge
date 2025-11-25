@@ -6,6 +6,72 @@
 
 set -euo pipefail
 
+# Instruction and role gates
+ACK_ROOT="$HOME/.factory/tdd-box/acks"
+PROJECT_KEY="$(pwd | sed 's#/#-#g')"
+ACK_DIR="$ACK_ROOT/$PROJECT_KEY"
+ACK_FILE="$ACK_DIR/docs.sha"
+ROLE_FILE="$ACK_DIR/role.txt"
+AGENT_DOCS=("AGENTS.md" "tdd-in-a-box/AGENTS.md" "tdd-in-a-box/new-spec/TDD-in-a-box-New-Specification.md")
+ALLOWED_ROLES=("implement" "audit" "remediate")
+
+require_instruction_ack() {
+  mkdir -p "$ACK_DIR"
+
+  for doc in "${AGENT_DOCS[@]}"; do
+    if [ ! -f "$doc" ]; then
+      echo "❌ Missing required instruction file: $doc"
+      echo "Ensure the TDD-in-a-Box bundle is intact before starting work."
+      exit 1
+    fi
+  done
+
+  local digest
+  digest=$(cat "${AGENT_DOCS[@]}" | sha256sum | awk '{print $1}')
+
+  if [ ! -f "$ACK_FILE" ] || [ "$(cat "$ACK_FILE")" != "$digest" ]; then
+    echo "📘 Instruction acknowledgment required"
+    echo "You must read these files before coding:"
+    printf ' - %s\n' "${AGENT_DOCS[@]}"
+    echo ""
+    printf "Type 'ack' after reading all files to continue: "
+    read -r RESPONSE
+    if [ "$RESPONSE" != "ack" ]; then
+      echo "Acknowledgment not confirmed. Aborting startup."
+      exit 1
+    fi
+    echo "$digest" > "$ACK_FILE"
+  fi
+}
+
+require_role_gate() {
+  mkdir -p "$ACK_DIR"
+  local role="${TDD_AGENT_ROLE:-}"
+
+  if [ -z "$role" ]; then
+    echo "❌ TDD_AGENT_ROLE not set."
+    echo "Set TDD_AGENT_ROLE to one of: ${ALLOWED_ROLES[*]}"
+    exit 1
+  fi
+
+  local allowed=false
+  for r in "${ALLOWED_ROLES[@]}"; do
+    if [ "$role" = "$r" ]; then
+      allowed=true
+      break
+    fi
+  done
+
+  if [ "$allowed" != true ]; then
+    echo "❌ Invalid TDD_AGENT_ROLE: $role"
+    echo "Allowed values: ${ALLOWED_ROLES[*]}"
+    exit 1
+  fi
+
+  echo "$role" > "$ROLE_FILE"
+  echo "🔒 Role locked for this session: $role"
+}
+
 # Ensure repo is clean before starting Autopilot
 if [ -n "$(git status --porcelain)" ]; then
   echo "🚫 WORKING TREE DIRTY"
@@ -23,8 +89,10 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
+require_instruction_ack
+require_role_gate
+
 SESSION_ROOT="$HOME/.taskmaster"
-PROJECT_KEY="$(pwd | sed 's#/#-#g')"
 SESSION_DIR="$SESSION_ROOT/$PROJECT_KEY/sessions"
 SESSION_FILE="$SESSION_DIR/workflow-state.json"
 SESSION_TASK_FILE="$SESSION_DIR/current-task.json"
