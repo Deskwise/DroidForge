@@ -33,6 +33,8 @@ If the TDD-in-a-Box assets were just copied into this repository, run the automa
    npx task-master use-tag <prefix>
    ```
 
+For the hardened workflow, read and follow `tdd-in-a-box/new-spec/TDD-in-a-box-New-Specification.md` and onboard via `tdd-in-a-box/new-spec/tdd-install.md`. The start script enforces acknowledgment of these instructions.
+
 For drift checks after setup, use `auto-install/repo_guidance.json` as a machine-readable validator.
 
 ## Mandatory pre-session ritual
