@@ -282,4 +282,28 @@ export class LockManager {
       }
     }
   }
+
+  /**
+   * Shutdown the lock manager, clearing all pending timers and rejecting queued requests.
+   * This is crucial for tests to ensure clean teardown.
+   */
+  shutdown(): void {
+    // Clear all pending timers and reject queued requests
+    for (const lock of this.locks.values()) {
+      for (const request of lock.queue) {
+        if (request.timer) {
+          clearTimeout(request.timer);
+          request.timer = undefined;
+        }
+        // Reject pending requests
+        try {
+          request.reject(new LockTimeoutError(request.nodeId, request.resources, request.timeout));
+        } catch {
+          // Ignore errors if already rejected/resolved
+        }
+      }
+      lock.queue.length = 0;
+    }
+    this.locks.clear();
+  }
 }

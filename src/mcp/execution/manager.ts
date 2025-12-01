@@ -290,12 +290,31 @@ export class ExecutionManager {
   }
   
   /**
-   * Shutdown the execution manager, waiting for all pending operations to complete.
+   * Shutdown the execution manager, waiting for all pending operations to complete
+   * and cleaning up all resources (timers, locks, etc.).
    * This is crucial for tests to ensure clean teardown.
    */
   async shutdown(): Promise<void> {
+    // Wait for pending persistence operations
     if (this.pendingPersists.size > 0) {
       await Promise.all(Array.from(this.pendingPersists));
+    }
+
+    // Shutdown all resource lock managers to clear timers
+    for (const lockManager of this.resourceLocks.values()) {
+      lockManager.shutdown();
+    }
+    this.resourceLocks.clear();
+
+    // Clear all execution locks
+    this.locks.clear();
+
+    // Clear all executions
+    this.executions.clear();
+
+    // Force garbage collection hint (doesn't actually GC but helps cleanup)
+    if (global.gc) {
+      global.gc();
     }
   }
 

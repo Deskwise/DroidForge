@@ -69,16 +69,17 @@ Autopilot drives a RED → GREEN → COMMIT cycle. Use `task-master autopilot ne
    ```bash
    task-master autopilot commit
    ```
-3. Do **not** call `task-master autopilot next` until the user approves the next subtask.
+3. Continue with remaining subtasks within the same major task. Do **not** call `task-master autopilot next` for the next major task until the user approves.
 
 ---
 
 ## 4. Human-in-the-loop checkpoint
 
-After Autopilot finishes COMMIT for a subtask:
-1. Announce completion using the template in `docs/guides/human-in-the-loop-workflow.md`.
-2. Stop work. Wait for explicit user approval before proceeding.
-3. When directed to continue, run `task-master autopilot next` to fetch instructions for the next subtask.
+After Autopilot finishes COMMIT for all subtasks and the major task is complete:
+1. Mark the major task as done: `task-master set-status --id=<taskId> --status=done`
+2. Announce completion using the template in `docs/guides/human-in-the-loop-workflow.md`.
+3. Stop work. Wait for explicit user approval before proceeding.
+4. When directed to continue, run `task-master autopilot next` to fetch instructions for the next major task.
 
 ---
 

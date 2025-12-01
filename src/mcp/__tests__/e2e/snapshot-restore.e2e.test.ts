@@ -38,7 +38,10 @@ describe('E2E: Snapshot and Restore', () => {
     }, null, 2));
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Shutdown execution manager to wait for any pending persistence operations
+    await executionManager.shutdown();
+
     if (repoRoot) {
       rmSync(repoRoot, { recursive: true, force: true });
     }

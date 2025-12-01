@@ -63,9 +63,10 @@ For drift checks after setup, use `auto-install/repo_guidance.json` as a machine
 
 ## Human-in-the-loop checkpoint
 
-After Autopilot commits a subtask:
+After Autopilot commits all subtasks and the major task is complete:
+- Mark the major task as done: `task-master set-status --id=<taskId> --status=done`
 - Announce completion using the template in `docs/guides/human-in-the-loop-workflow.md`.
-- Stop. Wait for explicit approval before running `task-master autopilot next`.
+- Stop. Wait for explicit approval before running `task-master autopilot next` for the next major task.
 
 ## Session wrap-up
 

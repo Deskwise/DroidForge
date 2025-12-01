@@ -69,7 +69,10 @@ describe('E2E: Full Onboarding Flow', () => {
     );
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    // Shutdown execution manager to wait for any pending persistence operations
+    await executionManager.shutdown();
+
     if (repoRoot) {
       rmSync(repoRoot, { recursive: true, force: true });
     }

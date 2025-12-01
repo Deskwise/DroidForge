@@ -83,6 +83,16 @@ export async function flushLogs(repoRoot: string): Promise<void> {
   await flushBuffer(repoRoot);
 }
 
+/**
+ * Clear all pending flush timers. Used for cleanup in tests.
+ */
+export function clearAllFlushTimers(): void {
+  for (const timer of flushTimers.values()) {
+    clearTimeout(timer);
+  }
+  flushTimers.clear();
+}
+
 export async function readLogTail(repoRoot: string, limit: number): Promise<string[]> {
   const target = getLogFilePath(repoRoot);
   try {

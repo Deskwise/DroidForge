@@ -3,6 +3,8 @@ import { SessionStore } from './sessionStore.js';
 import type { ToolDefinition, ToolInvocation } from './types.js';
 import { createPromptRegistry, type PromptBuilderContext } from './prompts/registry.js';
 import { PromptRunner } from './prompts/runner.js';
+import { ExecutionManager } from './execution/manager.js';
+import { flushLogs, clearAllFlushTimers } from './logging.js';
 
 export interface DroidForgeServerOptions {
   repoRoot: string;
@@ -10,11 +12,18 @@ export interface DroidForgeServerOptions {
 
 export class DroidForgeServer {
   private readonly sessionStore = new SessionStore();
+  private readonly executionManager = new ExecutionManager();
   private readonly tools: Map<string, ToolDefinition>;
-  private readonly prompts = createPromptRegistry({ sessionStore: this.sessionStore });
+  private readonly prompts = createPromptRegistry({ 
+    sessionStore: this.sessionStore,
+    executionManager: this.executionManager
+  });
 
   constructor(private readonly options: DroidForgeServerOptions) {
-    this.tools = createToolRegistry({ sessionStore: this.sessionStore });
+    this.tools = createToolRegistry({ 
+      sessionStore: this.sessionStore,
+      executionManager: this.executionManager
+    });
   }
 
   listTools(): string[] {
@@ -50,9 +59,43 @@ export class DroidForgeServer {
 
   /**
    * Graceful shutdown for the server to allow tests to cleanup resources.
-   * Currently waits for subsystems that expose shutdown semantics.
+   * Waits for all pending ExecutionManager operations to complete and flushes logs.
+   * Aggressively cleans up all handles to ensure process can exit.
    */
-  async shutdown(): Promise<void> {}
+  async shutdown(): Promise<void> {
+    // Flush logs for this repoRoot
+    await flushLogs(this.options.repoRoot).catch(() => {
+      // Ignore errors during shutdown
+    });
+
+    // Shutdown execution manager (clears all timers and resources)
+    await this.executionManager.shutdown();
+
+    // Clear any remaining logging timers (defensive cleanup)
+    clearAllFlushTimers();
+
+    // Aggressively unref all handles to allow process exit
+    const anyProc = process as any;
+    const handles: any[] = anyProc._getActiveHandles?.() ?? [];
+    for (const h of handles) {
+      try {
+        // Skip stdio handles
+        if (h === process.stdout || h === process.stderr || h === process.stdin) continue;
+        // Unref to allow process exit
+        h?.unref?.();
+        // Destroy sockets that aren't stdio
+        if (h?.destroy && typeof h.destroy === 'function') {
+          try {
+            h.destroy();
+          } catch {
+            // Ignore destroy errors
+          }
+        }
+      } catch {
+        // Ignore errors
+      }
+    }
+  }
 }
 
 /**

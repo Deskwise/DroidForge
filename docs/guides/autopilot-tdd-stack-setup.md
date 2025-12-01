@@ -146,7 +146,7 @@ Ensure the top-level docs you copied are linked:
 
 - `AGENTS.md` is the mandated entry point for agents
 - `docs/guides/taskmaster-guardrails.md` describes rituals (pre-session, subtask lifecycle, drift checks)
-- `docs/guides/human-in-the-loop-workflow.md` enforces post-subtask approvals before next work begins
+- `docs/guides/human-in-the-loop-workflow.md` enforces post-major-task approvals before next work begins
 - `docs/guides/autopilot-tdd-playbook.md` (if available) teaches the RED → GREEN → COMMIT flow
 - Optionally, add `docs/guides/taskmaster-best-practices.md` for future refinements
 

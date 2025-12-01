@@ -58,6 +58,9 @@ describe('Performance: Basic Stress Tests', () => {
       assert.ok(scanResult.summary, 'Should complete scan');
       assert.ok(scanTime < 5000, `Scan should complete in <5s, took ${scanTime}ms`);
 
+      // Cleanup execution manager
+      await executionManager.shutdown();
+
       console.log(`Performance metrics (1000 files):
   - File creation: ${fileCreationTime}ms
   - Smart scan: ${scanTime}ms`);
@@ -120,6 +123,9 @@ describe('Performance: Basic Stress Tests', () => {
       assert.ok(droidCount >= 8, `Should create at least 8 droids, created ${droidCount}`);
       assert.ok(forgeTime < 3000, `Forging should complete in <3s, took ${forgeTime}ms`);
 
+      // Cleanup execution manager
+      await executionManager.shutdown();
+
       console.log(`Performance metrics (${droidCount} droids):
   - Forge time: ${forgeTime}ms
   - Total time: ${Date.now() - startTime}ms`);
@@ -169,6 +175,9 @@ describe('Performance: Basic Stress Tests', () => {
       assert.ok(allCompleted, 'All executions should complete successfully');
       assert.ok(totalTime < 10000, `Concurrent executions should complete in <10s, took ${totalTime}ms`);
 
+      // Cleanup execution manager
+      await manager.shutdown();
+
       console.log(`Performance metrics (10 concurrent executions, 50 total tasks):
   - Total time: ${totalTime}ms
   - Average per execution: ${(totalTime / 10).toFixed(0)}ms`);
@@ -204,6 +213,9 @@ describe('Performance: Basic Stress Tests', () => {
 
       assert.ok(memoryIncrease < 50, `Memory increase should be <50MB, was ${memoryIncrease.toFixed(2)}MB`);
       assert.ok(totalTime < 15000, `100 operations should complete in <15s, took ${totalTime}ms`);
+
+      // Cleanup execution manager
+      await executionManager.shutdown();
 
       console.log(`Performance metrics (100 scan operations):
   - Total time: ${totalTime}ms

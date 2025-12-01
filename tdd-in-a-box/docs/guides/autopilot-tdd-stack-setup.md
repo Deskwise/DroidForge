@@ -138,7 +138,7 @@ Ensure the top-level docs you copied are linked:
 
 - `AGENTS.md` (included in the kit) is the mandated entry point for agents. Update contact info or repo-specific notes before first use.
 - `docs/guides/taskmaster-guardrails.md` describes rituals (pre-session, subtask lifecycle, drift checks)
-- `docs/guides/human-in-the-loop-workflow.md` enforces post-subtask approvals before next work begins
+- `docs/guides/human-in-the-loop-workflow.md` enforces post-major-task approvals before next work begins
 - `docs/guides/autopilot-agent-runbook.md` teaches the RED → GREEN → COMMIT flow
 - `docs/guides/autopilot-tdd-playbook.md` provides step-by-step TDD execution detail
 - Optionally, add further guidance (e.g., taskmaster best practices) once your team develops them

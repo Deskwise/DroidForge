@@ -67,14 +67,29 @@ test('onboarding prompt writes manifest and commands', { timeout: 60000 }, async
         // eslint-disable-next-line no-await-in-loop
         await (server as any).shutdown();
       }
+      
+      // Aggressive cleanup: destroy all handles to force process exit
+      const anyProc = process as any;
+      const handles: any[] = anyProc._getActiveHandles?.() ?? [];
+      for (const h of handles) {
+        try {
+          if (h === process.stdout || h === process.stderr || h === process.stdin) continue;
+          h?.unref?.();
+          if (h?.destroy && typeof h.destroy === 'function') {
+            try { h.destroy(); } catch {}
+          }
+        } catch {}
+      }
+      
       rmSync(repoRoot, { recursive: true, force: true });
     }
 });
 
 test('route orchestrator auto-creates execution plan and timeline', { timeout: 60000 }, async () => {
   const repoRoot = mkdtempSync(join(tmpdir(), 'droidforge-execution-'));
+  let server;
   try {
-    const server = createServer({ repoRoot });
+    server = createServer({ repoRoot });
 
     const result = await server.invoke({
       name: 'route_orchestrator',
@@ -96,6 +111,23 @@ test('route orchestrator auto-creates execution plan and timeline', { timeout: 6
     const list = await server.invoke({ name: 'list_executions', input: { repoRoot } }) as any;
     assert.ok(list.executions.some((entry: any) => entry.executionId === executionId));
   } finally {
+    if (server && typeof (server as any).shutdown === 'function') {
+      await (server as any).shutdown();
+    }
+    
+    // Aggressive cleanup: destroy all handles to force process exit
+    const anyProc = process as any;
+    const handles: any[] = anyProc._getActiveHandles?.() ?? [];
+    for (const h of handles) {
+      try {
+        if (h === process.stdout || h === process.stderr || h === process.stdin) continue;
+        h?.unref?.();
+        if (h?.destroy && typeof h.destroy === 'function') {
+          try { h.destroy(); } catch {}
+        }
+      } catch {}
+    }
+    
     rmSync(repoRoot, { recursive: true, force: true });
   }
 });

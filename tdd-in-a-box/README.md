@@ -23,7 +23,7 @@ tdd-in-a-box/
 │       ├── autopilot-tdd-stack-setup.md   # Full setup instructions
 │       ├── autopilot-agent-runbook.md     # Daily operating procedure for agents
 │       ├── taskmaster-guardrails.md       # Non-negotiable rules
-│       └── human-in-the-loop-workflow.md  # Post-subtask approval policy
+│       └── human-in-the-loop-workflow.md  # Post-major-task approval policy
 └── scripts/
     ├── start-agent-work.sh                # Launches the next Autopilot session
     ├── autopilot-reset.sh                 # Clears stale workflow-state.json safely
