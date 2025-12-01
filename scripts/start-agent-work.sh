@@ -52,9 +52,14 @@ echo "🎯 AGENT WORK INITIATION"
 echo "========================"
 echo ""
 
+# Determine the active tag from config (defaults to 'master' if not set)
+ACTIVE_TAG=$(jq -r '.global.defaultTag // "master"' .taskmaster/config.json 2>/dev/null || echo "master")
+echo "[0/5] Using task tag: $ACTIVE_TAG"
+echo ""
+
 # Step 1: Check for any available top-level tasks
 echo "[1/5] Checking for available tasks..."
-AVAILABLE_TASK=$(jq -r '.master.tasks[] | select(.status == "pending") | .id' < .taskmaster/tasks/tasks.json | head -1)
+AVAILABLE_TASK=$(jq -r ".${ACTIVE_TAG}.tasks[] | select(.status == \"pending\") | .id" < .taskmaster/tasks/tasks.json | head -1)
 
 if [ -n "$AVAILABLE_TASK" ]; then
   echo ""
@@ -77,11 +82,11 @@ fi
 
 # Step 2: Check for available subtasks within in-progress tasks
 echo "[2/5] No top-level tasks available. Checking in-progress tasks..."
-IN_PROGRESS_TASK=$(jq -r '.master.tasks[] | select(.status == "in-progress") | .id' < .taskmaster/tasks/tasks.json | head -1)
+IN_PROGRESS_TASK=$(jq -r ".${ACTIVE_TAG}.tasks[] | select(.status == \"in-progress\") | .id" < .taskmaster/tasks/tasks.json | head -1)
 
 if [ -n "$IN_PROGRESS_TASK" ]; then
   echo "[3/5] Checking for available subtasks in Task $IN_PROGRESS_TASK..."
-  AVAILABLE_SUBTASK=$(jq -r ".master.tasks[] | select(.id == \"$IN_PROGRESS_TASK\") | .subtasks[] | select(.status == \"pending\") | .id" < .taskmaster/tasks/tasks.json | head -1)
+  AVAILABLE_SUBTASK=$(jq -r ".${ACTIVE_TAG}.tasks[] | select(.id == $IN_PROGRESS_TASK) | .subtasks[] | select(.status == \"pending\") | .id" < .taskmaster/tasks/tasks.json | head -1)
 
   if [ -n "$AVAILABLE_SUBTASK" ]; then
     echo ""
