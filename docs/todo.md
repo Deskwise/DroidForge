@@ -40,12 +40,12 @@ Goal: capture 10 mandatory data points via AI parsing, conversational follow-ups
 - [x] Handle error paths and edge cases.
 - [x] All subtasks (2.1–2.4) completed via Task Master.
 
-#### Task 3: Conversational Follow-up Logic (IN PROGRESS)
+#### Task 3: Conversational Follow-up Logic (DONE)
 - [x] Implement adaptive question asking for missing or low-confidence fields.
 - [x] Create a one-question-at-a-time flow.
 - [x] Add session resumption with validation.
 - [x] Present a confirmation summary before methodology selection.
-- [ ] All subtasks (3.1–3.4) completed; some testing and refinement remain.
+- [x] All subtasks (3.1–3.4) completed; validation logic fixed and E2E tests passed.
 
 #### Task 4: Methodology Recommendation Engine (PENDING)
 - [ ] Build AI reasoning to recommend exactly three methodologies.

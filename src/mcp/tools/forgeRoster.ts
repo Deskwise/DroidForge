@@ -75,14 +75,17 @@ function collectMissing(session: OnboardingSession): string[] {
   const have = (value: unknown) => typeof value === 'string' && value.trim().length > 0;
   const missing: string[] = [];
 
-  // Check projectVision from onboarding or fallback to description
-  if (!have(session.onboarding.projectVision ?? session.description)) {
+  // Check projectVision from onboarding nested structure or fallback to description
+  const projectVision = session.onboarding?.requiredData?.projectVision?.value ?? session.onboarding?.projectVision ?? session.description;
+  if (!have(projectVision)) {
     missing.push(FIELD_LABELS.projectVision);
   }
 
-  // Check other onboarding fields
+  // Check other onboarding fields in nested structure first, then fallback to flat fields
   for (const field of REQUIRED_ONBOARDING_FIELDS.filter(f => f !== 'projectVision')) {
-    const value = (session.onboarding as any)[field] ?? (session as any)[field];
+    const nestedValue = (session.onboarding?.requiredData as Record<string, {value: string}>)?.[field]?.value;
+    const flatValue = (session as unknown as Record<string, unknown>)[field];
+    const value = nestedValue ?? flatValue;
     if (!have(value)) {
       missing.push(FIELD_LABELS[field] ?? field);
     }

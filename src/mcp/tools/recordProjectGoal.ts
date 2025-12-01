@@ -19,10 +19,10 @@ export function createRecordProjectGoalTool(deps: Deps): ToolDefinition<RecordPr
       const raw = (input.description ?? '').toString();
       const sanitized = raw
         // Strip bracketed paste enable/disable and paste markers
-        .replace(/\x1b\[\?2004[hl]/g, '')
-        .replace(/\x1b\[200~|\x1b\[201~/g, '')
+        .replace(new RegExp('\\u001b\\[\\?2004[hl]', 'g'), '')
+        .replace(new RegExp('\\u001b\\[200~|\\u001b\\[201~', 'g'), '')
         // Strip generic ANSI CSI sequences
-        .replace(/\x1b\[[0-9;]*[A-Za-z]/g, '')
+        .replace(new RegExp('\\u001b\\[[0-9;]*[A-Za-z]', 'g'), '')
         // Normalize newlines and trim stray carriage returns
         .replace(/\r/g, '')
         .trim();
@@ -38,9 +38,11 @@ export function createRecordProjectGoalTool(deps: Deps): ToolDefinition<RecordPr
       }
       if (!description && process.env.DROIDFORGE_VISION_FILE) {
         try {
-          const p = process.env.DROIDFORGE_VISION_FILE!;
-          const data = await fs.readFile(p, 'utf8');
-          description = data.replace(/\x1b\[[0-9;]*[A-Za-z]/g, '').replace(/\r/g, '').trim();
+          const p = process.env.DROIDFORGE_VISION_FILE;
+          if (p) {
+            const data = await fs.readFile(p, 'utf8');
+            description = data.replace(new RegExp('\\u001b\\[[0-9;]*[A-Za-z]', 'g'), '').replace(/\r/g, '').trim();
+          }
         } catch {
           // ignore file errors; we'll fall back to empty string
         }
@@ -55,7 +57,7 @@ export function createRecordProjectGoalTool(deps: Deps): ToolDefinition<RecordPr
           const { spawnSync } = await import('node:child_process');
           spawnSync(editor, [tmp], { stdio: 'inherit' });
           const data = await fs.readFile(tmp, 'utf8');
-          description = data.replace(/\x1b\[[0-9;]*[A-Za-z]/g, '').replace(/\r/g, '').trim();
+          description = data.replace(new RegExp('\\u001b\\[[0-?]*[ -/]*[@-~]', 'g'), '').replace(/\r/g, '').trim();
         } catch {
           // if editor fails, keep description empty to trigger normal validation below
           description = '';
@@ -79,7 +81,19 @@ export function createRecordProjectGoalTool(deps: Deps): ToolDefinition<RecordPr
         throw new Error('No active onboarding session found. Please run /forge-start first.');
       }
       session.description = description;
-      session.onboarding.projectVision = description;
+      (session as unknown as { projectVision?: string }).projectVision = description; // Flat field for backward compatibility with validation
+      
+      // Ensure onboarding object exists
+      if (!session.onboarding) {
+        session.onboarding = {
+          requiredData: {},
+          collectionMetadata: {},
+          methodology: {},
+          team: {}
+        };
+      }
+      
+      session.onboarding.projectVision = description; // Nested field
       session.state = 'collecting-goal';
       await deps.sessionStore.save(repoRoot, session);
       await appendLog(repoRoot, {

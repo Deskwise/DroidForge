@@ -1,9 +1,6 @@
 import { createConfirmMethodologyTool } from '../../../tools/confirmMethodology.js';
-import { createSelectMethodologyTool } from '../../../tools/selectMethodology.js';
 import { SessionStore } from '../../../sessionStore.js';
 import { ExecutionManager } from '../../../execution/manager.js';
-import { createSmartScanTool } from '../../../tools/smartScan.js';
-import { createRecordProjectGoalTool } from '../../../tools/recordProjectGoal.js';
 
 type Deps = { sessionStore: SessionStore; executionManager: ExecutionManager };
 
@@ -14,6 +11,7 @@ export async function completeOnboardingSetup(deps: Deps, repoRoot: string, sess
   const sessionStore = deps.sessionStore;
   const session = await sessionStore.load(repoRoot, sessionId);
   if (session) {
+    // Set legacy flat fields for backward compatibility
     session.targetAudience ||= 'Test users';
     session.timelineConstraints ||= '3 months';
     session.qualityVsSpeed ||= 'Balanced';
@@ -23,12 +21,36 @@ export async function completeOnboardingSetup(deps: Deps, repoRoot: string, sess
     session.deploymentRequirements ||= 'Cloud';
     session.securityRequirements ||= 'Standard';
     session.scalabilityNeeds ||= 'Medium';
+    
+    // Also populate nested onboarding structure (new format)
+    if (!session.onboarding) {
+      session.onboarding = {
+        requiredData: {},
+        collectionMetadata: {},
+        methodology: {},
+        team: {}
+      };
+    }
+    
+    session.onboarding.requiredData = {
+      projectVision: { value: session.projectVision || 'Test project vision', confidence: 1.0, source: 'test' },
+      targetAudience: { value: session.targetAudience, confidence: 1.0, source: 'test' },
+      timelineConstraints: { value: session.timelineConstraints, confidence: 1.0, source: 'test' },
+      qualityVsSpeed: { value: session.qualityVsSpeed, confidence: 1.0, source: 'test' },
+      teamSize: { value: session.teamSize, confidence: 1.0, source: 'test' },
+      experienceLevel: { value: session.experienceLevel, confidence: 1.0, source: 'test' },
+      budgetConstraints: { value: session.budgetConstraints, confidence: 1.0, source: 'test' },
+      deploymentRequirements: { value: session.deploymentRequirements, confidence: 1.0, source: 'test' },
+      securityRequirements: { value: session.securityRequirements, confidence: 1.0, source: 'test' },
+      scalabilityNeeds: { value: session.scalabilityNeeds, confidence: 1.0, source: 'test' }
+    };
+    
     await sessionStore.save(repoRoot, session);
   }
 
   // Confirm methodology (some flows expect this flag be set before selection).
   // Do NOT select methodology here so tests retain control over the explicit
   // selection step (selecting moves session to 'roster').
-  const confirm = createConfirmMethodologyTool(deps as any);
+  const confirm = createConfirmMethodologyTool(deps);
   await confirm.handler({ repoRoot, sessionId, methodology });
 }
