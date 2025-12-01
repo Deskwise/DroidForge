@@ -39,14 +39,38 @@ Workflow system for managing AI coding agents with strict TDD enforcement and qu
 
 ## Quick Start
 
+### Starting a New Agent Session
+
+**Option 1: Use the onboarding prompt (Recommended)**
 ```bash
-# 1. Point agent to AGENTS.md
-# 2. Agent runs:
+# Print the deterministic prompt
+./tdd/scripts/print-onboarding-prompt.sh
+
+# Copy the output and paste it into a fresh agent session
+```
+
+**Option 2: Manual**
+```bash
+# 1. Open a fresh agent session
+# 2. Copy contents of: tdd/docs/prompts/agent-onboarding-prompt.md
+# 3. Paste into agent
+```
+
+### Workflow
+
+```bash
+# 1. Agent runs pre-session ritual
+npx task-master list --with-subtasks
+git status -sb
+
+# 2. Agent starts work
 ./tdd/scripts/start-agent-work.sh
 
-# 3. You approve, agent works through TDD cycle
+# 3. You approve, agent works through TDD cycle (RED → GREEN → COMMIT)
+
 # 4. When task complete, you say: "Audit Task X"
 #    (Best Practice: Start a NEW agent session for the audit)
+
 # 5. If crash: ./tdd/scripts/recovery-helper.sh
 ```
 
@@ -61,7 +85,8 @@ tdd/
 │   ├── autopilot-wrapup.sh    # Clean finish
 │   ├── autopilot-reset.sh     # Abort/crash cleanup
 │   ├── recovery-helper.sh     # Automated crash recovery
-│   └── tm-commit.sh           # Commit guardrail
+│   ├── tm-commit.sh           # Commit guardrail
+│   └── print-onboarding-prompt.sh  # Print onboarding prompt
 └── docs/
     ├── guides/
     │   ├── taskmaster-guardrails.md
@@ -69,7 +94,8 @@ tdd/
     │   ├── autopilot-tdd-playbook.md
     │   └── human-in-the-loop-workflow.md
     └── prompts/
-        └── kick-off.md        # New agent onboarding
+        ├── kick-off.md        # New agent onboarding (reference)
+        └── agent-onboarding-prompt.md  # Copy-paste ready prompt
 ```
 
 ## Key Concepts
