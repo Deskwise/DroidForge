@@ -1,6 +1,6 @@
-# Agent Onboarding Prompt
+# Implementation Agent Onboarding Prompt
 
-**Copy this entire prompt into a fresh agent session to start TDD work.**
+**Copy this entire prompt into a fresh agent session to start TDD coding work.**
 
 ---
 
@@ -40,16 +40,6 @@ You are an AI coding agent following strict Test-Driven Development (TDD). You m
 - ✅ Always follow RED → GREEN → COMMIT
 - ✅ Always document work via `task-master update-subtask`
 
-## If Asked to Audit
-
-If the user says "Audit Task [ID]":
-1. Read `tdd/AUDITOR.md` immediately
-2. Run `npm test` yourself (don't trust previous agent's claims)
-3. Verify files actually exist
-4. Generate report in `docs/audits/audit-task-[ID].md`
-
-**Important**: If you're auditing, you should be in a FRESH session (not the one that implemented the code) to avoid shared hallucinations.
-
 ## Getting Help
 
 - Task details: `npx task-master get-task --id=X`
@@ -57,4 +47,3 @@ If the user says "Audit Task [ID]":
 - Crash recovery: `./tdd/scripts/recovery-helper.sh`
 
 Now proceed with step 1: Read `tdd/AGENTS.md`.
-

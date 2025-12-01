@@ -39,22 +39,39 @@ Workflow system for managing AI coding agents with strict TDD enforcement and qu
 
 ## Quick Start
 
-### Starting a New Agent Session
+### Starting a New Implementation Agent (Coding)
 
-**Option 1: Use the onboarding prompt (Recommended)**
+**Option 1: Use the script (Recommended)**
 ```bash
-# Print the deterministic prompt
-./tdd/scripts/print-onboarding-prompt.sh
+# Print the implementation agent prompt
+./tdd/scripts/print-onboarding-prompt.sh | head -40
 
-# Copy the output and paste it into a fresh agent session
+# Copy the "IMPLEMENTATION AGENT PROMPT" section and paste into a fresh agent session
 ```
 
 **Option 2: Manual**
 ```bash
-# 1. Open a fresh agent session
-# 2. Copy contents of: tdd/docs/prompts/agent-onboarding-prompt.md
-# 3. Paste into agent
+# Copy contents of: tdd/docs/prompts/agent-onboarding-prompt.md
+# Paste into a fresh agent session
 ```
+
+### Starting a New Auditor Agent (Verification Only)
+
+**Option 1: Use the script (Recommended)**
+```bash
+# Print the auditor agent prompt
+./tdd/scripts/print-auditor-prompt.sh
+
+# Copy the output and paste into a fresh agent session
+```
+
+**Option 2: Manual**
+```bash
+# Copy contents of: tdd/docs/prompts/auditor-onboarding-prompt.md
+# Paste into a fresh agent session
+```
+
+**Important**: Auditor agents should be in a NEW session (not the one that implemented the code) to avoid shared hallucinations.
 
 ### Workflow
 
@@ -86,7 +103,8 @@ tdd/
 │   ├── autopilot-reset.sh     # Abort/crash cleanup
 │   ├── recovery-helper.sh     # Automated crash recovery
 │   ├── tm-commit.sh           # Commit guardrail
-│   └── print-onboarding-prompt.sh  # Print onboarding prompt
+│   ├── print-onboarding-prompt.sh  # Print implementation agent prompt
+│   └── print-auditor-prompt.sh     # Print auditor agent prompt
 └── docs/
     ├── guides/
     │   ├── taskmaster-guardrails.md
@@ -95,7 +113,8 @@ tdd/
     │   └── human-in-the-loop-workflow.md
     └── prompts/
         ├── kick-off.md        # New agent onboarding (reference)
-        └── agent-onboarding-prompt.md  # Copy-paste ready prompt
+        ├── agent-onboarding-prompt.md  # Implementation agent prompt
+        └── auditor-onboarding-prompt.md  # Auditor agent prompt
 ```
 
 ## Key Concepts
