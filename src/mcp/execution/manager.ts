@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { ExecutionLock } from './synchronization.js';
-import { ResourceLockManager } from './resourceLocks.js';
+import { LockManager } from './lockManager.js';
 import { DeadlockDetector } from './deadlockDetector.js';
 import { ExecutionPersistence } from './persistence.js';
 
@@ -99,7 +99,7 @@ export interface NodeSchedule {
 export class ExecutionManager {
   private readonly executions = new Map<string, ExecutionRecord>();
   private readonly locks = new Map<string, ExecutionLock>();
-  private readonly resourceLocks = new Map<string, ResourceLockManager>();
+  private readonly resourceLocks = new Map<string, LockManager>();
   private readonly deadlockDetector = new DeadlockDetector();
   private readonly persistence = new ExecutionPersistence();
   private readonly pendingPersists = new Set<Promise<void>>();
@@ -121,9 +121,9 @@ export class ExecutionManager {
    * @param executionId The execution ID
    * @returns The resource lock manager
    */
-  private getResourceLockManager(executionId: string): ResourceLockManager {
+  private getResourceLockManager(executionId: string): LockManager {
     if (!this.resourceLocks.has(executionId)) {
-      this.resourceLocks.set(executionId, new ResourceLockManager());
+      this.resourceLocks.set(executionId, new LockManager());
     }
     return this.resourceLocks.get(executionId)!;
   }
