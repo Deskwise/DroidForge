@@ -37,7 +37,6 @@ test('SessionStore persistence snapshots', async (t) => {
   };
 
   await t.test('saveSnapshot appends to jsonl and updates canonical json', async () => {
-    // @ts-ignore - methods not implemented yet
     await store.saveSnapshot(session);
 
     const jsonlPath = path.join(repoRoot, '.factory', 'sessions', `${sessionId}.jsonl`);
@@ -56,7 +55,6 @@ test('SessionStore persistence snapshots', async (t) => {
 
     // Update session and save again
     const updatedSession = { ...session, state: 'analyzing' as const };
-    // @ts-ignore
     await store.saveSnapshot(updatedSession);
 
     const jsonlContent2 = await readFile(jsonlPath, 'utf8');
@@ -69,7 +67,6 @@ test('SessionStore persistence snapshots', async (t) => {
   });
 
   await t.test('loadSnapshot retrieves the last state', async () => {
-    // @ts-ignore
     const loaded = await store.loadSnapshot(repoRoot, sessionId);
     
     assert.ok(loaded, 'Snapshot loaded successfully');
@@ -80,3 +77,44 @@ test('SessionStore persistence snapshots', async (t) => {
   await rm(repoRoot, { recursive: true, force: true });
 });
 
+test('SessionStore.loadActive prioritizes snapshots', async (t) => {
+  const repoRoot = await makeRepoRoot();
+  const store = new SessionStore();
+  const sessionId = 'test-snapshot-priority';
+  
+  const baseSession: OnboardingSession = {
+    sessionId,
+    repoRoot,
+    createdAt: new Date().toISOString(),
+    state: 'collecting-goal',
+    onboarding: { requiredData: {} }
+  };
+
+  // 1. Create a stale canonical session file
+  await store.save(repoRoot, baseSession);
+
+  // 2. Create a newer snapshot file manually via saveSnapshot
+  // This will also update the canonical file, so we need to explicitly revert the canonical file afterwards
+  // to confirm priority.
+  const newerSession = { ...baseSession, state: 'analyzing' as const };
+  await store.saveSnapshot(newerSession);
+
+  // 3. Revert canonical with old data
+  await store.save(repoRoot, baseSession);
+
+  // 4. Verify loadActive returns the snapshot version (newerSession)
+  const loaded = await store.loadActive(repoRoot);
+  assert.ok(loaded, 'Session loaded');
+  assert.strictEqual(loaded?.sessionId, sessionId);
+  assert.strictEqual(loaded?.state, 'analyzing', 'Should load from snapshot, which has state "analyzing"');
+  
+  // 5. Verify it handles missing snapshot by falling back to canonical
+  const snapshotPath = path.join(repoRoot, '.factory', 'sessions', `${sessionId}.jsonl`);
+  await rm(snapshotPath);
+  
+  const loadedFallback = await store.loadActive(repoRoot);
+  assert.ok(loadedFallback, 'Session loaded');
+  assert.strictEqual(loadedFallback?.state, 'collecting-goal', 'Should fall back to canonical state');
+
+  await rm(repoRoot, { recursive: true, force: true });
+});

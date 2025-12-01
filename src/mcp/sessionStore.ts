@@ -143,6 +143,12 @@ export class SessionStore {
       const sessions = await Promise.all(
         sessionFiles.map(async file => {
           try {
+            const sessionId = path.basename(file, '.json');
+            // Check for snapshot first
+            const snapshot = await this.loadSnapshot(repoRoot, sessionId);
+            if (snapshot) return snapshot;
+
+            // Fallback to canonical
             const raw = await fs.readFile(path.join(dir, file), 'utf8');
             return JSON.parse(raw) as OnboardingSession;
           } catch {
