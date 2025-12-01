@@ -62,6 +62,25 @@ interface ExecutionRecord {
   concurrency: number;
 }
 
+interface PersistedExecution {
+  id: string;
+  repoRoot: string;
+  createdAt: string;
+  status: ExecutionStatus;
+  plan: ExecutionPlan;
+  concurrency: number;
+  nodes: Array<{
+    nodeId: string;
+    spec: ExecutionPlanNode;
+    status: NodeStatus;
+    startedAt?: string;
+    finishedAt?: string;
+  }>;
+  requests: Array<{ droidId: string; request: string }>;
+  timeline: TimelineEvent[];
+  lastUpdated: string;
+}
+
 export interface EnqueuePayload {
   executionId?: string;
   repoRoot: string;
@@ -113,7 +132,7 @@ export class ExecutionManager {
     if (!this.locks.has(executionId)) {
       this.locks.set(executionId, new ExecutionLock());
     }
-    return this.locks.get(executionId)!;
+    return this.locks.get(executionId) ?? new ExecutionLock();
   }
 
   /**
@@ -125,7 +144,7 @@ export class ExecutionManager {
     if (!this.resourceLocks.has(executionId)) {
       this.resourceLocks.set(executionId, new LockManager());
     }
-    return this.resourceLocks.get(executionId)!;
+    return this.resourceLocks.get(executionId) ?? new LockManager();
   }
 
   enqueue(payload: EnqueuePayload): EnqueueResult {
@@ -208,7 +227,8 @@ export class ExecutionManager {
     // Find first node that can acquire its locks
     for (let i = 0; i < record.readyQueue.length; i++) {
       const nodeId = record.readyQueue[i];
-      const nodeState = record.nodes.get(nodeId)!;
+      const nodeState = record.nodes.get(nodeId);
+      if (!nodeState) continue;
       const claims = nodeState.spec.resourceClaims ?? [];
       const mode = nodeState.spec.mode ?? 'write';
 
@@ -444,7 +464,7 @@ export class ExecutionManager {
    * 
    * @param persisted Persisted execution state
    */
-  private restoreFromPersisted(persisted: any): void {
+  private restoreFromPersisted(persisted: PersistedExecution): void {
     const record = this.createRecord(persisted.id, persisted.repoRoot);
     record.createdAt = persisted.createdAt;
     record.status = persisted.status;
