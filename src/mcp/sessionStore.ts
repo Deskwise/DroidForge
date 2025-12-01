@@ -5,6 +5,7 @@ import type { OnboardingSession } from './types.js';
 import { deepMerge } from './utils/deepMerge.js';
 
 const SESSION_DIRNAME = '.droidforge/session';
+const SNAPSHOT_DIRNAME = '.factory/sessions';
 
 async function ensureDir(dir: string) {
   await mkdirp(dir);
@@ -14,6 +15,10 @@ function sessionPath(repoRoot: string, sessionId: string): string {
   return path.join(repoRoot, SESSION_DIRNAME, `${sessionId}.json`);
 }
 
+function snapshotPath(repoRoot: string, sessionId: string): string {
+  return path.join(repoRoot, SNAPSHOT_DIRNAME, `${sessionId}.jsonl`);
+}
+
 export class SessionStore {
   async load(repoRoot: string, sessionId: string): Promise<OnboardingSession | null> {
     const target = sessionPath(repoRoot, sessionId);
@@ -21,6 +26,42 @@ export class SessionStore {
       const raw = await fs.readFile(target, 'utf8');
       const data = JSON.parse(raw) as OnboardingSession;
       return data;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Append the session state to the .jsonl snapshot history and update the canonical file.
+   */
+  async saveSnapshot(session: OnboardingSession): Promise<void> {
+    // 1. Update canonical file (reusing existing save logic)
+    await this.save(session.repoRoot, session);
+
+    // 2. Append to snapshot file
+    const snapshotFile = snapshotPath(session.repoRoot, session.sessionId);
+    await ensureDir(path.dirname(snapshotFile));
+    const line = JSON.stringify(session) + '\n';
+    await fs.appendFile(snapshotFile, line, 'utf8');
+  }
+
+  /**
+   * Read the last line from the snapshot file to restore state.
+   */
+  async loadSnapshot(repoRoot: string, sessionId: string): Promise<OnboardingSession | null> {
+    const snapshotFile = snapshotPath(repoRoot, sessionId);
+    try {
+      // Read entire file and parse last non-empty line
+      // (For large files, reading backward would be better, but sufficient for onboarding sessions)
+      const content = await fs.readFile(snapshotFile, 'utf8');
+      const lines = content.trim().split('\n');
+      if (lines.length === 0) return null;
+      
+      const lastLine = lines[lines.length - 1];
+      return JSON.parse(lastLine) as OnboardingSession;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
         return null;
