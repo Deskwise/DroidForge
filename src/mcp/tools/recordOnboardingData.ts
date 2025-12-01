@@ -107,7 +107,7 @@ export function createRecordOnboardingDataTool(deps: Deps): ToolDefinition<Recor
         throw new Error('No onboarding data provided. Please answer the question before I record it.');
       }
 
-      await deps.sessionStore.save(repoRoot, session);
+      await deps.sessionStore.saveSnapshot(session);
       await appendLog(repoRoot, {
         timestamp: new Date().toISOString(),
         event: 'record_onboarding_data',

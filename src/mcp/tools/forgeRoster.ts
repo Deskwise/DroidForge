@@ -117,13 +117,13 @@ export function createForgeRosterTool(deps: Deps): ToolDefinition<ForgeRosterInp
 
       session.selectedDroids = selected.map(item => item.id);
       session.customDroids = custom;
-      await deps.sessionStore.save(repoRoot, session);
+      await deps.sessionStore.saveSnapshot(session);
 
       const ctx = { repoRoot, methodology: session.methodology ?? null };
       const result = await forgeDroids({ ...input, selected, custom }, ctx);
 
       session.state = 'complete';
-      await deps.sessionStore.save(repoRoot, session);
+      await deps.sessionStore.saveSnapshot(session);
 
       const bootLog = result.droids.map(def =>
         `[BOOT] ${def.id} online. → Purpose: ${def.purpose}`

@@ -31,7 +31,7 @@ export function createRecommendDroidsTool(deps: Deps): ToolDefinition<RecommendD
       }
       const suggestions = buildSuggestions(session);
       session.state = 'roster';
-      await deps.sessionStore.save(input.repoRoot, session);
+      await deps.sessionStore.saveSnapshot(session);
       await appendLog(input.repoRoot, {
         timestamp: new Date().toISOString(),
         event: 'recommend_droids',

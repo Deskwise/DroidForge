@@ -183,7 +183,7 @@ export function createSelectMethodologyTool(deps: Deps): ToolDefinition<SelectMe
         : mappedChoice;
       session.methodology = resolved;
       session.state = 'roster';
-      await deps.sessionStore.save(repoRoot, session);
+      await deps.sessionStore.saveSnapshot(session);
       await appendLog(repoRoot, {
         timestamp: new Date().toISOString(),
         event: 'select_methodology',

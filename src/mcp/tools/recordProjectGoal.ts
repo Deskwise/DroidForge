@@ -95,7 +95,7 @@ export function createRecordProjectGoalTool(deps: Deps): ToolDefinition<RecordPr
       
       session.onboarding.projectVision = description; // Nested field
       session.state = 'collecting-goal';
-      await deps.sessionStore.save(repoRoot, session);
+      await deps.sessionStore.saveSnapshot(session);
       await appendLog(repoRoot, {
         timestamp: new Date().toISOString(),
         event: 'record_project_goal',
