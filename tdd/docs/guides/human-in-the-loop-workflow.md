@@ -46,12 +46,13 @@ After Autopilot finishes all subtasks for a major task:
 
 After implementation, before merge:
 
-1. User says: "Audit Task X"
-2. Agent reads `tdd/AUDITOR.md`
-3. Agent runs tests, inspects code, generates report
-4. Report goes in `docs/audits/audit-task-X.md`
-5. If PASS: commit report, ready to merge
-6. If FAIL: list issues for remediation
+1. **Recommendation**: User starts a **fresh agent session** (clears context).
+2. User says: "Audit Task X"
+3. Agent reads `tdd/AUDITOR.md`
+4. Agent runs tests, inspects code, generates report
+5. Report goes in `docs/audits/audit-task-X.md`
+6. If PASS: commit report, ready to merge
+7. If FAIL: list issues for remediation
 
 ## Why This Matters
 
@@ -59,4 +60,3 @@ After implementation, before merge:
 - Creates natural review points
 - Maintains human control over project direction
 - Builds audit trail for compliance
-

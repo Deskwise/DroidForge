@@ -6,6 +6,8 @@
 
 Trigger an audit when the user says: **"Audit Task [ID]"** or after completing a major task.
 
+**BEST PRACTICE**: Audits should be performed by a **fresh agent session** (not the one that implemented the code). This prevents shared hallucinations and ensures objective verification.
+
 ## Audit Protocol
 
 ### 1. Pre-Flight Checks
@@ -92,4 +94,3 @@ git commit -m "chore: add audit report for task [ID]"
 1. Do NOT commit the report
 2. List critical issues for the user
 3. Recommend: hand session back to Implementation Agent with issue list
-

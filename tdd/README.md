@@ -23,7 +23,7 @@ Workflow system for managing AI coding agents with strict TDD enforcement and qu
 ┌─────────┐
 │ REVIEW  │  Major task done, awaiting human review
 └────┬────┘
-     │ User invokes "Audit Task X"
+     │ User invokes "Audit Task X" (Fresh Session)
      ↓
 ┌─────────┐
 │ AUDITING│  Agent verifies work against standards
@@ -46,6 +46,7 @@ Workflow system for managing AI coding agents with strict TDD enforcement and qu
 
 # 3. You approve, agent works through TDD cycle
 # 4. When task complete, you say: "Audit Task X"
+#    (Best Practice: Start a NEW agent session for the audit)
 # 5. If crash: ./tdd/scripts/recovery-helper.sh
 ```
 
@@ -77,4 +78,3 @@ tdd/
 - **Audit Phase**: Mandatory verification after implementation, before merge
 - **Crash Recovery**: `recovery-helper.sh` tests partial work and helps decide keep/discard
 - **Commit Guardrail**: `tm-commit.sh` blocks commits during active sessions
-
