@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { ExecutionLock } from './synchronization.js';
 import { LockManager } from './lockManager.js';
 import { DeadlockDetector } from './deadlockDetector.js';
-import { ExecutionPersistence } from './persistence.js';
+import { ExecutionPersistence, type PersistedExecution } from './persistence.js';
 
 export type ExecutionStatus = 'planned' | 'running' | 'paused' | 'completed' | 'aborted' | 'failed';
 export type NodeStatus = 'pending' | 'ready' | 'running' | 'completed' | 'failed';
@@ -60,25 +60,6 @@ interface ExecutionRecord {
   timeline: TimelineEvent[];
   lastUpdated: string;
   concurrency: number;
-}
-
-interface PersistedExecution {
-  id: string;
-  repoRoot: string;
-  createdAt: string;
-  status: ExecutionStatus;
-  plan: ExecutionPlan;
-  concurrency: number;
-  nodes: Array<{
-    nodeId: string;
-    spec: ExecutionPlanNode;
-    status: NodeStatus;
-    startedAt?: string;
-    finishedAt?: string;
-  }>;
-  requests: Array<{ droidId: string; request: string }>;
-  timeline: TimelineEvent[];
-  lastUpdated: string;
 }
 
 export interface EnqueuePayload {
